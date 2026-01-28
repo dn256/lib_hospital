@@ -1,5 +1,34 @@
+<script setup lang="ts">
+import { ref, onMounted, onUnmounted } from 'vue'
+
+// Scroll state
+const isPaused = ref(false)
+const scrollY = ref(0)
+const pauseThreshold = 100 // Pause after scrolling 100px
+
+const handleScroll = () => {
+    if (typeof window !== 'undefined') {
+        scrollY.value = window.scrollY
+        isPaused.value = scrollY.value > pauseThreshold
+    }
+}
+
+onMounted(() => {
+    if (typeof window !== 'undefined') {
+        window.addEventListener('scroll', handleScroll, { passive: true })
+        handleScroll() // Check initial state
+    }
+})
+
+onUnmounted(() => {
+    if (typeof window !== 'undefined') {
+        window.removeEventListener('scroll', handleScroll)
+    }
+})
+</script>
+
 <template>
-    <div class="animated-background">
+    <div class="animated-background" :class="{ paused: isPaused }">
         <!-- Floating DNA Strands using CSS -->
         <div class="dna-container">
             <div class="dna-strand strand-1">
@@ -63,6 +92,19 @@
     z-index: 1;
     pointer-events: none;
     overflow: hidden;
+    transition: opacity 0.5s ease;
+}
+
+/* When paused, reduce opacity and stop animations */
+.animated-background.paused {
+    opacity: 0.3;
+}
+
+.animated-background.paused .dna-strand,
+.animated-background.paused .helix,
+.animated-background.paused .particle,
+.animated-background.paused .cell {
+    animation-play-state: paused;
 }
 
 /* =====================
@@ -81,6 +123,7 @@
     animation: dnaFloat 20s ease-in-out infinite;
     transform-style: preserve-3d;
     perspective: 1000px;
+    transition: opacity 0.5s ease;
 }
 
 .strand-1 {
@@ -120,6 +163,7 @@
     gap: 4px;
     animation: helixSpin 6s linear infinite;
     animation-delay: calc(var(--i) * -0.3s);
+    transition: transform 0.5s ease;
 }
 
 .nucleotide {
@@ -127,6 +171,7 @@
     height: 14px;
     border-radius: 50%;
     box-shadow: 0 0 20px currentColor;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
 
 .nucleotide.left {
@@ -147,6 +192,12 @@
             rgba(129, 212, 250, 0.4),
             rgba(255, 196, 0, 0.6));
     border-radius: 2px;
+    transition: opacity 0.3s ease;
+}
+
+/* Paused state - reduce glow */
+.animated-background.paused .nucleotide {
+    box-shadow: 0 0 8px currentColor;
 }
 
 /* =====================
@@ -162,6 +213,7 @@
     background: radial-gradient(circle, rgba(201, 162, 39, 0.6), transparent);
     border-radius: 50%;
     animation: particleFloat linear infinite;
+    transition: opacity 0.5s ease;
 }
 
 /* =====================
@@ -177,6 +229,7 @@
     border-radius: 50%;
     border: 2px solid rgba(129, 212, 250, 0.15);
     animation: cellPulse 8s ease-in-out infinite;
+    transition: opacity 0.5s ease;
 }
 
 .cell-1 {
