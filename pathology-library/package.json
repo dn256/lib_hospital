@@ -1,0 +1,32 @@
+{
+  "name": "pathology-library",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "nuxt build",
+    "dev": "nuxt dev",
+    "generate": "nuxt generate",
+    "preview": "nuxt preview",
+    "postinstall": "nuxt prepare"
+  },
+  "dependencies": {
+    "@mdi/font": "^7.4.47",
+    "@supabase/supabase-js": "^2.45.0",
+    "@tresjs/cientos": "^5.2.4",
+    "@tresjs/core": "^5.3.2",
+    "@tresjs/nuxt": "^5.1.6",
+    "nuxt": "^3.12.0",
+    "sass": "^1.97.3",
+    "three": "^0.182.0",
+    "vue": "^3.4.0",
+    "vue-router": "^4.4.0",
+    "vuetify": "^3.11.7",
+    "zod": "^3.23.0"
+  },
+  "devDependencies": {
+    "eslint": "^9.0.0",
+    "prettier": "^3.3.0",
+    "typescript": "^5.4.0",
+    "vite-plugin-vuetify": "^2.1.3"
+  }
+}
