@@ -1,0 +1,245 @@
+<script setup lang="ts">
+import { ref, onMounted } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
+import { useCases } from '~/composables/useCases'
+import { useCatalogs } from '~/composables/useCatalogs'
+import { useSupabaseClient } from '~/composables/useSupabaseClient'
+
+const route = useRoute()
+const versionId = route.params.versionId as string
+const supabase = useSupabaseClient()
+const { submitForReview } = useCases()
+const { organs, diagnoses, tags, loadAll } = useCatalogs()
+const router = useRouter()
+
+const form = ref<any>({})
+const selectedTagIds = ref<number[]>([])
+const loading = ref(true)
+const saving = ref(false)
+
+onMounted(async () => {
+    await loadAll()
+    await loadData()
+})
+
+const loadData = async () => {
+    loading.value = true
+    try {
+        // Fetch version
+        const { data, error } = await supabase.from('case_versions').select('*').eq('id', versionId).single()
+        if (error) throw error
+        form.value = { ...data }
+
+        // Fetch tags
+        const { data: tagData } = await supabase
+            .from('case_version_tags')
+            .select('tag_id')
+            .eq('version_id', versionId)
+
+        if (tagData) {
+            selectedTagIds.value = tagData.map((t: any) => t.tag_id)
+        }
+    } catch (e: any) {
+        console.error(e)
+        alert('Không tải được dữ liệu: ' + e.message)
+    } finally {
+        loading.value = false
+    }
+}
+
+const onSave = async () => {
+    saving.value = true
+    try {
+        // Update version
+        const { error } = await supabase.from('case_versions').update({
+            organ_id: form.value.organ_id,
+            diagnosis_id: form.value.diagnosis_id,
+            microscopic_description: form.value.microscopic_description,
+            note: form.value.note,
+            updated_at: new Date().toISOString()
+        }).eq('id', versionId)
+
+        if (error) throw error
+
+        // Update tags
+        // Simplest strategy: delete all and re-insert. 
+        // Real-world optimization: diff changes.
+        const { error: delError } = await supabase.from('case_version_tags').delete().eq('version_id', versionId)
+        if (delError) throw delError
+
+        if (selectedTagIds.value.length > 0) {
+            const tagRows = selectedTagIds.value.map(tid => ({ version_id: versionId, tag_id: tid }))
+            const { error: insError } = await supabase.from('case_version_tags').insert(tagRows)
+            if (insError) throw insError
+        }
+
+    } catch (e: any) {
+        throw new Error(e.message || 'Lỗi khi lưu')
+    } finally {
+        saving.value = false
+    }
+}
+
+const handleSave = async () => {
+    try {
+        await onSave()
+        alert('Đã lưu nháp')
+    } catch (e: any) {
+        alert(e.message)
+    }
+}
+
+const handleSubmitReview = async () => {
+    if (!confirm('Gửi duyệt phiên bản này? Bạn sẽ không thể chỉnh sửa cho đến khi được duyệt hoặc yêu cầu sửa đổi.')) return
+    try {
+        await onSave() // Ensure latest changes are saved
+        await submitForReview(versionId)
+        alert('Đã gửi duyệt thành công!')
+        router.push('/')
+    } catch (e: any) {
+        alert('Lỗi gửi duyệt: ' + e.message)
+    }
+}
+</script>
+
+<template>
+    <div class="container">
+        <div v-if="loading">Đang tải...</div>
+        <div v-else>
+            <h1 class="page-title">Biên tập: {{ form.id?.substring(0, 8) }}...</h1>
+            <div class="status-bar">
+                Trạng thái hiện tại: <strong>{{ form.status }}</strong>
+            </div>
+
+            <div class="form-layout">
+                <div class="main-column">
+                    <div class="form-group">
+                        <label>Mô tả vi thể</label>
+                        <textarea v-model="form.microscopic_description" rows="15" class="input-control"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label>Ghi chú</label>
+                        <textarea v-model="form.note" rows="3" class="input-control"></textarea>
+                    </div>
+                </div>
+
+                <div class="side-column">
+                    <div class="panel">
+                        <div class="form-group">
+                            <label>Cơ quan</label>
+                            <select v-model="form.organ_id" class="input-control">
+                                <option v-for="o in organs" :key="o.id" :value="o.id">{{ o.name }}</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Chẩn đoán</label>
+                            <select v-model="form.diagnosis_id" class="input-control">
+                                <option v-for="d in diagnoses" :key="d.id" :value="d.id">{{ d.name }}</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Tags</label>
+                            <!-- TagSelector Component -->
+                            <TagSelector v-model="selectedTagIds" :tags="tags" />
+                        </div>
+                    </div>
+
+                    <div class="actions">
+                        <button @click="handleSave" :disabled="saving" class="btn btn-save">
+                            {{ saving ? 'Đang lưu...' : 'Lưu Nháp' }}
+                        </button>
+                        <button @click="handleSubmitReview" :disabled="saving" class="btn btn-submit">
+                            Gửi Duyệt
+                        </button>
+                        <button @click="router.back()" class="btn btn-cancel">Thoát</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</template>
+
+<style scoped>
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+    font-family: sans-serif;
+}
+
+.page-title {
+    margin-bottom: 10px;
+}
+
+.status-bar {
+    margin-bottom: 20px;
+    background: #e0f2fe;
+    color: #0369a1;
+    padding: 8px 16px;
+    border-radius: 4px;
+}
+
+.form-layout {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 30px;
+}
+
+.input-control {
+    width: 100%;
+    padding: 8px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-size: 15px;
+}
+
+.form-group {
+    margin-bottom: 20px;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 6px;
+    font-weight: 600;
+    color: #4b5563;
+}
+
+.panel {
+    background: #f9fafb;
+    padding: 20px;
+    border-radius: 8px;
+    border: 1px solid #e5e7eb;
+    margin-bottom: 20px;
+}
+
+.actions {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.btn {
+    padding: 12px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: 600;
+}
+
+.btn-save {
+    background: #10b981;
+    color: white;
+}
+
+.btn-submit {
+    background: #4f46e5;
+    color: white;
+}
+
+.btn-cancel {
+    background: white;
+    border: 1px solid #ccc;
+}
+</style>
