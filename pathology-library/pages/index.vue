@@ -1,10 +1,22 @@
 <script setup lang="ts">
 import { ref, watch, onMounted, computed } from 'vue'
+import { useRouter } from 'vue-router'
 import { useCases } from '~/composables/useCases'
 import { useCatalogs } from '~/composables/useCatalogs'
+import { useAuth } from '~/composables/useAuth'
 
+const router = useRouter()
 const { search } = useCases()
 const { organs, diagnoses, tags, loadAll } = useCatalogs()
+const { user, signOut } = useAuth()
+
+// Navigation functions
+const goToLogin = () => router.push('/login')
+const goToNewCase = () => router.push('/editor/new')
+const handleLogout = async () => {
+    await signOut()
+    router.push('/')
+}
 
 // Search state
 const keyword = ref('')
@@ -162,7 +174,40 @@ const trustIndicators = [
                             <v-btn icon variant="text" color="white" class="d-none d-sm-flex">
                                 <v-icon>mdi-bell-outline</v-icon>
                             </v-btn>
-                            <v-btn color="accent" variant="flat" rounded="pill" class="login-btn">
+                            <!-- User is logged in -->
+                            <template v-if="user">
+                                <v-btn color="primary" variant="flat" rounded="pill" class="mr-2" @click="goToNewCase">
+                                    <v-icon start size="18">mdi-plus</v-icon>
+                                    Tạo mới
+                                </v-btn>
+                                <v-menu>
+                                    <template #activator="{ props }">
+                                        <v-btn color="accent" variant="flat" rounded="pill" v-bind="props">
+                                            <v-icon start size="18">mdi-account-circle</v-icon>
+                                            {{ user.email?.split('@')[0] }}
+                                            <v-icon end size="16">mdi-chevron-down</v-icon>
+                                        </v-btn>
+                                    </template>
+                                    <v-list density="compact">
+                                        <v-list-item @click="goToNewCase">
+                                            <template #prepend>
+                                                <v-icon size="18">mdi-plus-box</v-icon>
+                                            </template>
+                                            <v-list-item-title>Tạo ca bệnh mới</v-list-item-title>
+                                        </v-list-item>
+                                        <v-divider />
+                                        <v-list-item @click="handleLogout">
+                                            <template #prepend>
+                                                <v-icon size="18" color="error">mdi-logout</v-icon>
+                                            </template>
+                                            <v-list-item-title class="text-error">Đăng xuất</v-list-item-title>
+                                        </v-list-item>
+                                    </v-list>
+                                </v-menu>
+                            </template>
+                            <!-- User is not logged in -->
+                            <v-btn v-else color="accent" variant="flat" rounded="pill" class="login-btn"
+                                @click="goToLogin">
                                 <v-icon start size="18">mdi-account-circle</v-icon>
                                 Đăng nhập
                             </v-btn>
@@ -327,7 +372,7 @@ const trustIndicators = [
                                 </v-col>
                                 <v-col cols="12" sm="6" md="3">
                                     <v-select v-model="selectedDiagnosis" :items="diagnoses" item-title="name"
-                                        item-value="id" label="Nhóm bệnh" prepend-inner-icon="mdi-bacteria"
+                                        item-value="id" label="Chẩn đoán" prepend-inner-icon="mdi-bacteria"
                                         variant="outlined" density="comfortable" hide-details clearable />
                                 </v-col>
                                 <v-col cols="12" md="3">

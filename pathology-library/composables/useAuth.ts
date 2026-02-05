@@ -20,10 +20,15 @@ export const useAuth = () => {
         if (error) throw error
     }
 
+    const signUp = async (email: string, password: string) => {
+        const { error } = await supabase.auth.signUp({ email, password })
+        if (error) throw error
+    }
+
     const signOut = async () => {
         const { error } = await supabase.auth.signOut()
         if (error) throw error
     }
 
-    return { user, init, signInWithPassword, signOut }
+    return { user, init, signInWithPassword, signUp, signOut }
 }
