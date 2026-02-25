@@ -10,6 +10,7 @@ const versionId = route.params.versionId as string
 const supabase = useSupabaseClient()
 const { submitForReview } = useCases()
 const { organs, diagnoses, tags, loadAll } = useCatalogs()
+const { isAdmin } = usePermissions()
 const router = useRouter()
 
 const form = ref<any>({})
@@ -100,6 +101,27 @@ const handleSubmitReview = async () => {
         alert('Lỗi gửi duyệt: ' + e.message)
     }
 }
+
+const handlePublishNow = async () => {
+    if (!confirm('Xuất bản ngay phiên bản này? Case sẽ hiển thị công khai cho người dùng.')) return
+    try {
+        await onSave() // Save latest changes first
+
+        const { error } = await supabase
+            .from('case_versions')
+            .update({
+                status: 'published',
+                updated_at: new Date().toISOString()
+            })
+            .eq('id', versionId)
+
+        if (error) throw error
+        alert('Đã xuất bản thành công!')
+        router.push('/')
+    } catch (e: any) {
+        alert('Lỗi xuất bản: ' + e.message)
+    }
+}
 </script>
 
 <template>
@@ -152,6 +174,9 @@ const handleSubmitReview = async () => {
                         </button>
                         <button @click="handleSubmitReview" :disabled="saving" class="btn btn-submit">
                             Gửi Duyệt
+                        </button>
+                        <button v-if="isAdmin" @click="handlePublishNow" :disabled="saving" class="btn btn-publish">
+                            🚀 Xuất bản ngay
                         </button>
                         <button @click="router.back()" class="btn btn-cancel">Thoát</button>
                     </div>
@@ -236,6 +261,15 @@ const handleSubmitReview = async () => {
 .btn-submit {
     background: #4f46e5;
     color: white;
+}
+
+.btn-publish {
+    background: #16a34a;
+    color: white;
+}
+
+.btn-publish:hover {
+    background: #15803d;
 }
 
 .btn-cancel {

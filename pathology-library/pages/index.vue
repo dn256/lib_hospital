@@ -4,15 +4,18 @@ import { useRouter } from 'vue-router'
 import { useCases } from '~/composables/useCases'
 import { useCatalogs } from '~/composables/useCatalogs'
 import { useAuth } from '~/composables/useAuth'
+import { usePermissions } from '~/composables/usePermissions'
 
 const router = useRouter()
 const { search } = useCases()
 const { organs, diagnoses, tags, loadAll } = useCatalogs()
-const { user, signOut } = useAuth()
+const { user, profile, signOut } = useAuth()
+const { canAccessAdmin, canCreateCase } = usePermissions()
 
 // Navigation functions
 const goToLogin = () => router.push('/login')
 const goToNewCase = () => router.push('/editor/new')
+const goToAdmin = () => router.push('/admin')
 const handleLogout = async () => {
     await signOut()
     router.push('/')
@@ -62,6 +65,11 @@ const performSearch = async () => {
     showResults.value = true
 
     try {
+        console.log('keyword', keyword.value)
+        console.log('selectedOrgan.value', selectedOrgan.value)
+        console.log('selectedDiagnosis.value', selectedDiagnosis.value)
+        console.log('selectedTag.value', selectedTag.value)
+
         rows.value = await search({
             keyword: keyword.value,
             organIds: selectedOrgan.value ? [selectedOrgan.value] : undefined,
@@ -176,7 +184,14 @@ const trustIndicators = [
                             </v-btn>
                             <!-- User is logged in -->
                             <template v-if="user">
-                                <v-btn color="primary" variant="flat" rounded="pill" class="mr-2" @click="goToNewCase">
+                                <!-- Admin Button (only for authorized users) -->
+                                <v-btn v-if="canAccessAdmin" color="warning" variant="flat" rounded="pill"
+                                    class="mr-2 d-none d-md-flex" @click="goToAdmin">
+                                    <v-icon start size="18">mdi-shield-crown</v-icon>
+                                    Quản lý
+                                </v-btn>
+                                <v-btn v-if="canCreateCase" color="primary" variant="flat" rounded="pill" class="mr-2"
+                                    @click="goToNewCase">
                                     <v-icon start size="18">mdi-plus</v-icon>
                                     Tạo mới
                                 </v-btn>
@@ -184,12 +199,19 @@ const trustIndicators = [
                                     <template #activator="{ props }">
                                         <v-btn color="accent" variant="flat" rounded="pill" v-bind="props">
                                             <v-icon start size="18">mdi-account-circle</v-icon>
-                                            {{ user.email?.split('@')[0] }}
+                                            {{ profile?.display_name || user.email?.split('@')[0] }}
                                             <v-icon end size="16">mdi-chevron-down</v-icon>
                                         </v-btn>
                                     </template>
                                     <v-list density="compact">
-                                        <v-list-item @click="goToNewCase">
+                                        <!-- Admin link in menu (for mobile) -->
+                                        <v-list-item v-if="canAccessAdmin" @click="goToAdmin">
+                                            <template #prepend>
+                                                <v-icon size="18" color="warning">mdi-shield-crown</v-icon>
+                                            </template>
+                                            <v-list-item-title>Quản lý thư viện</v-list-item-title>
+                                        </v-list-item>
+                                        <v-list-item v-if="canCreateCase" @click="goToNewCase">
                                             <template #prepend>
                                                 <v-icon size="18">mdi-plus-box</v-icon>
                                             </template>

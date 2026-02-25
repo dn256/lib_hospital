@@ -27,15 +27,16 @@ export const useCases = () => {
         return data
     }
 
-    const createCase = async (payload: { organId: number; diagnosisId: number; description: string; note?: string }) => {
+    const createCase = async (payload: { organId: number; diagnosisId: number; description: string; note?: string; publishImmediately?: boolean }) => {
         const { data, error } = await supabase.rpc('create_case_v1', {
             p_organ_id: payload.organId,
             p_diagnosis_id: payload.diagnosisId,
             p_description: payload.description,
-            p_note: payload.note ?? null
+            p_note: payload.note ?? null,
+            p_publish_immediately: payload.publishImmediately ?? false
         })
         if (error) throw error
-        return data as string // case_id
+        return data as { case_id: string; version_id: string }[] | string
     }
 
     const clonePublished = async (caseId: string) => {
