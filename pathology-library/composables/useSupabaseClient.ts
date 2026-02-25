@@ -9,7 +9,14 @@ export const useSupabaseClient = () => {
             config.public.supabaseUrl as string,
             config.public.supabaseAnonKey as string,
             {
-                db: { schema: 'lib_hospital' }
+                db: { schema: 'lib_hospital' },
+                auth: {
+                    persistSession: true,
+                    autoRefreshToken: true,
+                    storageKey: 'lib-hospital-auth',
+                    detectSessionInUrl: true,
+                    storage: typeof window !== 'undefined' ? window.localStorage : undefined,
+                }
             }
         )
     }

@@ -4,9 +4,11 @@ import { useRouter } from 'vue-router'
 
 const { createCase } = useCases()
 const { organs, diagnoses, loadAll } = useCatalogs()
+const { isAdmin } = usePermissions()
 const router = useRouter()
 const supabase = useSupabaseClient()
 
+const publishImmediately = ref(false)
 const form = ref({
     organId: undefined as number | undefined,
     diagnosisId: undefined as number | undefined,
@@ -31,22 +33,21 @@ const onSubmit = async () => {
             organId: form.value.organId,
             diagnosisId: form.value.diagnosisId,
             description: form.value.description,
-            note: form.value.note
+            note: form.value.note,
+            publishImmediately: publishImmediately.value && isAdmin.value
         })
 
-        // result should be case_id as per useCases wrapper of create_case_v1
-        const caseId = result
+        // result is an array of { case_id, version_id } from the RPC
+        const row = Array.isArray(result) ? result[0] : null
 
-        // Find the version ID to redirect to editor
-        const { data, error } = await supabase
-            .from('case_versions')
-            .select('id') // using 'id' as version_id
-            .eq('case_id', caseId)
-            // .eq('status', 'draft') // usually v1 is draft initially
-            .maybeSingle()
+        if (publishImmediately.value && isAdmin.value) {
+            alert('Đã tạo và xuất bản thành công!')
+            router.push('/')
+            return
+        }
 
-        if (data?.id) {
-            router.push(`/editor/${data.id}`)
+        if (row?.version_id) {
+            router.push(`/editor/${row.version_id}`)
         } else {
             // Fallback
             alert('Tạo thành công nhưng không tìm thấy version. Vui lòng kiểm tra danh sách.')
@@ -92,10 +93,20 @@ const onSubmit = async () => {
                 <textarea v-model="form.note" rows="3" class="input-control"></textarea>
             </div>
 
+            <!-- Admin: Publish immediately option -->
+            <div v-if="isAdmin" class="form-group publish-option">
+                <label class="checkbox-label">
+                    <input type="checkbox" v-model="publishImmediately" />
+                    <span class="checkbox-text">Xuất bản ngay</span>
+                    <span class="checkbox-hint">(Bỏ qua chế độ duyệt, xuất bản trực tiếp)</span>
+                </label>
+            </div>
+
             <div class="actions">
                 <button type="button" @click="router.back()" class="btn-cancel">Hủy</button>
-                <button type="submit" :disabled="loading" class="btn-submit">
-                    {{ loading ? 'Đang lưu...' : 'Tạo mới' }}
+                <button type="submit" :disabled="loading" class="btn-submit"
+                    :class="{ 'btn-publish': publishImmediately }">
+                    {{ loading ? 'Đang lưu...' : (publishImmediately ? '🚀 Tạo & Xuất bản' : 'Tạo mới') }}
                 </button>
             </div>
         </form>
@@ -181,5 +192,48 @@ const onSubmit = async () => {
     border-radius: 4px;
     font-weight: 500;
     cursor: pointer;
+}
+
+/* Publish immediately option */
+.publish-option {
+    background: #f0fdf4;
+    border: 1px solid #bbf7d0;
+    border-radius: 8px;
+    padding: 16px;
+    margin-top: 10px;
+}
+
+.checkbox-label {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    cursor: pointer;
+    margin: 0;
+}
+
+.checkbox-label input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+    accent-color: #16a34a;
+    cursor: pointer;
+}
+
+.checkbox-text {
+    font-weight: 600;
+    color: #15803d;
+    font-size: 15px;
+}
+
+.checkbox-hint {
+    font-size: 13px;
+    color: #6b7280;
+}
+
+.btn-publish {
+    background: #16a34a !important;
+}
+
+.btn-publish:hover {
+    background: #15803d !important;
 }
 </style>
