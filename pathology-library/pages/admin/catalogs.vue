@@ -167,7 +167,7 @@ const dialogTitle = computed(() => {
                     {{ tab.label }}
                     <v-chip size="x-small" class="ml-2" variant="tonal">
                         {{ tab.value === 'organs' ? organs?.length : tab.value === 'diagnoses' ? diagnoses?.length :
-                        tags?.length }}
+                            tags?.length }}
                     </v-chip>
                 </v-tab>
             </v-tabs>
@@ -253,7 +253,7 @@ const dialogTitle = computed(() => {
                         <v-text-field v-model="form.name" label="Tên *" variant="outlined" density="comfortable"
                             autofocus :rules="[v => !!v || 'Tên là bắt buộc']" />
 
-                        <v-select v-if="activeTab !== 'tags'" v-model="form.parent_id" :items="parentOptions"
+                        <v-autocomplete v-if="activeTab !== 'tags'" v-model="form.parent_id" :items="parentOptions"
                             item-title="name" item-value="id" label="Parent (tùy chọn)" variant="outlined"
                             density="comfortable" clearable />
 

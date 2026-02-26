@@ -109,12 +109,12 @@ const handleFilterChange = () => {
                             clearable @update:model-value="handleFilterChange" />
                     </v-col>
                     <v-col cols="12" sm="6" md="3">
-                        <v-select v-model="selectedStatus" :items="statusOptions" item-title="title" item-value="value"
-                            label="Trạng thái" variant="outlined" density="comfortable" hide-details
+                        <v-autocomplete v-model="selectedStatus" :items="statusOptions" item-title="title"
+                            item-value="value" label="Trạng thái" variant="outlined" density="comfortable" hide-details
                             @update:model-value="handleFilterChange" />
                     </v-col>
                     <v-col cols="12" sm="6" md="3">
-                        <v-select v-model="selectedOrgan" :items="organs" item-title="name" item-value="id"
+                        <v-autocomplete v-model="selectedOrgan" :items="organs" item-title="name" item-value="id"
                             label="Cơ quan" variant="outlined" density="comfortable" hide-details clearable
                             @update:model-value="handleFilterChange" />
                     </v-col>

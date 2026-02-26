@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, watch, onMounted, computed } from 'vue'
+import { ref, watch, onMounted, computed, nextTick } from 'vue'
 import { useRouter } from 'vue-router'
 import { useCases } from '~/composables/useCases'
 import { useCatalogs } from '~/composables/useCatalogs'
@@ -65,11 +65,6 @@ const performSearch = async () => {
     showResults.value = true
 
     try {
-        console.log('keyword', keyword.value)
-        console.log('selectedOrgan.value', selectedOrgan.value)
-        console.log('selectedDiagnosis.value', selectedDiagnosis.value)
-        console.log('selectedTag.value', selectedTag.value)
-
         rows.value = await search({
             keyword: keyword.value,
             organIds: selectedOrgan.value ? [selectedOrgan.value] : undefined,
@@ -84,6 +79,20 @@ const performSearch = async () => {
     } finally {
         loading.value = false
     }
+}
+
+const scrollToResults = () => {
+    nextTick(() => {
+        const el = document.getElementById('results')
+        if (el) {
+            el.scrollIntoView({ behavior: 'smooth', block: 'start' })
+        }
+    })
+}
+
+const handleQuickSearch = async () => {
+    await performSearch()
+    scrollToResults()
 }
 
 watch([keyword, selectedOrgan, selectedDiagnosis, selectedTag], () => {
@@ -105,6 +114,43 @@ const clearFilters = () => {
 const hasActiveFilters = computed(() => {
     return keyword.value || selectedOrgan.value || selectedDiagnosis.value || selectedTag.value
 })
+
+const getOrganName = (id: number) => {
+    return organs.value?.find((o: any) => o.id === id)?.name || 'N/A'
+}
+
+const getDiagnosisName = (id: number) => {
+    return diagnoses.value?.find((d: any) => d.id === id)?.name || 'N/A'
+}
+
+// Preview dialog
+const previewDialog = ref(false)
+const previewCase = ref<any>(null)
+const copiedField = ref('')
+
+const openPreview = (row: any) => {
+    previewCase.value = row
+    previewDialog.value = true
+    copiedField.value = ''
+}
+
+const copyText = async (text: string, field: string) => {
+    try {
+        await navigator.clipboard.writeText(text)
+        copiedField.value = field
+        setTimeout(() => { copiedField.value = '' }, 2000)
+    } catch (e) {
+        // Fallback
+        const textarea = document.createElement('textarea')
+        textarea.value = text
+        document.body.appendChild(textarea)
+        textarea.select()
+        document.execCommand('copy')
+        document.body.removeChild(textarea)
+        copiedField.value = field
+        setTimeout(() => { copiedField.value = '' }, 2000)
+    }
+}
 
 // Featured categories with rich data
 const featuredCategories = [
@@ -266,12 +312,14 @@ const trustIndicators = [
                             <!-- Quick Search -->
                             <div class="quick-search animate-slide-up delay-2">
                                 <v-text-field v-model="keyword" placeholder="Tìm kiếm mẫu bệnh, chẩn đoán, mô tả..."
-                                    variant="solo" bg-color="white" hide-details rounded="pill" class="search-field">
+                                    variant="solo" bg-color="white" hide-details rounded="pill" class="search-field"
+                                    @keyup.enter="handleQuickSearch">
                                     <template #prepend-inner>
                                         <v-icon color="grey" class="ml-2">mdi-magnify</v-icon>
                                     </template>
                                     <template #append-inner>
-                                        <v-btn color="primary" rounded="pill" class="search-btn" size="small">
+                                        <v-btn color="primary" rounded="pill" class="search-btn" size="small"
+                                            @click="handleQuickSearch">
                                             Tìm kiếm
                                         </v-btn>
                                     </template>
@@ -388,12 +436,12 @@ const trustIndicators = [
                                         hide-details clearable />
                                 </v-col>
                                 <v-col cols="12" sm="6" md="3">
-                                    <v-select v-model="selectedOrgan" :items="organs" item-title="name" item-value="id"
-                                        label="Cơ quan" prepend-inner-icon="mdi-human" variant="outlined"
-                                        density="comfortable" hide-details clearable />
+                                    <v-autocomplete v-model="selectedOrgan" :items="organs" item-title="name"
+                                        item-value="id" label="Cơ quan" prepend-inner-icon="mdi-human"
+                                        variant="outlined" density="comfortable" hide-details clearable />
                                 </v-col>
                                 <v-col cols="12" sm="6" md="3">
-                                    <v-select v-model="selectedDiagnosis" :items="diagnoses" item-title="name"
+                                    <v-autocomplete v-model="selectedDiagnosis" :items="diagnoses" item-title="name"
                                         item-value="id" label="Chẩn đoán" prepend-inner-icon="mdi-bacteria"
                                         variant="outlined" density="comfortable" hide-details clearable />
                                 </v-col>
@@ -421,7 +469,7 @@ const trustIndicators = [
             </section>
 
             <!-- Results Section -->
-            <section v-if="showResults" class="results-section">
+            <section v-if="showResults" id="results" class="results-section">
                 <v-container>
                     <div class="section-header mb-6">
                         <h2 class="section-title">Kết quả tìm kiếm</h2>
@@ -429,14 +477,15 @@ const trustIndicators = [
 
                     <v-row v-if="!loading && rows.length > 0">
                         <v-col v-for="(row, i) in rows" :key="row.version_id || row.id" cols="12" sm="6" lg="4">
-                            <v-card class="result-card" elevation="2" :to="`/cases/${row.version_id}`">
+                            <v-card class="result-card" elevation="2" @click="openPreview(row)">
                                 <div class="result-header">
-                                    <v-chip size="x-small" color="accent" variant="flat">
-                                        {{ row.case_id?.substring(0, 8) }}
+                                    <v-chip size="x-small" color="teal" variant="tonal">
+                                        <v-icon start size="10">mdi-human</v-icon>
+                                        {{ getOrganName(row.organ_id) }}
                                     </v-chip>
-                                    <v-chip size="x-small" color="success" variant="tonal">
-                                        <v-icon start size="10">mdi-check</v-icon>
-                                        Đã duyệt
+                                    <v-chip size="x-small" color="deep-purple" variant="tonal">
+                                        <v-icon start size="10">mdi-bacteria</v-icon>
+                                        {{ getDiagnosisName(row.diagnosis_id) }}
                                     </v-chip>
                                 </div>
                                 <v-card-text>
@@ -448,9 +497,12 @@ const trustIndicators = [
                                     <span class="text-caption text-grey">
                                         {{ new Date(row.updated_at).toLocaleDateString('vi-VN') }}
                                     </span>
-                                    <v-btn variant="text" color="primary" size="small" append-icon="mdi-arrow-right">
-                                        Xem chi tiết
-                                    </v-btn>
+                                    <NuxtLink :to="`/cases/${row.version_id}`" @click.stop>
+                                        <v-btn variant="text" color="primary" size="small"
+                                            append-icon="mdi-arrow-right">
+                                            Xem chi tiết
+                                        </v-btn>
+                                    </NuxtLink>
                                 </v-card-actions>
                             </v-card>
                         </v-col>
@@ -463,6 +515,98 @@ const trustIndicators = [
                     </div>
                 </v-container>
             </section>
+
+            <!-- Quick Preview Dialog -->
+            <v-dialog v-model="previewDialog" max-width="700" scrollable>
+                <v-card v-if="previewCase" class="preview-dialog">
+                    <v-card-title class="preview-title">
+                        <div class="d-flex align-center gap-2">
+                            <span>Xem nhanh</span>
+                        </div>
+                        <v-btn icon variant="text" size="small" @click="previewDialog = false">
+                            <v-icon>mdi-close</v-icon>
+                        </v-btn>
+                    </v-card-title>
+
+                    <v-card-text class="pa-6">
+                        <!-- Organ & Diagnosis chips -->
+                        <div class="d-flex flex-wrap gap-2 mb-5 justify-space-between">
+                            <v-chip color="teal" variant="tonal" size="small">
+                                <v-icon start size="14">mdi-human</v-icon>
+                                {{ getOrganName(previewCase.organ_id) }}
+                            </v-chip>
+                            <!-- <v-chip color="deep-purple" variant="tonal" size="small">
+                                <v-icon start size="14">mdi-bacteria</v-icon>
+                                {{ getDiagnosisName(previewCase.diagnosis_id) }}
+                            </v-chip> -->
+                        </div>
+
+                        <!-- Diagnosis -->
+                        <div class="preview-section">
+                            <div class="preview-section-header">
+                                <div class="preview-label">
+                                    <v-icon size="16" class="mr-1">mdi-stethoscope</v-icon>
+                                    Chẩn đoán
+                                </div>
+                                <v-btn size="x-small" variant="tonal"
+                                    :color="copiedField === 'diagnosis' ? 'success' : 'primary'"
+                                    @click="copyText(getDiagnosisName(previewCase.diagnosis_id), 'diagnosis')">
+                                    <v-icon start size="14">
+                                        {{ copiedField === 'diagnosis' ? 'mdi-check' : 'mdi-content-copy' }}
+                                    </v-icon>
+                                    {{ copiedField === 'diagnosis' ? 'Đã copy!' : 'Copy' }}
+                                </v-btn>
+                            </div>
+                            <div class="preview-content">
+                                {{ getDiagnosisName(previewCase.diagnosis_id) }}
+                            </div>
+                        </div>
+
+                        <!-- Microscopic Description -->
+                        <div class="preview-section">
+                            <div class="preview-section-header">
+                                <div class="preview-label">
+                                    <v-icon size="16" class="mr-1">mdi-microscope</v-icon>
+                                    Mô tả vi thể
+                                </div>
+                                <v-btn size="x-small" variant="tonal"
+                                    :color="copiedField === 'description' ? 'success' : 'primary'"
+                                    @click="copyText(previewCase.microscopic_description || '', 'description')">
+                                    <v-icon start size="14">
+                                        {{ copiedField === 'description' ? 'mdi-check' : 'mdi-content-copy' }}
+                                    </v-icon>
+                                    {{ copiedField === 'description' ? 'Đã copy!' : 'Copy' }}
+                                </v-btn>
+                            </div>
+                            <div class="preview-content preview-description">
+                                {{ previewCase.microscopic_description || 'Không có mô tả' }}
+                            </div>
+                        </div>
+                    </v-card-text>
+
+                    <v-divider />
+                    <v-card-actions class="pa-4">
+                        <v-btn variant="tonal" size="small" :color="copiedField === 'all' ? 'success' : 'secondary'"
+                            @click="copyText(
+                                `Chẩn đoán: ${getDiagnosisName(previewCase.diagnosis_id)}\nCơ quan: ${getOrganName(previewCase.organ_id)}\nMô tả vi thể: ${previewCase.microscopic_description || ''}`,
+                                'all'
+                            )">
+                            <v-icon start size="16">
+                                {{ copiedField === 'all' ? 'mdi-check-all' : 'mdi-content-copy' }}
+                            </v-icon>
+                            {{ copiedField === 'all' ? 'Đã copy tất cả!' : 'Copy tất cả' }}
+                        </v-btn>
+                        <v-spacer />
+                        <v-btn variant="text" @click="previewDialog = false">Đóng</v-btn>
+                        <NuxtLink :to="`/cases/${previewCase.version_id}`">
+                            <v-btn color="primary" variant="flat" @click="previewDialog = false">
+                                <v-icon start>mdi-arrow-right</v-icon>
+                                Xem chi tiết
+                            </v-btn>
+                        </NuxtLink>
+                    </v-card-actions>
+                </v-card>
+            </v-dialog>
 
             <!-- CTA Section -->
             <section class="cta-section">
@@ -1178,5 +1322,69 @@ const trustIndicators = [
     .popular-searches {
         text-align: center;
     }
+}
+
+/* ===========================
+   PREVIEW DIALOG
+   =========================== */
+.result-card {
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.result-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15) !important;
+}
+
+.preview-dialog {
+    border-radius: 16px !important;
+}
+
+.preview-title {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 1px solid #e5e7eb;
+    font-family: 'Crimson Pro', serif;
+    font-size: 1.2rem;
+}
+
+.preview-section {
+    margin-bottom: 20px;
+    border: 1px solid #e5e7eb;
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+.preview-section-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 16px;
+    background: #f8f9fa;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.preview-label {
+    display: flex;
+    align-items: center;
+    font-weight: 600;
+    font-size: 0.85rem;
+    color: #1a365d;
+}
+
+.preview-content {
+    padding: 16px;
+    font-size: 0.95rem;
+    line-height: 1.7;
+    color: #333;
+    user-select: text;
+}
+
+.preview-description {
+    max-height: 300px;
+    overflow-y: auto;
+    white-space: pre-wrap;
 }
 </style>
