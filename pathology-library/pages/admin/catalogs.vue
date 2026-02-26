@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted, computed } from 'vue'
+import { ref, onMounted, computed, watch } from 'vue'
 import { useCatalogs } from '~/composables/useCatalogs'
 import { useSupabaseClient } from '~/composables/useSupabaseClient'
 import { usePermissions } from '~/composables/usePermissions'
@@ -53,6 +53,21 @@ const currentItems = computed(() => {
         default: return []
     }
 })
+
+const searchKeyword = ref('')
+
+const filteredItems = computed(() => {
+    if (!searchKeyword.value) return currentItems.value
+    const kw = searchKeyword.value.toLowerCase()
+    return currentItems.value.filter((item: any) =>
+        String(item.id).includes(kw) ||
+        item.name?.toLowerCase().includes(kw) ||
+        item.icdo_code?.toLowerCase().includes(kw)
+    )
+})
+
+// Reset search when tab changes
+watch(activeTab, () => { searchKeyword.value = '' })
 
 const tableName = computed(() => activeTab.value)
 
@@ -175,6 +190,9 @@ const dialogTitle = computed(() => {
             <v-card-text>
                 <!-- Toolbar -->
                 <div class="toolbar mb-4">
+                    <v-text-field v-model="searchKeyword" placeholder="Tìm theo tên, ID..."
+                        prepend-inner-icon="mdi-magnify" variant="outlined" density="compact" hide-details clearable
+                        class="search-input" />
                     <v-btn v-if="canManageCatalogs" color="primary" prepend-icon="mdi-plus" @click="openCreateDialog">
                         Thêm mới
                     </v-btn>
@@ -200,7 +218,7 @@ const dialogTitle = computed(() => {
                         </tr>
                     </thead>
                     <tbody>
-                        <tr v-for="item in currentItems" :key="item.id">
+                        <tr v-for="item in filteredItems" :key="item.id">
                             <td>
                                 <code class="item-id">{{ item.id }}</code>
                             </td>
@@ -231,7 +249,7 @@ const dialogTitle = computed(() => {
                                 </v-btn>
                             </td>
                         </tr>
-                        <tr v-if="currentItems.length === 0">
+                        <tr v-if="filteredItems.length === 0">
                             <td :colspan="activeTab === 'tags' ? 3 : activeTab === 'diagnoses' ? 5 : 5"
                                 class="text-center py-8 text-grey">
                                 Chưa có dữ liệu
@@ -309,6 +327,11 @@ const dialogTitle = computed(() => {
 .toolbar {
     display: flex;
     gap: 0.75rem;
+    align-items: center;
+}
+
+.search-input {
+    max-width: 300px;
 }
 
 .item-id {
