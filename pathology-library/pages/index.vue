@@ -479,24 +479,20 @@ const trustIndicators = [
                         <v-col v-for="(row, i) in rows" :key="row.version_id || row.id" cols="12" sm="6" lg="4">
                             <v-card class="result-card" elevation="2" @click="openPreview(row)">
                                 <div class="result-header">
-                                    <v-chip size="x-small" color="teal" variant="tonal">
-                                        <v-icon start size="10">mdi-human</v-icon>
+                                    <v-chip size="small" color="teal" variant="tonal">
+                                        <v-icon start size="14">mdi-human</v-icon>
                                         {{ getOrganName(row.organ_id) }}
                                     </v-chip>
-                                    <v-chip size="x-small" color="deep-purple" variant="tonal">
-                                        <v-icon start size="10">mdi-bacteria</v-icon>
-                                        {{ getDiagnosisName(row.diagnosis_id) }}
-                                    </v-chip>
                                 </div>
-                                <v-card-text>
+                                <v-card-text class="result-body">
+                                    <div class="result-diagnosis">
+                                        {{ getDiagnosisName(row.diagnosis_id) }}
+                                    </div>
                                     <p class="result-description">
-                                        {{ row.microscopic_description?.substring(0, 120) }}...
+                                        {{ row.microscopic_description?.substring(0, 100) }}...
                                     </p>
                                 </v-card-text>
-                                <v-card-actions class="justify-space-between">
-                                    <span class="text-caption text-grey">
-                                        {{ new Date(row.updated_at).toLocaleDateString('vi-VN') }}
-                                    </span>
+                                <v-card-actions class="result-actions">
                                     <NuxtLink :to="`/cases/${row.version_id}`" @click.stop>
                                         <v-btn variant="text" color="primary" size="small"
                                             append-icon="mdi-arrow-right">
@@ -1330,11 +1326,45 @@ const trustIndicators = [
 .result-card {
     cursor: pointer;
     transition: all 0.2s ease;
+    border-radius: 14px !important;
+    overflow: hidden;
 }
 
 .result-card:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15) !important;
+    transform: translateY(-3px);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.18) !important;
+}
+
+.result-header {
+    padding: 16px 20px 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.result-body {
+    padding: 12px 20px 16px !important;
+}
+
+.result-diagnosis {
+    font-family: 'Crimson Pro', serif;
+    font-size: 1.15rem;
+    font-weight: 600;
+    color: #1a365d;
+    margin-bottom: 10px;
+    line-height: 1.4;
+}
+
+.result-description {
+    font-size: 0.95rem;
+    line-height: 1.7;
+    color: #4a5568;
+    margin: 0;
+}
+
+.result-actions {
+    padding: 8px 16px 12px;
+    justify-content: flex-end;
 }
 
 .preview-dialog {
