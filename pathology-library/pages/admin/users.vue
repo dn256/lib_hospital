@@ -252,7 +252,7 @@ const formatDate = (dateStr: string) => {
                         </div>
                     </div>
 
-                    <v-select v-model="selectedRole" :items="roleOptions" item-title="title" item-value="value"
+                    <v-autocomplete v-model="selectedRole" :items="roleOptions" item-title="title" item-value="value"
                         label="Chọn quyền mới" variant="outlined" density="comfortable" />
 
                     <v-alert v-if="selectedRole === 'admin'" type="warning" variant="tonal" density="compact"

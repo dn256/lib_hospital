@@ -10,9 +10,9 @@ export const useCatalogs = () => {
 
     const loadAll = async () => {
         const [o, d, t] = await Promise.all([
-            supabase.from('organs').select('id,name,parent_id').order('name'),
-            supabase.from('diagnoses').select('id,name,parent_id,icdo_code').order('name'),
-            supabase.from('tags').select('id,name').order('name')
+            supabase.from('organs').select('id,name,parent_id').order('id'),
+            supabase.from('diagnoses').select('id,name,parent_id,icdo_code').order('id'),
+            supabase.from('tags').select('id,name').order('id')
         ])
         if (o.error) throw o.error
         if (d.error) throw d.error
