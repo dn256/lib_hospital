@@ -29,7 +29,7 @@ const onSubmit = async () => {
 
     loading.value = true
     try {
-        const result = await createCase({
+        await createCase({
             organId: form.value.organId,
             diagnosisId: form.value.diagnosisId,
             description: form.value.description,
@@ -37,22 +37,19 @@ const onSubmit = async () => {
             publishImmediately: publishImmediately.value && isAdmin.value
         })
 
-        // result is an array of { case_id, version_id } from the RPC
-        const row = Array.isArray(result) ? result[0] : null
+        const msg = publishImmediately.value && isAdmin.value
+            ? 'Đã tạo và xuất bản thành công!'
+            : 'Tạo ca bệnh mới thành công!'
+        alert(msg)
 
-        if (publishImmediately.value && isAdmin.value) {
-            alert('Đã tạo và xuất bản thành công!')
-            router.push('/')
-            return
+        // Reset form for next creation
+        form.value = {
+            organId: undefined,
+            diagnosisId: undefined,
+            description: '',
+            note: ''
         }
-
-        if (row?.version_id) {
-            router.push(`/editor/${row.version_id}`)
-        } else {
-            // Fallback
-            alert('Tạo thành công nhưng không tìm thấy version. Vui lòng kiểm tra danh sách.')
-            router.push('/')
-        }
+        publishImmediately.value = false
 
     } catch (e: any) {
         console.error(e)
