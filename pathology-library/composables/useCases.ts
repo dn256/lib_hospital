@@ -60,5 +60,21 @@ export const useCases = () => {
         if (error) throw error
     }
 
-    return { search, createCase, clonePublished, submitForReview, approvePublish, archive }
+    const deleteCase = async (caseId: string) => {
+        // Delete all versions first (FK constraint)
+        const { error: verErr } = await supabase
+            .from('case_versions')
+            .delete()
+            .eq('case_id', caseId)
+        if (verErr) throw verErr
+
+        // Delete the case header
+        const { error: caseErr } = await supabase
+            .from('case_headers')
+            .delete()
+            .eq('id', caseId)
+        if (caseErr) throw caseErr
+    }
+
+    return { search, createCase, clonePublished, submitForReview, approvePublish, archive, deleteCase }
 }

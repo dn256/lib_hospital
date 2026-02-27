@@ -1,6 +1,9 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
+import { useVietnameseFilter } from '~/composables/useVietnameseFilter'
+
+const { vietnameseFilter } = useVietnameseFilter()
 
 const { createCase } = useCases()
 const { organs, diagnoses, loadAll } = useCatalogs()
@@ -66,18 +69,16 @@ const onSubmit = async () => {
         <form @submit.prevent="onSubmit" class="form">
             <div class="form-group">
                 <label class="label">Cơ quan <span class="req">*</span></label>
-                <select v-model="form.organId" required class="input-control">
-                    <option :value="undefined">-- Chọn Cơ quan --</option>
-                    <option v-for="o in organs" :key="o.id" :value="o.id">{{ o.name }}</option>
-                </select>
+                <v-autocomplete v-model="form.organId" :items="organs" item-title="name" item-value="id"
+                    placeholder="-- Chọn Cơ quan --" variant="outlined" density="comfortable" hide-details clearable
+                    :custom-filter="vietnameseFilter" />
             </div>
 
             <div class="form-group">
                 <label class="label">Chẩn đoán <span class="req">*</span></label>
-                <select v-model="form.diagnosisId" required class="input-control">
-                    <option :value="undefined">-- Chọn Chẩn đoán --</option>
-                    <option v-for="d in diagnoses" :key="d.id" :value="d.id">{{ d.name }}</option>
-                </select>
+                <v-autocomplete v-model="form.diagnosisId" :items="diagnoses" item-title="name" item-value="id"
+                    placeholder="-- Chọn Chẩn đoán --" variant="outlined" density="comfortable" hide-details clearable
+                    :custom-filter="vietnameseFilter" />
             </div>
 
             <div class="form-group">

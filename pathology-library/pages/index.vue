@@ -5,6 +5,9 @@ import { useCases } from '~/composables/useCases'
 import { useCatalogs } from '~/composables/useCatalogs'
 import { useAuth } from '~/composables/useAuth'
 import { usePermissions } from '~/composables/usePermissions'
+import { useVietnameseFilter } from '~/composables/useVietnameseFilter'
+
+const { vietnameseFilter } = useVietnameseFilter()
 
 const router = useRouter()
 const { search } = useCases()
@@ -438,12 +441,14 @@ const trustIndicators = [
                                 <v-col cols="12" sm="6" md="3">
                                     <v-autocomplete v-model="selectedOrgan" :items="organs" item-title="name"
                                         item-value="id" label="Cơ quan" prepend-inner-icon="mdi-human"
-                                        variant="outlined" density="comfortable" hide-details clearable />
+                                        variant="outlined" density="comfortable" hide-details clearable
+                                        :custom-filter="vietnameseFilter" />
                                 </v-col>
                                 <v-col cols="12" sm="6" md="3">
                                     <v-autocomplete v-model="selectedDiagnosis" :items="diagnoses" item-title="name"
                                         item-value="id" label="Chẩn đoán" prepend-inner-icon="mdi-bacteria"
-                                        variant="outlined" density="comfortable" hide-details clearable />
+                                        variant="outlined" density="comfortable" hide-details clearable
+                                        :custom-filter="vietnameseFilter" />
                                 </v-col>
                                 <v-col cols="12" md="3">
                                     <v-btn color="primary" size="large" block rounded="lg" :loading="loading"
