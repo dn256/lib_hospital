@@ -4,11 +4,14 @@ import { useRoute, useRouter } from 'vue-router'
 import { useCases } from '~/composables/useCases'
 import { useCatalogs } from '~/composables/useCatalogs'
 import { useSupabaseClient } from '~/composables/useSupabaseClient'
+import { useVietnameseFilter } from '~/composables/useVietnameseFilter'
+
+const { vietnameseFilter } = useVietnameseFilter()
 
 const route = useRoute()
 const versionId = route.params.versionId as string
 const supabase = useSupabaseClient()
-const { submitForReview } = useCases()
+const { submitForReview, deleteCase } = useCases()
 const { organs, diagnoses, tags, loadAll } = useCatalogs()
 const { isAdmin } = usePermissions()
 const router = useRouter()
@@ -122,6 +125,17 @@ const handlePublishNow = async () => {
         alert('Lỗi xuất bản: ' + e.message)
     }
 }
+
+const handleDelete = async () => {
+    if (!confirm('Bạn có chắc muốn xóa case này?\nHành động này không thể hoàn tác!')) return
+    try {
+        await deleteCase(form.value.case_id)
+        alert('Đã xóa case thành công!')
+        router.push('/admin/cases')
+    } catch (e: any) {
+        alert('Lỗi khi xóa: ' + e.message)
+    }
+}
 </script>
 
 <template>
@@ -149,16 +163,16 @@ const handlePublishNow = async () => {
                     <div class="panel">
                         <div class="form-group">
                             <label>Cơ quan</label>
-                            <select v-model="form.organ_id" class="input-control">
-                                <option v-for="o in organs" :key="o.id" :value="o.id">{{ o.name }}</option>
-                            </select>
+                            <v-autocomplete v-model="form.organ_id" :items="organs" item-title="name" item-value="id"
+                                placeholder="Chọn cơ quan" variant="outlined" density="comfortable" hide-details
+                                clearable :custom-filter="vietnameseFilter" />
                         </div>
 
                         <div class="form-group">
                             <label>Chẩn đoán</label>
-                            <select v-model="form.diagnosis_id" class="input-control">
-                                <option v-for="d in diagnoses" :key="d.id" :value="d.id">{{ d.name }}</option>
-                            </select>
+                            <v-autocomplete v-model="form.diagnosis_id" :items="diagnoses" item-title="name"
+                                item-value="id" placeholder="Chọn chẩn đoán" variant="outlined" density="comfortable"
+                                hide-details clearable :custom-filter="vietnameseFilter" />
                         </div>
 
                         <div class="form-group">
@@ -177,6 +191,9 @@ const handlePublishNow = async () => {
                         </button>
                         <button v-if="isAdmin" @click="handlePublishNow" :disabled="saving" class="btn btn-publish">
                             🚀 Xuất bản ngay
+                        </button>
+                        <button v-if="isAdmin" @click="handleDelete" :disabled="saving" class="btn btn-delete">
+                            🗑 Xóa case
                         </button>
                         <button @click="router.back()" class="btn btn-cancel">Thoát</button>
                     </div>
@@ -275,5 +292,14 @@ const handlePublishNow = async () => {
 .btn-cancel {
     background: white;
     border: 1px solid #ccc;
+}
+
+.btn-delete {
+    background: #dc2626;
+    color: white;
+}
+
+.btn-delete:hover {
+    background: #b91c1c;
 }
 </style>

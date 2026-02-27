@@ -3,15 +3,18 @@ import { ref, onMounted, computed } from 'vue'
 import { useCases } from '~/composables/useCases'
 import { useCatalogs } from '~/composables/useCatalogs'
 import { usePermissions } from '~/composables/usePermissions'
+import { useVietnameseFilter } from '~/composables/useVietnameseFilter'
+
+const { vietnameseFilter } = useVietnameseFilter()
 
 definePageMeta({
     layout: 'admin',
     middleware: 'auth'
 })
 
-const { search } = useCases()
+const { search, deleteCase } = useCases()
 const { organs, diagnoses, loadAll } = useCatalogs()
-const { isEditor } = usePermissions()
+const { isEditor, isAdmin } = usePermissions()
 
 // Filter & Search
 const searchKeyword = ref('')
@@ -82,6 +85,17 @@ const handleFilterChange = () => {
         loadCases()
     }, 400)
 }
+
+const handleDelete = async (c: any) => {
+    if (!confirm(`Xóa case "${c.case_id?.substring(0, 8)}..."?\nHành động này không thể hoàn tác!`)) return
+    try {
+        await deleteCase(c.case_id)
+        await loadCases()
+    } catch (e: any) {
+        console.error('Error deleting case:', e)
+        alert('Lỗi khi xóa: ' + (e.message || 'Unknown error'))
+    }
+}
 </script>
 
 <template>
@@ -111,12 +125,12 @@ const handleFilterChange = () => {
                     <v-col cols="12" sm="6" md="3">
                         <v-autocomplete v-model="selectedStatus" :items="statusOptions" item-title="title"
                             item-value="value" label="Trạng thái" variant="outlined" density="comfortable" hide-details
-                            @update:model-value="handleFilterChange" />
+                            :custom-filter="vietnameseFilter" @update:model-value="handleFilterChange" />
                     </v-col>
                     <v-col cols="12" sm="6" md="3">
                         <v-autocomplete v-model="selectedOrgan" :items="organs" item-title="name" item-value="id"
                             label="Cơ quan" variant="outlined" density="comfortable" hide-details clearable
-                            @update:model-value="handleFilterChange" />
+                            :custom-filter="vietnameseFilter" @update:model-value="handleFilterChange" />
                     </v-col>
                     <v-col cols="12" md="2" class="d-flex align-center">
                         <v-btn variant="tonal" color="primary" @click="loadCases" :loading="loading" block>
@@ -181,6 +195,11 @@ const handleFilterChange = () => {
                                         <v-tooltip activator="parent">Sửa</v-tooltip>
                                     </v-btn>
                                 </NuxtLink>
+                                <v-btn v-if="isAdmin" icon variant="text" size="small" color="error"
+                                    @click="handleDelete(c)">
+                                    <v-icon>mdi-delete</v-icon>
+                                    <v-tooltip activator="parent">Xóa</v-tooltip>
+                                </v-btn>
                             </td>
                         </tr>
                     </tbody>
