@@ -130,11 +130,16 @@ const getDiagnosisName = (id: number) => {
 const previewDialog = ref(false)
 const previewCase = ref<any>(null)
 const copiedField = ref('')
+const supabase = useSupabaseClient()
 
-const openPreview = (row: any) => {
+const openPreview = async (row: any) => {
     previewCase.value = row
     previewDialog.value = true
     copiedField.value = ''
+
+    const { data, error } = await supabase.from('case_versions').select('note').eq('id', row.version_id).single()
+    if (error) throw error
+    previewCase.value.note = data.note
 }
 
 const copyText = async (text: string, field: string) => {
@@ -583,13 +588,34 @@ const trustIndicators = [
                                 {{ previewCase.microscopic_description || 'Không có mô tả' }}
                             </div>
                         </div>
+
+                        <!-- Note -->
+                        <div class="preview-section">
+                            <div class="preview-section-header">
+                                <div class="preview-label">
+                                    <v-icon size="16" class="mr-1">mdi-note</v-icon>
+                                    Ghi chú
+                                </div>
+                                <v-btn size="x-small" variant="tonal"
+                                    :color="copiedField === 'note' ? 'success' : 'primary'"
+                                    @click="copyText(previewCase.note || '', 'note')">
+                                    <v-icon start size="14">
+                                        {{ copiedField === 'note' ? 'mdi-check' : 'mdi-content-copy' }}
+                                    </v-icon>
+                                    {{ copiedField === 'note' ? 'Đã copy!' : 'Copy' }}
+                                </v-btn>
+                            </div>
+                            <div class="preview-content preview-description">
+                                {{ previewCase.note || 'Không có ghi chú' }}
+                            </div>
+                        </div>
                     </v-card-text>
 
                     <v-divider />
                     <v-card-actions class="pa-4">
                         <v-btn variant="tonal" size="small" :color="copiedField === 'all' ? 'success' : 'secondary'"
                             @click="copyText(
-                                `Chẩn đoán: ${getDiagnosisName(previewCase.diagnosis_id)}\nCơ quan: ${getOrganName(previewCase.organ_id)}\nMô tả vi thể: ${previewCase.microscopic_description || ''}`,
+                                `${getDiagnosisName(previewCase.diagnosis_id)}\n${previewCase.microscopic_description || ''}\n${previewCase.note || ''}`,
                                 'all'
                             )">
                             <v-icon start size="16">

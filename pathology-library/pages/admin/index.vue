@@ -11,7 +11,7 @@ definePageMeta({
 
 const { profile } = useAuth()
 const { isAdmin, isEditor } = usePermissions()
-const { search } = useCases()
+const { search, count } = useCases()
 
 // Stats
 const stats = ref({
@@ -28,16 +28,16 @@ onMounted(async () => {
     try {
         // Load stats
         const [drafts, pending, published] = await Promise.all([
-            search({ status: ['draft'], limit: 100 }),
-            search({ status: ['in_review'], limit: 100 }),
-            search({ status: ['published'], limit: 100 })
+            count({ status: ['draft'] }),
+            count({ status: ['in_review'] }),
+            count({ status: ['published'] })
         ])
 
         stats.value = {
-            totalCases: (drafts?.length || 0) + (pending?.length || 0) + (published?.length || 0),
-            draftCases: drafts?.length || 0,
-            pendingReview: pending?.length || 0,
-            publishedCases: published?.length || 0
+            totalCases: (drafts || 0) + (pending || 0) + (published || 0),
+            draftCases: drafts || 0,
+            pendingReview: pending || 0,
+            publishedCases: published || 0
         }
 
         // Recent cases
