@@ -13,6 +13,15 @@ type SearchParams = {
 export const useCases = () => {
     const supabase = useSupabaseClient()
 
+    const count = async (p: SearchParams) => {
+        const { count, error } = await supabase.from('case_versions')
+            .select('id', { count: 'estimated', head: true })
+            .eq('status', p.status || ['published'])
+
+        if (error) throw error
+        return count
+    }
+
     const search = async (p: SearchParams) => {
         const { data, error } = await supabase.rpc('search_case_versions', {
             p_keyword: p.keyword ?? '',
@@ -76,5 +85,5 @@ export const useCases = () => {
         if (caseErr) throw caseErr
     }
 
-    return { search, createCase, clonePublished, submitForReview, approvePublish, archive, deleteCase }
+    return { search, count, createCase, clonePublished, submitForReview, approvePublish, archive, deleteCase }
 }
