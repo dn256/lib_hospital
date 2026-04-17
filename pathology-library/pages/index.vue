@@ -10,14 +10,14 @@ import { useVietnameseFilter } from '~/composables/useVietnameseFilter'
 const { vietnameseFilter } = useVietnameseFilter()
 
 const router = useRouter()
-const { search } = useCases()
+const { search, count } = useCases()
 const { organs, diagnoses, tags, loadAll } = useCatalogs()
 const { user, profile, signOut } = useAuth()
 const { canAccessAdmin, canCreateCase } = usePermissions()
 
 // Navigation functions
 const goToLogin = () => router.push('/login')
-const goToNewCase = () => router.push('/editor/new')
+const goToNewCase = () => router.push('/cases/new')
 const goToAdmin = () => router.push('/admin')
 const handleLogout = async () => {
     await signOut()
@@ -48,8 +48,16 @@ onMounted(async () => {
     mounted.value = true
     await loadAll()
 
+    let casesCount = 500
+    try {
+        const res = await count({ status: ['published'] })
+        if (res !== null) casesCount = res
+    } catch(e) {
+        console.error(e)
+    }
+
     stats.value = {
-        totalCases: 500,
+        totalCases: casesCount,
         totalOrgans: organs.value?.length || 20,
         totalDiagnoses: diagnoses.value?.length || 100
     }

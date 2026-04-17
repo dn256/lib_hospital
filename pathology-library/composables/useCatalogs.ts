@@ -22,5 +22,12 @@ export const useCatalogs = () => {
         tags.value = t.data ?? []
     }
 
-    return { organs, diagnoses, tags, loadAll }
+    const addDiagnosis = async (name: string) => {
+        const { data, error } = await supabase.from('diagnoses').insert({ name }).select('id,name,parent_id,icdo_code').single()
+        if (error) throw error
+        diagnoses.value.push(data)
+        return data.id
+    }
+
+    return { organs, diagnoses, tags, loadAll, addDiagnosis }
 }

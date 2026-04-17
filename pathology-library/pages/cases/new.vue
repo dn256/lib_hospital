@@ -6,7 +6,7 @@ import { useVietnameseFilter } from '~/composables/useVietnameseFilter'
 const { vietnameseFilter } = useVietnameseFilter()
 
 const { createCase } = useCases()
-const { organs, diagnoses, loadAll } = useCatalogs()
+const { organs, diagnoses, loadAll, addDiagnosis } = useCatalogs()
 const { isAdmin } = usePermissions()
 const router = useRouter()
 const supabase = useSupabaseClient()
@@ -14,7 +14,7 @@ const supabase = useSupabaseClient()
 const publishImmediately = ref(false)
 const form = ref({
     organId: undefined as number | undefined,
-    diagnosisId: undefined as number | undefined,
+    diagnosisId: undefined as number | string | undefined,
     description: '',
     note: ''
 })
@@ -32,9 +32,19 @@ const onSubmit = async () => {
 
     loading.value = true
     try {
+        let finalDiagnosisId = form.value.diagnosisId
+        if (typeof finalDiagnosisId === 'string' && finalDiagnosisId.trim() !== '') {
+            const existing = diagnoses.value.find((d: any) => d.name.toLowerCase() === (finalDiagnosisId as string).trim().toLowerCase())
+            if (existing) {
+                finalDiagnosisId = existing.id
+            } else {
+                finalDiagnosisId = await addDiagnosis((finalDiagnosisId as string).trim())
+            }
+        }
+
         await createCase({
             organId: form.value.organId,
-            diagnosisId: form.value.diagnosisId,
+            diagnosisId: finalDiagnosisId as number,
             description: form.value.description,
             note: form.value.note,
             publishImmediately: publishImmediately.value && isAdmin.value
@@ -76,8 +86,8 @@ const onSubmit = async () => {
 
             <div class="form-group">
                 <label class="label">Chẩn đoán <span class="req">*</span></label>
-                <v-autocomplete v-model="form.diagnosisId" :items="diagnoses" item-title="name" item-value="id"
-                    placeholder="-- Chọn Chẩn đoán --" variant="outlined" density="comfortable" hide-details clearable
+                <v-combobox v-model="form.diagnosisId" :items="diagnoses" item-title="name" item-value="id"
+                    placeholder="Chọn hoặc nhập một chẩn đoán mới" variant="outlined" density="comfortable" hide-details clearable
                     :custom-filter="vietnameseFilter" />
             </div>
 
