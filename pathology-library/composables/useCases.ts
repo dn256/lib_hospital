@@ -14,12 +14,12 @@ export const useCases = () => {
     const supabase = useSupabaseClient()
 
     const count = async (p: SearchParams) => {
-        const { count, error } = await supabase.from('case_versions')
+        const { count: countRes, error } = await supabase.from('case_versions')
             .select('id', { count: 'estimated', head: true })
-            .eq('status', p.status || ['published'])
+            .in('status', p.status || ['published'])
 
         if (error) throw error
-        return count
+        return countRes
     }
 
     const search = async (p: SearchParams) => {
