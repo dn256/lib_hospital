@@ -33,7 +33,9 @@ const onSubmit = async () => {
     loading.value = true
     try {
         let finalDiagnosisId = form.value.diagnosisId
-        if (typeof finalDiagnosisId === 'string' && finalDiagnosisId.trim() !== '') {
+        if (typeof finalDiagnosisId === 'object' && finalDiagnosisId !== null) {
+            finalDiagnosisId = (finalDiagnosisId as any).id
+        } else if (typeof finalDiagnosisId === 'string' && finalDiagnosisId.trim() !== '') {
             const existing = diagnoses.value.find((d: any) => d.name.toLowerCase() === (finalDiagnosisId as string).trim().toLowerCase())
             if (existing) {
                 finalDiagnosisId = existing.id

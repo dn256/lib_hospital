@@ -21,7 +21,7 @@ const caseDetail = ref<any>(null)
 const selectedTagIds = ref<number[]>([])
 
 const loading = ref(true)
-const isEditing = ref(false)
+const isEditing = ref(route.query.edit === 'true')
 const saving = ref(false)
 
 const organName = computed(() => {
@@ -84,7 +84,10 @@ const onSave = async () => {
     saving.value = true
     try {
         let finalDiagnosisId = caseDetail.value.diagnosis_id
-        if (typeof finalDiagnosisId === 'string' && finalDiagnosisId.trim() !== '') {
+        if (typeof finalDiagnosisId === 'object' && finalDiagnosisId !== null) {
+            finalDiagnosisId = (finalDiagnosisId as any).id
+            caseDetail.value.diagnosis_id = finalDiagnosisId
+        } else if (typeof finalDiagnosisId === 'string' && finalDiagnosisId.trim() !== '') {
             const existing = diagnoses.value.find((d: any) => d.name.toLowerCase() === finalDiagnosisId.toLowerCase())
             if (existing) {
                 finalDiagnosisId = existing.id

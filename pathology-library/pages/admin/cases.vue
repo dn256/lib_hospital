@@ -189,7 +189,7 @@ const handleDelete = async (c: any) => {
                                         <v-tooltip activator="parent">Xem</v-tooltip>
                                     </v-btn>
                                 </NuxtLink>
-                                <NuxtLink v-if="isEditor" :to="`/editor/${c.version_id}`">
+                                <NuxtLink v-if="isEditor" :to="`/cases/${c.version_id}?edit=true`">
                                     <v-btn icon variant="text" size="small" color="primary">
                                         <v-icon>mdi-pencil</v-icon>
                                         <v-tooltip activator="parent">Sửa</v-tooltip>
