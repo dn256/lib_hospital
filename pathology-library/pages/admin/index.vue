@@ -57,7 +57,7 @@ const statCards = [
 ]
 
 const quickActions = [
-    { title: 'Tạo Case mới', icon: 'mdi-plus-circle', to: '/editor/new', color: 'primary' },
+    { title: 'Tạo Case mới', icon: 'mdi-plus-circle', to: '/cases/new', color: 'primary' },
     { title: 'Duyệt Cases', icon: 'mdi-check-decagram', to: '/admin/review', color: 'info' },
     { title: 'Quản lý Danh mục', icon: 'mdi-folder-table', to: '/admin/catalogs', color: 'warning' },
 ]
@@ -158,7 +158,7 @@ const quickActions = [
                                         </span>
                                     </div>
                                 </div>
-                                <NuxtLink :to="`/editor/${c.version_id}`" class="case-action">
+                                <NuxtLink :to="`/cases/${c.version_id}`" class="case-action">
                                     <v-icon size="18">mdi-pencil</v-icon>
                                 </NuxtLink>
                             </div>

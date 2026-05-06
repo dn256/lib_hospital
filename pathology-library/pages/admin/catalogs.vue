@@ -66,8 +66,28 @@ const filteredItems = computed(() => {
     )
 })
 
-// Reset search when tab changes
-watch(activeTab, () => { searchKeyword.value = '' })
+// Pagination
+const currentPage = ref(1)
+const pageSize = ref(100)
+const pageSizeOptions = [100, 300, 500, 1000]
+
+const totalPages = computed(() => Math.max(1, Math.ceil(filteredItems.value.length / pageSize.value)))
+
+const paginatedItems = computed(() => {
+    const start = (currentPage.value - 1) * pageSize.value
+    return filteredItems.value.slice(start, start + pageSize.value)
+})
+
+const pageFrom = computed(() => filteredItems.value.length === 0 ? 0 : (currentPage.value - 1) * pageSize.value + 1)
+const pageTo = computed(() => Math.min(currentPage.value * pageSize.value, filteredItems.value.length))
+
+// Reset page when tab or search changes
+watch(activeTab, () => {
+    searchKeyword.value = ''
+    currentPage.value = 1
+})
+watch(searchKeyword, () => { currentPage.value = 1 })
+watch(pageSize, () => { currentPage.value = 1 })
 
 const tableName = computed(() => activeTab.value)
 
@@ -218,7 +238,7 @@ const dialogTitle = computed(() => {
                         </tr>
                     </thead>
                     <tbody>
-                        <tr v-for="item in filteredItems" :key="item.id">
+                        <tr v-for="item in paginatedItems" :key="item.id">
                             <td>
                                 <code class="item-id">{{ item.id }}</code>
                             </td>
@@ -257,6 +277,42 @@ const dialogTitle = computed(() => {
                         </tr>
                     </tbody>
                 </v-table>
+
+                <!-- Pagination Bar -->
+                <div class="pagination-bar" v-if="filteredItems.length > 0">
+                    <div class="pagination-info">
+                        Hiển thị <strong>{{ pageFrom }}–{{ pageTo }}</strong> / <strong>{{ filteredItems.length }}</strong> bản ghi
+                    </div>
+                    <div class="pagination-controls">
+                        <v-btn icon variant="text" size="small" :disabled="currentPage === 1"
+                            @click="currentPage = 1">
+                            <v-icon>mdi-page-first</v-icon>
+                            <v-tooltip activator="parent">Trang đầu</v-tooltip>
+                        </v-btn>
+                        <v-btn icon variant="text" size="small" :disabled="currentPage === 1"
+                            @click="currentPage--">
+                            <v-icon>mdi-chevron-left</v-icon>
+                        </v-btn>
+                        <span class="page-indicator">Trang {{ currentPage }} / {{ totalPages }}</span>
+                        <v-btn icon variant="text" size="small" :disabled="currentPage === totalPages"
+                            @click="currentPage++">
+                            <v-icon>mdi-chevron-right</v-icon>
+                        </v-btn>
+                        <v-btn icon variant="text" size="small" :disabled="currentPage === totalPages"
+                            @click="currentPage = totalPages">
+                            <v-icon>mdi-page-last</v-icon>
+                            <v-tooltip activator="parent">Trang cuối</v-tooltip>
+                        </v-btn>
+                    </div>
+                    <div class="pagination-size">
+                        <span class="size-label">Số dòng/trang:</span>
+                        <v-btn-toggle v-model="pageSize" mandatory density="compact" variant="outlined" color="primary">
+                            <v-btn v-for="opt in pageSizeOptions" :key="opt" :value="opt" size="small">
+                                {{ opt }}
+                            </v-btn>
+                        </v-btn-toggle>
+                    </div>
+                </div>
             </v-card-text>
         </v-card>
 
@@ -344,5 +400,50 @@ const dialogTitle = computed(() => {
 .dialog-title {
     font-family: 'Crimson Pro', serif;
     border-bottom: 1px solid #e5e7eb;
+}
+
+/* Pagination */
+.pagination-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    padding: 0.75rem 1rem;
+    border-top: 1px solid #e5e7eb;
+    background: #f8f9fa;
+    border-radius: 0 0 12px 12px;
+}
+
+.pagination-info {
+    font-size: 0.85rem;
+    color: #555;
+    min-width: 160px;
+}
+
+.pagination-controls {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+}
+
+.page-indicator {
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: #1a365d;
+    min-width: 100px;
+    text-align: center;
+}
+
+.pagination-size {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.size-label {
+    font-size: 0.85rem;
+    color: #555;
+    white-space: nowrap;
 }
 </style>
