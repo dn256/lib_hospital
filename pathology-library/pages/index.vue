@@ -337,10 +337,10 @@ const trustIndicators = [
                 <v-icon size="18" class="mr-2">mdi-folder-multiple</v-icon>
                 Danh mục
               </a>
-              <a href="#" class="nav-item">
-                <v-icon size="18" class="mr-2">mdi-book-open-variant</v-icon>
-                Hướng dẫn
-              </a>
+              <NuxtLink to="/atlas" class="nav-item">
+                <v-icon size="18" class="mr-2">mdi-microscope</v-icon>
+                Atlas GPB
+              </NuxtLink>
               <a href="#" class="nav-item">
                 <v-icon size="18" class="mr-2">mdi-information</v-icon>
                 Giới thiệu
