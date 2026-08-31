@@ -161,6 +161,36 @@ const chapterCount = (id: string) => id === 'all'
   ? allCases.value.length
   : allCases.value.filter((item) => item.chapter === id).length
 
+const organIcons: Record<string, string> = {
+  all: 'mdi-view-dashboard-outline',
+  thyroid: 'mdi-butterfly-outline',
+  lung: 'mdi-lungs',
+  colon: 'mdi-stomach',
+  breast: 'mdi-ribbon',
+  hpb: 'mdi-liver',
+  gyn: 'mdi-gender-female',
+  gu: 'mdi-gender-male-female',
+  skin: 'mdi-hand-back-left-outline',
+  heme: 'mdi-blood-bag',
+  cns: 'mdi-brain',
+  headneck: 'mdi-account-outline',
+  soft: 'mdi-bone',
+  uppergi: 'mdi-stomach',
+  eye: 'mdi-eye-outline',
+  inflammation: 'mdi-bacteria-outline',
+}
+
+const organIcon = (id: string) => organIcons[id] || 'mdi-microscope'
+const activeChapter = computed(() => chapterFor(selectedOrgan.value))
+const heroCases = computed(() => {
+  const scoped = allCases.value.filter((item) => (
+    (selectedOrgan.value === 'all' || item.chapter === selectedOrgan.value)
+    && imageFor(item)
+  ))
+  return scoped.slice(0, 4)
+})
+const verifiedImageCount = computed(() => allCases.value.filter((item) => imageFor(item)).length)
+
 const caseSearchText = (item: any) => normalize([
   item.diagnosis,
   item.english,
@@ -464,22 +494,60 @@ onMounted(async () => {
 <template>
   <div class="atlas-page">
     <section class="atlas-hero">
-      <div>
-        <p class="eyebrow">Không gian học tập tích hợp</p>
+      <div class="hero-content">
+        <div class="hero-kicker">
+          <span class="live-dot" />
+          Không gian học tập tích hợp
+        </div>
         <h1>Atlas Giải phẫu bệnh</h1>
-        <p class="hero-copy">Tra cứu cơ quan, chẩn đoán, hình thái, WHO và kho ảnh nguồn bằng một tài khoản PathologyLib.</p>
+        <p class="hero-copy">Quan sát vi thể, định hướng hình thái và mở đúng nguồn WHO trong cùng một không gian PathologyLib.</p>
+
+        <div class="hero-actions">
+          <button type="button" class="hero-primary" @click="activeView = 'atlas'">
+            <v-icon size="19">mdi-microscope</v-icon>
+            Khám phá Atlas
+            <v-icon size="18">mdi-arrow-right</v-icon>
+          </button>
+          <button type="button" class="hero-secondary" @click="activeView = 'morphology'">
+            <v-icon size="18">mdi-shape-outline</v-icon>
+            Tìm theo hình thái
+          </button>
+        </div>
+
+        <div class="hero-stats" aria-label="Thống kê dữ liệu Atlas">
+          <div><strong>{{ allCases.length || 120 }}</strong><span>hồ sơ Atlas</span></div>
+          <div><strong>{{ verifiedImageCount }}</strong><span>hồ sơ có ảnh</span></div>
+          <div><strong>{{ whoCatalog?.entries?.length?.toLocaleString('vi-VN') || '4.487' }}</strong><span>mục WHO</span></div>
+        </div>
+
+        <div class="atlas-status" :class="backendAvailable ? 'online' : 'local'">
+          <v-icon size="16">{{ backendAvailable ? 'mdi-cloud-check-outline' : 'mdi-cloud-alert-outline' }}</v-icon>
+          <span>{{ backendAvailable ? 'Supabase đang đồng bộ ảnh và hồ sơ theo tài khoản.' : 'Chưa áp migration Atlas; thay đổi đang được lưu cục bộ.' }}</span>
+        </div>
       </div>
-      <div class="hero-stats" aria-label="Thống kê dữ liệu Atlas">
-        <div><strong>{{ allCases.length || 120 }}</strong><span>hồ sơ Atlas</span></div>
-        <div><strong>{{ whoCatalog?.entries?.length?.toLocaleString('vi-VN') || '4.487' }}</strong><span>mục WHO</span></div>
-        <div><strong>{{ webPathologyCatalog?.entries?.length?.toLocaleString('vi-VN') || '1.004' }}</strong><span>gallery nguồn</span></div>
+
+      <div class="hero-gallery" aria-label="Ảnh vi thể nổi bật trong Atlas">
+        <button
+          v-for="(item, index) in heroCases"
+          :key="item.id"
+          type="button"
+          class="hero-slide"
+          :class="`hero-slide-${index + 1}`"
+          @click="openCase(item)"
+        >
+          <v-img :src="imageFor(item)" :alt="`${item.diagnosis} / ${item.english}`" cover height="100%" @error="markImageFailed(item.id)" />
+          <span class="hero-slide-shade" />
+          <span class="hero-slide-copy">
+            <small>{{ chapterFor(item.chapter).name }}</small>
+            <strong>{{ item.diagnosis }}</strong>
+          </span>
+        </button>
+        <div v-if="heroCases.length === 0" class="hero-gallery-empty">
+          <v-icon size="42">mdi-image-search-outline</v-icon>
+          <span>Đang chuẩn bị ảnh vi thể</span>
+        </div>
       </div>
     </section>
-
-    <div class="atlas-status" :class="backendAvailable ? 'online' : 'local'">
-      <v-icon size="17">{{ backendAvailable ? 'mdi-cloud-check-outline' : 'mdi-cloud-alert-outline' }}</v-icon>
-      <span>{{ backendAvailable ? 'Supabase đang đồng bộ ảnh và hồ sơ theo tài khoản.' : 'Chưa áp migration Atlas; thay đổi đang được lưu cục bộ.' }}</span>
-    </div>
 
     <v-tabs v-model="activeView" class="workspace-tabs" color="primary" show-arrows>
       <v-tab value="atlas"><v-icon start>mdi-view-grid-outline</v-icon>Atlas ca</v-tab>
@@ -498,24 +566,34 @@ onMounted(async () => {
     </div>
 
     <template v-else-if="loaded">
-      <section v-show="activeView === 'atlas'" class="atlas-workspace">
-        <aside class="organ-sidebar">
-          <div class="sidebar-heading"><span>CƠ QUAN</span><small>{{ allCases.length }} hồ sơ</small></div>
+      <section v-show="activeView === 'atlas'" class="organ-explorer" aria-label="Chọn hệ cơ quan">
+        <header class="organ-explorer-heading">
+          <div><p>KHÁM PHÁ THEO CƠ QUAN</p><h2>Chọn cơ quan để bắt đầu</h2></div>
+          <span>{{ chapters.length - 1 }} nhóm · {{ allCases.length }} hồ sơ</span>
+        </header>
+        <div class="organ-rail">
           <button
             v-for="chapter in chapters"
             :key="chapter.id"
             type="button"
             :class="{ active: selectedOrgan === chapter.id }"
+            :style="{ '--organ-color': chapter.color }"
             @click="selectedOrgan = chapter.id"
           >
-            <span class="organ-dot" :style="{ background: chapter.color }" />
-            <span>{{ chapter.name }}</span><small>{{ chapterCount(chapter.id) }}</small>
+            <span class="organ-icon"><v-icon size="20">{{ organIcon(chapter.id) }}</v-icon></span>
+            <span class="organ-label"><strong>{{ chapter.name }}</strong><small>{{ chapterCount(chapter.id) }} hồ sơ</small></span>
+            <v-icon class="organ-arrow" size="17">mdi-arrow-right</v-icon>
           </button>
-        </aside>
+        </div>
+      </section>
 
+      <section v-show="activeView === 'atlas'" class="atlas-workspace">
         <div class="atlas-results">
           <div class="atlas-toolbar">
-            <div class="toolbar-title"><p>{{ chapterFor(selectedOrgan).short || 'ALL' }}</p><h2>{{ chapterFor(selectedOrgan).name || 'Tất cả cơ quan' }}</h2></div>
+            <div class="toolbar-title">
+              <span class="toolbar-organ-icon" :style="{ background: activeChapter.color }"><v-icon size="22">{{ organIcon(activeChapter.id) }}</v-icon></span>
+              <div><p>{{ activeChapter.short || 'ALL' }} · BẢN ATLAS</p><h2>{{ activeChapter.name || 'Tất cả cơ quan' }}</h2><span>{{ activeChapter.intro }}</span></div>
+            </div>
             <div class="toolbar-actions">
               <v-text-field v-model="query" prepend-inner-icon="mdi-magnify" placeholder="Tìm tiếng Việt, English, marker, ICD-O…" hide-details density="compact" clearable />
               <v-btn color="primary" prepend-icon="mdi-plus" @click="openCustomCaseDialog">Thêm hồ sơ</v-btn>
@@ -529,17 +607,18 @@ onMounted(async () => {
           </div>
 
           <div class="results-summary"><strong>{{ filteredCases.length }}</strong> hồ sơ phù hợp</div>
-          <div class="case-grid">
+          <TransitionGroup name="atlas-list" tag="div" class="case-grid">
             <AtlasCaseCard
-              v-for="item in visibleCases"
+              v-for="(item, index) in visibleCases"
               :key="item.id"
               :item="item"
               :chapter="chapterFor(item.chapter)"
               :image-url="imageFor(item)"
+              :style="{ '--card-index': index % 12 }"
               @select="openCase"
               @image-error="markImageFailed"
             />
-          </div>
+          </TransitionGroup>
           <div v-if="visibleCases.length === 0" class="empty-results"><v-icon size="38">mdi-magnify-close</v-icon><strong>Không tìm thấy hồ sơ phù hợp</strong><span>Thử tên tiếng Việt, tiếng Anh, cơ quan hoặc marker khác.</span></div>
           <div v-if="visibleCases.length < filteredCases.length" class="load-more"><v-btn variant="outlined" color="primary" @click="caseLimit += 36">Hiển thị thêm</v-btn></div>
         </div>
@@ -665,31 +744,93 @@ onMounted(async () => {
 </template>
 
 <style scoped>
-.atlas-page { min-height: 100%; padding-bottom: 34px; background: #f3f6f8; }
-.atlas-hero { min-height: 205px; padding: 38px clamp(22px, 4vw, 64px); display: flex; align-items: center; justify-content: space-between; gap: 32px; color: #fff; background: linear-gradient(110deg, #173f54 0%, #245e69 66%, #a1811d 140%); }
-.eyebrow, .view-header p { margin: 0 0 8px; color: #f0cb58; font-size: .7rem; font-weight: 900; text-transform: uppercase; }
-.atlas-hero h1 { margin: 0; font: 700 clamp(2rem, 4vw, 3.25rem)/1.1 var(--font-heading); letter-spacing: 0; }
-.hero-copy { max-width: 720px; margin: 12px 0 0; color: #d8e5ea; font-size: .92rem; }
-.hero-stats { display: grid; grid-template-columns: repeat(3, minmax(112px, 1fr)); border: 1px solid rgba(255,255,255,.2); }
-.hero-stats div { min-width: 120px; padding: 18px; display: flex; flex-direction: column; background: rgba(10,35,47,.25); }
-.hero-stats div + div { border-left: 1px solid rgba(255,255,255,.2); }
-.hero-stats strong { color: #fff; font-size: 1.4rem; line-height: 1; }.hero-stats span { margin-top: 7px; color: #cbdbe1; font-size: .68rem; }
-.atlas-status { min-height: 37px; padding: 7px clamp(22px,4vw,64px); display: flex; align-items: center; gap: 8px; font-size: .74rem; font-weight: 700; }.atlas-status.online { color: #17695f; background: #e4f3ef; }.atlas-status.local { color: #765800; background: #fff6d9; }
-.workspace-tabs { padding: 0 clamp(14px,3vw,42px); background: #fff; border-bottom: 1px solid #d5e0e4; }
+.atlas-page { min-height: 100%; padding-bottom: 34px; overflow: hidden; background: #eef3f5; }
+.atlas-hero { position: relative; min-height: 390px; padding: 42px max(28px, calc((100vw - 1680px) / 2)); display: grid; grid-template-columns: minmax(0, .92fr) minmax(470px, .78fr); align-items: center; gap: clamp(34px, 5vw, 82px); overflow: hidden; color: #fff; background: #102f43; }
+.atlas-hero::before { content: ''; position: absolute; inset: 0; pointer-events: none; background-image: linear-gradient(rgba(108, 217, 210, .055) 1px, transparent 1px), linear-gradient(90deg, rgba(108, 217, 210, .055) 1px, transparent 1px); background-size: 42px 42px; mask-image: linear-gradient(90deg, #000, transparent 78%); }
+.hero-content, .hero-gallery { position: relative; z-index: 1; }
+.hero-kicker, .view-header p { margin: 0 0 10px; color: #f0cb58; font-size: .72rem; font-weight: 900; letter-spacing: 0; text-transform: uppercase; }
+.hero-kicker { display: flex; align-items: center; gap: 9px; }
+.live-dot { width: 8px; height: 8px; background: #55d8d0; border-radius: 50%; box-shadow: 0 0 0 6px rgba(85,216,208,.12); animation: livePulse 2.4s ease-in-out infinite; }
+.atlas-hero h1 { margin: 0; font: 700 3.1rem/1.08 var(--font-heading); letter-spacing: 0; }
+.hero-copy { max-width: 680px; margin: 14px 0 0; color: #cbdbe3; font-size: 1rem; line-height: 1.65; }
+.hero-actions { margin-top: 25px; display: flex; flex-wrap: wrap; gap: 10px; }
+.hero-primary, .hero-secondary { min-height: 44px; padding: 0 16px; display: inline-flex; align-items: center; justify-content: center; gap: 9px; border-radius: 6px; font: 800 .82rem var(--font-body); cursor: pointer; transition: transform .2s ease, background-color .2s ease, border-color .2s ease; }
+.hero-primary { color: #102f43; background: #f0cb58; border: 1px solid #f0cb58; }.hero-primary:hover { background: #ffe080; transform: translateY(-2px); }
+.hero-secondary { color: #fff; background: rgba(255,255,255,.06); border: 1px solid rgba(255,255,255,.26); }.hero-secondary:hover { background: rgba(255,255,255,.12); border-color: rgba(255,255,255,.5); transform: translateY(-2px); }
+.hero-stats { max-width: 610px; margin-top: 28px; display: grid; grid-template-columns: repeat(3, minmax(100px, 1fr)); }
+.hero-stats div { padding-right: 20px; display: flex; flex-direction: column; }.hero-stats div + div { padding-left: 20px; border-left: 1px solid rgba(255,255,255,.2); }
+.hero-stats strong { color: #fff; font-size: 1.55rem; line-height: 1; }.hero-stats span { margin-top: 7px; color: #9fb6c2; font-size: .72rem; }
+.atlas-status { width: fit-content; min-height: 30px; margin-top: 20px; padding: 5px 10px; display: flex; align-items: center; gap: 7px; border: 1px solid; border-radius: 5px; font-size: .7rem; font-weight: 700; }.atlas-status.online { color: #94ebe1; background: rgba(23,105,95,.18); border-color: rgba(148,235,225,.26); }.atlas-status.local { color: #ffe28a; background: rgba(118,88,0,.18); border-color: rgba(255,226,138,.28); }
+.hero-gallery { height: 310px; display: grid; grid-template-columns: 1.25fr .75fr; grid-template-rows: 1fr 1fr 1fr; gap: 10px; perspective: 900px; }
+.hero-slide { position: relative; min-width: 0; min-height: 0; padding: 0; overflow: hidden; background: #203f50; border: 1px solid rgba(255,255,255,.18); border-radius: 7px; cursor: pointer; box-shadow: 0 18px 40px rgba(2,20,31,.32); animation: galleryReveal .7s ease both; transition: border-color .25s ease, transform .25s ease, box-shadow .25s ease; }
+.hero-slide-1 { grid-row: 1 / -1; animation-delay: .08s; }.hero-slide-2 { animation-delay: .16s; }.hero-slide-3 { animation-delay: .24s; }.hero-slide-4 { animation-delay: .32s; }
+.hero-slide:hover { z-index: 2; border-color: #f0cb58; transform: translateY(-4px) scale(1.015); box-shadow: 0 24px 54px rgba(2,20,31,.44); }
+.hero-slide :deep(.v-img__img) { transition: transform .55s ease; }.hero-slide:hover :deep(.v-img__img) { transform: scale(1.06); }
+.hero-slide-shade { position: absolute; inset: 30% 0 0; background: linear-gradient(transparent, rgba(4,22,32,.94)); }
+.hero-slide-copy { position: absolute; right: 12px; bottom: 12px; left: 12px; display: flex; flex-direction: column; color: #fff; text-align: left; }.hero-slide-copy small { margin-bottom: 3px; color: #76e0d7; font-size: .62rem; font-weight: 900; text-transform: uppercase; }.hero-slide-copy strong { font-size: .76rem; line-height: 1.35; }
+.hero-slide-1 .hero-slide-copy { right: 18px; bottom: 18px; left: 18px; }.hero-slide-1 .hero-slide-copy strong { font-size: 1rem; }
+.hero-gallery-empty { grid-column: 1/-1; grid-row: 1/-1; display: grid; place-content: center; justify-items: center; gap: 10px; color: #9eb6c2; border: 1px dashed rgba(255,255,255,.25); border-radius: 7px; }
+.workspace-tabs { position: sticky; top: 68px; z-index: 30; padding: 0 max(18px, calc((100vw - 1680px) / 2)); background: rgba(255,255,255,.97); border-bottom: 1px solid #d5e0e4; box-shadow: 0 8px 24px rgba(18,50,67,.06); backdrop-filter: blur(12px); }
 .state-panel { min-height: 420px; display: grid; place-content: center; justify-items: center; gap: 14px; color: #385568; }.error-state { color: #a13b3f; }
-.atlas-workspace { max-width: 1800px; margin: 0 auto; display: grid; grid-template-columns: 235px minmax(0,1fr); }
-.organ-sidebar { min-height: calc(100vh - 310px); padding: 20px 12px 30px; background: #173b4e; border-right: 1px solid #0f3041; }
-.sidebar-heading { padding: 0 9px 11px; display: flex; justify-content: space-between; color: #91b2bf; font-size: .65rem; font-weight: 800; }
-.organ-sidebar button { width: 100%; min-height: 42px; padding: 7px 9px; display: grid; grid-template-columns: 9px minmax(0,1fr) auto; align-items: center; gap: 9px; color: #d5e2e7; background: transparent; border: 1px solid transparent; border-radius: 4px; text-align: left; font: 600 .8rem var(--font-body); cursor: pointer; }
-.organ-sidebar button:hover, .organ-sidebar button.active { color: #fff; background: rgba(255,255,255,.08); border-color: rgba(240,203,88,.45); }.organ-sidebar button.active { box-shadow: inset 3px 0 #f0cb58; }.organ-sidebar button small { min-width: 25px; padding: 2px 5px; color: #bcd0d9; background: rgba(255,255,255,.09); border-radius: 3px; text-align: center; }.organ-dot { width: 8px; height: 8px; border-radius: 50%; }
-.atlas-results { min-width: 0; padding: 24px clamp(16px,2.5vw,34px) 38px; }.atlas-toolbar { display: flex; align-items: center; justify-content: space-between; gap: 24px; }.toolbar-title p { margin: 0; color: #16877e; font-size: .67rem; font-weight: 900; }.toolbar-title h2 { margin: 3px 0 0; color: #17364a; font: 700 1.55rem var(--font-heading); letter-spacing: 0; }.toolbar-actions { width: min(720px, 68%); display: grid; grid-template-columns: minmax(240px,1fr) auto; gap: 10px; }
+.organ-explorer { padding: 28px max(22px, calc((100vw - 1680px) / 2)) 24px; background: #fff; border-bottom: 1px solid #d7e2e6; }
+.organ-explorer-heading { margin-bottom: 15px; display: flex; align-items: flex-end; justify-content: space-between; gap: 18px; }.organ-explorer-heading p { margin: 0 0 3px; color: #16877e; font-size: .66rem; font-weight: 900; }.organ-explorer-heading h2 { margin: 0; color: #15384b; font: 700 1.42rem var(--font-heading); }.organ-explorer-heading > span { color: #718791; font-size: .74rem; }
+.organ-rail { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(172px, 1fr); gap: 9px; overflow-x: auto; padding: 2px 2px 10px; scroll-snap-type: x proximity; scrollbar-width: thin; }
+.organ-rail button { position: relative; min-height: 74px; padding: 11px 12px; display: grid; grid-template-columns: 38px minmax(0,1fr) 18px; align-items: center; gap: 10px; overflow: hidden; color: #23475a; background: #f7fafb; border: 1px solid #d5e1e6; border-radius: 7px; text-align: left; cursor: pointer; scroll-snap-align: start; transition: color .2s ease, background-color .2s ease, border-color .2s ease, transform .2s ease, box-shadow .2s ease; }
+.organ-rail button::after { content: ''; position: absolute; right: 0; bottom: 0; left: 0; height: 3px; background: var(--organ-color); transform: scaleX(0); transform-origin: left; transition: transform .25s ease; }.organ-rail button:hover, .organ-rail button.active { color: #143548; background: #fff; border-color: color-mix(in srgb, var(--organ-color) 55%, #d5e1e6); transform: translateY(-2px); box-shadow: 0 10px 25px rgba(18,50,67,.1); }.organ-rail button:hover::after, .organ-rail button.active::after { transform: scaleX(1); }
+.organ-icon { width: 38px; height: 38px; display: grid; place-items: center; color: #fff; background: var(--organ-color); border-radius: 6px; }.organ-label { min-width: 0; display: flex; flex-direction: column; }.organ-label strong { overflow: hidden; font-size: .78rem; text-overflow: ellipsis; white-space: nowrap; }.organ-label small { margin-top: 4px; color: #758b96; font-size: .66rem; }.organ-arrow { color: #9aadb6; opacity: 0; transform: translateX(-5px); transition: opacity .2s ease, transform .2s ease; }.organ-rail button:hover .organ-arrow, .organ-rail button.active .organ-arrow { opacity: 1; transform: translateX(0); }
+.atlas-workspace { max-width: 1740px; margin: 0 auto; }
+.atlas-results { min-width: 0; padding: 28px clamp(18px,3vw,42px) 42px; }.atlas-toolbar { padding-bottom: 20px; display: flex; align-items: center; justify-content: space-between; gap: 30px; border-bottom: 1px solid #d8e2e6; }.toolbar-title { min-width: 0; display: flex; align-items: center; gap: 14px; }.toolbar-organ-icon { flex: 0 0 auto; width: 48px; height: 48px; display: grid; place-items: center; color: #fff; border-radius: 7px; box-shadow: 0 8px 18px rgba(18,50,67,.16); }.toolbar-title p { margin: 0; color: #16877e; font-size: .67rem; font-weight: 900; }.toolbar-title h2 { margin: 2px 0 0; color: #17364a; font: 700 1.55rem var(--font-heading); letter-spacing: 0; }.toolbar-title span:not(.toolbar-organ-icon) { max-width: 680px; display: block; margin-top: 4px; color: #6a808b; font-size: .72rem; line-height: 1.45; }.toolbar-actions { width: min(680px, 52%); display: grid; grid-template-columns: minmax(240px,1fr) auto; gap: 10px; }
 .pattern-filter { margin: 19px 0 12px; padding: 11px 0; display: flex; flex-wrap: wrap; gap: 7px; border-top: 1px solid #d9e3e7; border-bottom: 1px solid #d9e3e7; }.pattern-filter button, .clue-groups button { min-height: 32px; padding: 5px 10px; color: #2d5366; background: #fff; border: 1px solid #c7d9e0; border-radius: 4px; font: 700 .72rem var(--font-body); cursor: pointer; }.pattern-filter button.active, .clue-groups button.active { color: #fff; background: #1d7180; border-color: #1d7180; }.results-summary { margin: 10px 0 13px; color: #69808c; font-size: .76rem; }
-.case-grid { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 16px; }.load-more { padding: 25px 0 5px; display: flex; justify-content: center; }.empty-results { min-height: 250px; display: grid; place-content: center; justify-items: center; gap: 8px; color: #69808c; text-align: center; }.empty-results strong { color: #385568; }.empty-results span { font-size: .8rem; }
+.case-grid { position: relative; display: grid; grid-template-columns: repeat(4,minmax(0,1fr)); gap: 16px; }.atlas-list-enter-active, .atlas-list-leave-active, .atlas-list-move { transition: opacity .34s ease, transform .34s ease; }.atlas-list-enter-from { opacity: 0; transform: translateY(18px); }.atlas-list-leave-to { opacity: 0; transform: scale(.97); }.atlas-list-leave-active { position: absolute; }
+.load-more { padding: 25px 0 5px; display: flex; justify-content: center; }.empty-results { min-height: 250px; display: grid; place-content: center; justify-items: center; gap: 8px; color: #69808c; text-align: center; }.empty-results strong { color: #385568; }.empty-results span { font-size: .8rem; }
 .content-view { max-width: 1580px; margin: 0 auto; padding: 27px clamp(18px,3vw,38px) 42px; }.view-header { min-height: 94px; display: flex; align-items: flex-start; justify-content: space-between; gap: 24px; }.view-header h2 { margin: 0; color: #17364a; font: 700 1.75rem var(--font-heading); letter-spacing: 0; }.view-header span { color: #6c818c; font-size: .8rem; }.view-counter { min-width: 130px; padding-left: 18px; display: flex; flex-direction: column; border-left: 2px solid #d4af37; }.view-counter strong { color: #17364a; font-size: 1.5rem; }.morphology-form, .library-filter { padding: 18px; display: grid; grid-template-columns: minmax(180px,.35fr) minmax(300px,1fr) auto; align-items: center; gap: 12px; background: #fff; border: 1px solid #d4e0e5; border-radius: 5px; }
 .clue-groups { margin-top: 16px; display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 12px; }.clue-groups section { padding: 15px; background: #fff; border: 1px solid #d7e2e6; border-radius: 5px; }.clue-groups h3 { margin: 0 0 10px; color: #56717f; font: 800 .68rem var(--font-body); text-transform: uppercase; }.clue-groups section > div { display: flex; flex-wrap: wrap; gap: 6px; }.morph-results-heading { margin: 24px 0 12px; display: flex; justify-content: space-between; border-bottom: 1px solid #d4e0e5; }.morph-results-heading h3 { margin: 0 0 9px; color: #17364a; font: 700 1rem var(--font-body); }.morph-results-heading span { color: #718691; font-size: .74rem; }
 .library-filter { grid-template-columns: minmax(300px,1fr) minmax(240px,.4fr); margin-bottom: 18px; }.source-grid { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 12px; }.source-card { min-width: 0; padding: 16px; background: #fff; border: 1px solid #d5e0e5; border-radius: 5px; box-shadow: 0 3px 10px rgba(20,53,71,.05); }.source-card-top { display: flex; justify-content: space-between; color: #16877e; font-size: .65rem; font-weight: 900; text-transform: uppercase; }.source-card-top small { color: #6d818b; }.source-card h3 { margin: 10px 0 0; color: #15374a; font: 700 .98rem/1.4 var(--font-body); letter-spacing: 0; }.source-card p { min-height: 36px; margin: 8px 0; color: #627985; font-size: .73rem; line-height: 1.45; }.source-card .source-english { min-height: 0; color: #315b6e; font-weight: 600; }.source-card a { min-height: 34px; margin-top: 10px; display: inline-flex; align-items: center; gap: 6px; color: #176c70; font-size: .74rem; font-weight: 800; }
 .editor-dialog :deep(.v-card-title) { color: #fff; background: #173b4e; font: 700 1.1rem var(--font-body); }.editor-dialog :deep(.v-card-text) { padding-top: 22px; }.field-divider { margin: 4px 0 18px; display: flex; align-items: center; gap: 10px; color: #7b8c95; font-size: .7rem; }.field-divider::before, .field-divider::after { content:''; flex:1; height:1px; background:#d9e2e6; }.dialog-note { padding: 10px 12px; color: #6c7f89; background: #eef3f5; border-left: 3px solid #d4af37; font-size: .72rem; line-height: 1.5; }.custom-form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 4px 14px; }.span-two { grid-column: 1/-1; }
-@media (max-width: 1280px) { .case-grid, .source-grid { grid-template-columns: repeat(2,minmax(0,1fr)); }.hero-stats div { min-width: 105px; } }
-@media (max-width: 960px) { .atlas-hero { align-items: flex-start; flex-direction: column; }.atlas-workspace { display: block; }.organ-sidebar { min-height: 0; padding: 12px; display: flex; overflow-x: auto; gap: 6px; }.sidebar-heading { display: none; }.organ-sidebar button { flex: 0 0 auto; width: auto; min-width: 125px; }.atlas-toolbar { align-items: flex-start; flex-direction: column; }.toolbar-actions { width: 100%; }.morphology-form { grid-template-columns: 1fr; }.clue-groups { grid-template-columns: 1fr; } }
-@media (max-width: 640px) { .atlas-hero { min-height: 0; padding: 28px 18px; }.hero-stats { width: 100%; grid-template-columns: 1fr; }.hero-stats div + div { border-top: 1px solid rgba(255,255,255,.2); border-left: 0; }.toolbar-actions, .library-filter, .custom-form-grid { grid-template-columns: 1fr; }.case-grid, .source-grid { grid-template-columns: 1fr; }.content-view, .atlas-results { padding-right: 14px; padding-left: 14px; }.view-header { flex-direction: column; }.view-counter { padding-left: 0; border-left: 0; }.span-two { grid-column: auto; } }
+@keyframes livePulse { 0%, 100% { box-shadow: 0 0 0 5px rgba(85,216,208,.1); } 50% { box-shadow: 0 0 0 9px rgba(85,216,208,0); } }
+@keyframes galleryReveal { from { opacity: 0; transform: translateY(20px) rotateX(4deg); } to { opacity: 1; transform: translateY(0) rotateX(0); } }
+
+@media (max-width: 1440px) {
+  .case-grid { grid-template-columns: repeat(3,minmax(0,1fr)); }
+  .atlas-hero { grid-template-columns: minmax(0,1fr) minmax(410px,.8fr); }
+}
+@media (max-width: 1180px) {
+  .atlas-hero { min-height: 360px; grid-template-columns: minmax(0,1fr) minmax(360px,.72fr); gap: 30px; }
+  .hero-gallery { height: 270px; }
+  .source-grid { grid-template-columns: repeat(2,minmax(0,1fr)); }
+  .atlas-toolbar { align-items: flex-start; flex-direction: column; }
+  .toolbar-actions { width: 100%; }
+}
+@media (max-width: 960px) {
+  .workspace-tabs { top: 62px; }
+  .atlas-hero { min-height: 0; grid-template-columns: 1fr; }
+  .hero-gallery { width: 100%; max-width: 720px; height: 300px; }
+  .organ-explorer { padding-top: 22px; }
+  .case-grid { grid-template-columns: repeat(2,minmax(0,1fr)); }
+  .morphology-form { grid-template-columns: 1fr; }
+  .clue-groups { grid-template-columns: 1fr; }
+}
+@media (max-width: 640px) {
+  .atlas-hero { padding: 28px 16px; gap: 26px; }
+  .atlas-hero h1 { font-size: 2.25rem; }
+  .hero-copy { font-size: .9rem; }
+  .hero-actions > button { width: 100%; }
+  .hero-stats { width: 100%; }
+  .hero-stats div { padding-right: 10px; }.hero-stats div + div { padding-left: 10px; }
+  .hero-stats strong { font-size: 1.28rem; }.hero-stats span { font-size: .64rem; }
+  .atlas-status { width: 100%; }
+  .hero-gallery { height: 238px; grid-template-columns: 1.12fr .88fr; gap: 7px; }
+  .hero-slide-copy strong { font-size: .68rem; }.hero-slide-1 .hero-slide-copy strong { font-size: .82rem; }
+  .organ-explorer { padding-right: 14px; padding-left: 14px; }.organ-explorer-heading { align-items: flex-start; flex-direction: column; gap: 4px; }
+  .organ-rail { grid-auto-columns: minmax(158px, 76vw); }
+  .toolbar-title { align-items: flex-start; }.toolbar-title span:not(.toolbar-organ-icon) { display: none; }
+  .toolbar-actions, .library-filter, .custom-form-grid { grid-template-columns: 1fr; }
+  .case-grid, .source-grid { grid-template-columns: 1fr; }
+  .content-view, .atlas-results { padding-right: 14px; padding-left: 14px; }
+  .view-header { flex-direction: column; }.view-counter { padding-left: 0; border-left: 0; }.span-two { grid-column: auto; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .live-dot, .hero-slide { animation: none; }
+  .hero-slide, .hero-primary, .hero-secondary, .organ-rail button, .atlas-list-enter-active, .atlas-list-leave-active, .atlas-list-move { transition: none; }
+}
 </style>
