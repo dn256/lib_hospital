@@ -100,13 +100,10 @@ const updateRole = async () => {
 
     saving.value = true
     try {
-        const { error } = await supabase
-            .from('profiles')
-            .update({
-                role: selectedRole.value,
-                updated_at: new Date().toISOString()
-            })
-            .eq('user_id', editingUser.value.user_id)
+        const { error } = await supabase.rpc('set_user_role', {
+            target_user_id: editingUser.value.user_id,
+            new_role: selectedRole.value
+        })
 
         if (error) throw error
 

@@ -5,7 +5,7 @@ returns boolean
 language sql
 stable
 security definer
-set search_path = lib_hospital, public
+set search_path = lib_hospital, pg_temp
 as $$
   select exists (
     select 1
@@ -15,7 +15,50 @@ as $$
   );
 $$;
 
+revoke all on function lib_hospital.is_atlas_editor() from public;
+revoke all on function lib_hospital.is_atlas_editor() from anon;
 grant execute on function lib_hospital.is_atlas_editor() to authenticated;
+
+-- Profile roles control privileged application actions. Users may edit their
+-- display name, while role changes must pass the admin check below.
+revoke update on table lib_hospital.profiles from authenticated;
+grant update (display_name, updated_at) on lib_hospital.profiles to authenticated;
+
+create or replace function lib_hospital.set_user_role(
+  target_user_id uuid,
+  new_role lib_hospital.app_role
+)
+returns void
+language plpgsql
+security definer
+set search_path = lib_hospital, pg_temp
+as $$
+begin
+  if not exists (
+    select 1
+    from lib_hospital.profiles
+    where user_id = auth.uid()
+      and role = 'admin'
+  ) then
+    raise exception 'Only administrators may change user roles'
+      using errcode = '42501';
+  end if;
+
+  update lib_hospital.profiles
+  set role = new_role,
+      updated_at = now()
+  where user_id = target_user_id;
+
+  if not found then
+    raise exception 'User profile not found'
+      using errcode = 'P0002';
+  end if;
+end;
+$$;
+
+revoke all on function lib_hospital.set_user_role(uuid, lib_hospital.app_role) from public;
+revoke all on function lib_hospital.set_user_role(uuid, lib_hospital.app_role) from anon;
+grant execute on function lib_hospital.set_user_role(uuid, lib_hospital.app_role) to authenticated;
 
 create table if not exists lib_hospital.atlas_image_overrides (
   id uuid primary key default gen_random_uuid(),
