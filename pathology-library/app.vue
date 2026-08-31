@@ -9,7 +9,9 @@ onMounted(() => init())
 <template>
   <v-app>
     <v-main>
-      <NuxtPage />
+      <NuxtLayout>
+        <NuxtPage />
+      </NuxtLayout>
     </v-main>
   </v-app>
 </template>

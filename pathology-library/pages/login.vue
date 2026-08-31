@@ -1,10 +1,16 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, nextTick } from 'vue'
-import { useRouter } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import { useAuth } from '~/composables/useAuth'
 
 const router = useRouter()
+const route = useRoute()
 const { signInWithPassword, signUp, user } = useAuth()
+
+const redirectTarget = computed(() => {
+    const value = typeof route.query.redirect === 'string' ? route.query.redirect : '/'
+    return value.startsWith('/') && !value.startsWith('//') ? value : '/'
+})
 
 // Form states
 const isLogin = ref(true)
@@ -183,7 +189,7 @@ const handleSubmit = async () => {
         }
 
         await new Promise(resolve => setTimeout(resolve, 1500))
-        router.push('/')
+        router.push(redirectTarget.value)
     } catch (error: any) {
         console.error('Auth error:', error)
         await showDialogue(errorDialogues.invalidCredentials, 'concerned')
@@ -197,7 +203,7 @@ const handleSubmit = async () => {
 onMounted(async () => {
     // Check if already logged in
     if (user.value) {
-        router.push('/')
+        router.push(redirectTarget.value)
         return
     }
 

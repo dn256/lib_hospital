@@ -6,6 +6,22 @@ const isPaused = ref(false)
 const scrollY = ref(0)
 const pauseThreshold = 100 // Pause after scrolling 100px
 
+const seededValue = (seed: number) => ((seed * 9301 + 49297) % 233280) / 233280
+const particles = Array.from({ length: 20 }, (_, index) => {
+    const number = index + 1
+    return {
+        number,
+        style: {
+            left: `${seededValue(number * 3) * 100}%`,
+            top: `${seededValue(number * 5) * 100}%`,
+            animationDelay: `${number * 0.5}s`,
+            animationDuration: `${10 + seededValue(number * 7) * 15}s`,
+            width: `${3 + seededValue(number * 11) * 4}px`,
+            height: `${3 + seededValue(number * 13) * 4}px`,
+        },
+    }
+})
+
 const handleScroll = () => {
     if (typeof window !== 'undefined') {
         scrollY.value = window.scrollY
@@ -63,14 +79,12 @@ onUnmounted(() => {
 
         <!-- Floating particles -->
         <div class="particles">
-            <div class="particle" v-for="n in 20" :key="n" :style="{
-                left: `${Math.random() * 100}%`,
-                top: `${Math.random() * 100}%`,
-                animationDelay: `${n * 0.5}s`,
-                animationDuration: `${10 + Math.random() * 15}s`,
-                width: `${3 + Math.random() * 4}px`,
-                height: `${3 + Math.random() * 4}px`
-            }"></div>
+            <div
+                v-for="particle in particles"
+                :key="particle.number"
+                class="particle"
+                :style="particle.style"
+            ></div>
         </div>
 
         <!-- Microscope cells -->
