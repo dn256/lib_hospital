@@ -16,6 +16,7 @@ defineEmits<{
     <div class="image-frame">
       <v-img
         v-if="imageUrl"
+        class="atlas-image"
         :src="imageUrl"
         :alt="`${item.diagnosis} / ${item.english}`"
         cover
@@ -67,6 +68,8 @@ defineEmits<{
   border-radius: 6px;
   box-shadow: 0 4px 14px rgba(19, 52, 72, 0.07);
   cursor: pointer;
+  animation: cardReveal 0.42s ease both;
+  animation-delay: calc(var(--card-index, 0) * 24ms);
   transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
 }
 
@@ -84,6 +87,16 @@ defineEmits<{
   overflow: hidden;
   background: #e8eef1;
   border-bottom: 1px solid #d7e0e5;
+}
+
+.atlas-image :deep(.v-img__img) {
+  transition: transform 0.55s ease, filter 0.3s ease;
+}
+
+.atlas-card:hover .atlas-image :deep(.v-img__img),
+.atlas-card:focus-visible .atlas-image :deep(.v-img__img) {
+  transform: scale(1.055);
+  filter: saturate(1.06) contrast(1.02);
 }
 
 .image-loading,
@@ -200,6 +213,25 @@ h3 {
   border-top: 1px solid #e0e7ea;
   font: 700 0.78rem var(--font-body);
   cursor: pointer;
+}
+
+.open-button :deep(.v-icon) {
+  transition: transform 0.2s ease;
+}
+
+.atlas-card:hover .open-button :deep(.v-icon),
+.atlas-card:focus-visible .open-button :deep(.v-icon) {
+  transform: translateX(4px);
+}
+
+@keyframes cardReveal {
+  from { opacity: 0; transform: translateY(14px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .atlas-card { animation: none; transition: none; }
+  .atlas-image :deep(.v-img__img), .open-button :deep(.v-icon) { transition: none; }
 }
 
 @media (max-width: 640px) {
