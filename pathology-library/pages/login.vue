@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, onMounted, nextTick } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useAuth } from '~/composables/useAuth'
 
@@ -7,12 +7,6 @@ const router = useRouter()
 const route = useRoute()
 const { signInWithPassword, signUp, user } = useAuth()
 
-const redirectTarget = computed(() => {
-    const value = typeof route.query.redirect === 'string' ? route.query.redirect : '/'
-    return value.startsWith('/') && !value.startsWith('//') ? value : '/'
-})
-
-// Form states
 const isLogin = ref(true)
 const email = ref('')
 const password = ref('')
@@ -22,1276 +16,497 @@ const showConfirmPassword = ref(false)
 const isLoading = ref(false)
 const errorMessage = ref('')
 
-// Validation states
-const emailTouched = ref(false)
-const passwordTouched = ref(false)
-const confirmPasswordTouched = ref(false)
+const redirectTarget = computed(() => {
+  const value = typeof route.query.redirect === 'string' ? route.query.redirect : '/'
+  return value.startsWith('/') && !value.startsWith('//') ? value : '/'
+})
 
-// Validation rules
 const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/
+const passwordRules = [
+  { label: 'Tối thiểu 8 ký tự', test: (value: string) => value.length >= 8 },
+  { label: 'Có chữ hoa và chữ thường', test: (value: string) => /[A-Z]/.test(value) && /[a-z]/.test(value) },
+  { label: 'Có ít nhất một chữ số', test: (value: string) => /\d/.test(value) },
+  { label: 'Có ký tự đặc biệt', test: (value: string) => /[^A-Za-z0-9]/.test(value) },
+]
 
-const passwordRules = {
-    minLength: { test: (p: string) => p.length >= 8, label: 'Ít nhất 8 ký tự' },
-    hasUppercase: { test: (p: string) => /[A-Z]/.test(p), label: 'Có chữ hoa (A-Z)' },
-    hasLowercase: { test: (p: string) => /[a-z]/.test(p), label: 'Có chữ thường (a-z)' },
-    hasNumber: { test: (p: string) => /\d/.test(p), label: 'Có số (0-9)' },
-    hasSpecial: { test: (p: string) => /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(p), label: 'Có ký tự đặc biệt (!@#$...)' },
-}
-
-// Computed validation states
 const isEmailValid = computed(() => emailRegex.test(email.value))
-const emailError = computed(() => {
-    if (!emailTouched.value || !email.value) return ''
-    if (!isEmailValid.value) return 'Email không hợp lệ'
-    return ''
-})
+const passwordValidation = computed(() => passwordRules.map(rule => ({ ...rule, passed: rule.test(password.value) })))
+const isPasswordValid = computed(() => passwordValidation.value.every(rule => rule.passed))
+const passwordsMatch = computed(() => password.value === confirmPassword.value)
 
-const passwordValidation = computed(() => {
-    return Object.entries(passwordRules).map(([key, rule]) => ({
-        key,
-        label: rule.label,
-        passed: rule.test(password.value)
-    }))
-})
+const commonsImage = (file: string) =>
+  `https://commons.wikimedia.org/wiki/Special:FilePath/${encodeURIComponent(file)}?width=760`
 
-const isPasswordValid = computed(() =>
-    passwordValidation.value.every(rule => rule.passed)
-)
-
-const passwordStrength = computed(() => {
-    const passed = passwordValidation.value.filter(r => r.passed).length
-    if (passed <= 1) return { level: 'weak', label: 'Yếu', color: '#e74c3c', percent: 20 }
-    if (passed <= 3) return { level: 'medium', label: 'Trung bình', color: '#f39c12', percent: 50 }
-    if (passed <= 4) return { level: 'strong', label: 'Khá', color: '#3498db', percent: 75 }
-    return { level: 'excellent', label: 'Mạnh', color: '#27ae60', percent: 100 }
-})
-
-const confirmPasswordError = computed(() => {
-    if (!confirmPasswordTouched.value || !confirmPassword.value) return ''
-    if (password.value !== confirmPassword.value) return 'Mật khẩu không khớp'
-    return ''
-})
-
-const isFormValid = computed(() => {
-    if (isLogin.value) {
-        return isEmailValid.value && password.value.length > 0
-    }
-    return isEmailValid.value && isPasswordValid.value && password.value === confirmPassword.value
-})
-
-// Librarian dialogue system
-const currentDialogue = ref(0)
-const isTyping = ref(false)
-const displayedText = ref('')
-const librarianMood = ref<'welcome' | 'thinking' | 'happy' | 'concerned'>('welcome')
-
-// Dialogue scripts
-const loginDialogues = [
-    { text: 'Xin chào! Chào mừng đến với Thư viện Mô bệnh học. Tôi là thủ thư Minh. 📚', mood: 'welcome' as const },
-    { text: 'Bạn đã có thẻ thư viện chưa? Nếu có, hãy để tôi kiểm tra thông tin của bạn nhé!', mood: 'happy' as const },
+const diagnosticPanels = [
+  {
+    className: 'panel-histology',
+    icon: 'mdi-image-multiple-outline',
+    label: 'H&E · Tuyến giáp',
+    image: commonsImage('Histopathology of nodular hyperplasia of the thyroid.png'),
+    delay: '-1.2s',
+  },
+  {
+    className: 'panel-cytology',
+    icon: 'mdi-magnify-scan',
+    label: 'Vi thể · Độ phóng đại cao',
+    image: commonsImage('Hashimoto thyroiditis -- high mag.jpg'),
+    delay: '-3.8s',
+  },
 ]
 
-const registerDialogues = [
-    { text: 'Ồ, bạn là khách mới! Thật tuyệt vời khi bạn quan tâm đến thư viện của chúng tôi. 🌟', mood: 'happy' as const },
-    { text: 'Mật khẩu cần có ít nhất 8 ký tự, gồm chữ hoa, chữ thường, số và ký tự đặc biệt nhé! 🔐', mood: 'welcome' as const },
-]
-
-const errorDialogues = {
-    invalidCredentials: 'Hmm, có vẻ thông tin không đúng. Bạn kiểm tra lại email và mật khẩu giúp tôi nhé? 🔍',
-    passwordMismatch: 'Ối, hai mật khẩu không khớp nhau. Bạn nhập lại cẩn thận hơn nhé! ✍️',
-    weakPassword: 'Mật khẩu chưa đủ mạnh. Hãy thêm chữ hoa, số và ký tự đặc biệt nhé! 💪',
-    invalidEmail: 'Email này có vẻ không hợp lệ. Bạn kiểm tra lại giúp tôi nhé! 📧',
-    networkError: 'Có trục trặc với hệ thống. Bạn thử lại sau vài giây nha... 🔧',
-    success: 'Tuyệt vời! Cửa thư viện đã mở. Chúc bạn có những giây phút học tập thú vị! 🎉',
+const toggleMode = () => {
+  isLogin.value = !isLogin.value
+  errorMessage.value = ''
+  password.value = ''
+  confirmPassword.value = ''
 }
 
-// Typewriter effect
-const typeText = async (text: string) => {
-    isTyping.value = true
-    displayedText.value = ''
-
-    for (let i = 0; i < text.length; i++) {
-        await new Promise(resolve => setTimeout(resolve, 30))
-        displayedText.value += text[i]
-    }
-
-    isTyping.value = false
-}
-
-// Change dialogue
-const showDialogue = async (text: string, mood: typeof librarianMood.value) => {
-    librarianMood.value = mood
-    await typeText(text)
-}
-
-// Toggle between login and register
-const toggleMode = async () => {
-    isLogin.value = !isLogin.value
-    errorMessage.value = ''
-    currentDialogue.value = 0
-
-    const dialogues = isLogin.value ? loginDialogues : registerDialogues
-    await showDialogue(dialogues[0].text, dialogues[0].mood)
-
-    await new Promise(resolve => setTimeout(resolve, 1500))
-    if (dialogues[1]) {
-        await showDialogue(dialogues[1].text, dialogues[1].mood)
-    }
-}
-
-// Handle form submission
 const handleSubmit = async () => {
-    // Mark all fields as touched
-    emailTouched.value = true
-    passwordTouched.value = true
-    if (!isLogin.value) confirmPasswordTouched.value = true
+  errorMessage.value = ''
 
-    // Validate email
-    if (!email.value || !isEmailValid.value) {
-        await showDialogue(errorDialogues.invalidEmail, 'concerned')
-        return
-    }
+  if (!isEmailValid.value) {
+    errorMessage.value = 'Vui lòng nhập địa chỉ email hợp lệ.'
+    return
+  }
 
-    // For registration, validate password strength
-    if (!isLogin.value) {
-        if (!isPasswordValid.value) {
-            await showDialogue(errorDialogues.weakPassword, 'concerned')
-            return
-        }
-        if (password.value !== confirmPassword.value) {
-            await showDialogue(errorDialogues.passwordMismatch, 'concerned')
-            return
-        }
-    }
+  if (!password.value) {
+    errorMessage.value = 'Vui lòng nhập mật khẩu.'
+    return
+  }
 
-    // For login, just check password is not empty
-    if (isLogin.value && !password.value) {
-        await showDialogue('Bạn ơi, điền đầy đủ thông tin giúp tôi nhé! 📝', 'concerned')
-        return
-    }
+  if (!isLogin.value && (!isPasswordValid.value || !passwordsMatch.value)) {
+    errorMessage.value = !passwordsMatch.value
+      ? 'Mật khẩu xác nhận chưa trùng khớp.'
+      : 'Mật khẩu chưa đáp ứng đủ các yêu cầu bảo mật.'
+    return
+  }
 
-    isLoading.value = true
-    librarianMood.value = 'thinking'
+  isLoading.value = true
 
+  try {
     if (isLogin.value) {
-        await showDialogue('Để tôi kiểm tra thẻ của bạn... ⏳', 'thinking')
+      await signInWithPassword(email.value, password.value)
+      await router.push(redirectTarget.value)
     } else {
-        await showDialogue('Đang đăng ký thẻ thư viện mới cho bạn... ✍️', 'thinking')
+      await signUp(email.value, password.value)
+      errorMessage.value = 'Tài khoản đã được tạo. Vui lòng kiểm tra email xác nhận trước khi đăng nhập.'
+      isLogin.value = true
+      password.value = ''
+      confirmPassword.value = ''
     }
-
-    try {
-        if (isLogin.value) {
-            await signInWithPassword(email.value, password.value)
-            await showDialogue(errorDialogues.success, 'happy')
-        } else {
-            await signUp(email.value, password.value)
-            await showDialogue('Tuyệt vời! Thẻ thư viện đã được cấp. Hãy kiểm tra email để xác nhận nhé! 📧', 'happy')
-        }
-
-        await new Promise(resolve => setTimeout(resolve, 1500))
-        router.push(redirectTarget.value)
-    } catch (error: any) {
-        console.error('Auth error:', error)
-        await showDialogue(errorDialogues.invalidCredentials, 'concerned')
-        errorMessage.value = error.message
-    } finally {
-        isLoading.value = false
-    }
+  } catch (error: any) {
+    console.error('Auth error:', error)
+    errorMessage.value = isLogin.value
+      ? 'Email hoặc mật khẩu chưa đúng. Vui lòng kiểm tra lại.'
+      : error?.message || 'Không thể tạo tài khoản lúc này.'
+  } finally {
+    isLoading.value = false
+  }
 }
 
-// Initialize dialogues on mount
-onMounted(async () => {
-    // Check if already logged in
-    if (user.value) {
-        router.push(redirectTarget.value)
-        return
-    }
-
-    await new Promise(resolve => setTimeout(resolve, 500))
-    await showDialogue(loginDialogues[0].text, loginDialogues[0].mood)
-
-    await new Promise(resolve => setTimeout(resolve, 2000))
-    await showDialogue(loginDialogues[1].text, loginDialogues[1].mood)
+onMounted(() => {
+  if (user.value) router.push(redirectTarget.value)
 })
-
-// Computed classes for librarian avatar
-const librarianClass = computed(() => ({
-    'librarian-avatar': true,
-    'mood-welcome': librarianMood.value === 'welcome',
-    'mood-thinking': librarianMood.value === 'thinking',
-    'mood-happy': librarianMood.value === 'happy',
-    'mood-concerned': librarianMood.value === 'concerned',
-}))
 </script>
 
 <template>
-    <div class="login-page">
-        <AnimatedBackground />
-        <div class="login-scrim"></div>
+  <div class="login-page">
+    <div class="page-grid" aria-hidden="true"></div>
 
-        <!-- Main container -->
-        <div class="login-container">
-            <!-- Library desk scene -->
-            <div class="library-desk">
-                <!-- Librarian section -->
-                <div class="librarian-section">
-                    <!-- Librarian avatar -->
-                    <div :class="librarianClass">
-                        <div class="avatar-frame">
-                            <div class="librarian-image">
-                                <div class="face">
-                                    <div class="glasses"></div>
-                                    <div class="eyes">
-                                        <span class="eye left"
-                                            :class="{ 'blink': librarianMood === 'thinking' }"></span>
-                                        <span class="eye right"
-                                            :class="{ 'blink': librarianMood === 'thinking' }"></span>
-                                    </div>
-                                    <div class="mouth" :class="librarianMood"></div>
-                                </div>
-                                <div class="body"></div>
-                                <div class="book-stack">
-                                    <div class="mini-book"></div>
-                                    <div class="mini-book"></div>
-                                    <div class="mini-book"></div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="name-badge">
-                            <span class="badge-icon">📚</span>
-                            <span class="badge-text">Thủ thư Minh</span>
-                        </div>
-                    </div>
-
-                    <!-- Dialogue bubble -->
-                    <div class="dialogue-bubble" :class="{ 'typing': isTyping }">
-                        <div class="bubble-content">
-                            <p>{{ displayedText }}<span v-if="isTyping" class="cursor">|</span></p>
-                        </div>
-                        <div class="bubble-tail"></div>
-                    </div>
-                </div>
-
-                <!-- Desk surface with form -->
-                <div class="desk-surface">
-                    <div class="desk-items">
-                        <div class="desk-lamp"></div>
-                        <div class="stamp-pad"></div>
-                    </div>
-
-                    <!-- Library card / Form -->
-                    <div class="library-card">
-                        <div class="card-header">
-                            <div class="card-logo">
-                                <span class="logo-icon">🔬</span>
-                            </div>
-                            <h2 class="card-title">
-                                {{ isLogin ? 'Thẻ Thư Viện' : 'Đăng Ký Thẻ Mới' }}
-                            </h2>
-                            <p class="card-subtitle">Thư viện Mô bệnh học</p>
-                        </div>
-
-                        <form @submit.prevent="handleSubmit" class="card-form">
-                            <!-- Email field -->
-                            <div class="form-field" :class="{ 'has-error': emailError }">
-                                <label for="email">
-                                    <span class="field-icon">✉️</span>
-                                    <span>Email</span>
-                                </label>
-                                <input id="email" v-model="email" type="email" placeholder="your.email@hospital.vn"
-                                    required :disabled="isLoading" @blur="emailTouched = true"
-                                    :class="{ 'input-error': emailError, 'input-valid': emailTouched && isEmailValid }" />
-                                <Transition name="fade">
-                                    <span v-if="emailError" class="field-error">{{ emailError }}</span>
-                                </Transition>
-                            </div>
-
-                            <!-- Password field -->
-                            <div class="form-field">
-                                <label for="password">
-                                    <span class="field-icon">🔐</span>
-                                    <span>Mật khẩu</span>
-                                </label>
-                                <div class="password-input">
-                                    <input id="password" v-model="password" :type="showPassword ? 'text' : 'password'"
-                                        placeholder="Nhập mật khẩu..." required :disabled="isLoading"
-                                        @blur="passwordTouched = true" />
-                                    <button type="button" class="toggle-password" @click="showPassword = !showPassword">
-                                        {{ showPassword ? '🙈' : '👁️' }}
-                                    </button>
-                                </div>
-
-                                <!-- Password strength indicator (only for registration) -->
-                                <Transition name="slide-fade">
-                                    <div v-if="!isLogin && password" class="password-strength">
-                                        <div class="strength-bar">
-                                            <div class="strength-fill"
-                                                :style="{ width: passwordStrength.percent + '%', background: passwordStrength.color }">
-                                            </div>
-                                        </div>
-                                        <span class="strength-label" :style="{ color: passwordStrength.color }">
-                                            {{ passwordStrength.label }}
-                                        </span>
-                                    </div>
-                                </Transition>
-
-                                <!-- Password requirements (only for registration) -->
-                                <Transition name="slide-fade">
-                                    <div v-if="!isLogin" class="password-requirements">
-                                        <div v-for="rule in passwordValidation" :key="rule.key" class="requirement"
-                                            :class="{ 'passed': rule.passed }">
-                                            <span class="req-icon">{{ rule.passed ? '✅' : '⚪' }}</span>
-                                            <span class="req-text">{{ rule.label }}</span>
-                                        </div>
-                                    </div>
-                                </Transition>
-                            </div>
-
-                            <!-- Confirm password (register only) -->
-                            <Transition name="slide-fade">
-                                <div v-if="!isLogin" class="form-field" :class="{ 'has-error': confirmPasswordError }">
-                                    <label for="confirmPassword">
-                                        <span class="field-icon">🔒</span>
-                                        <span>Xác nhận mật khẩu</span>
-                                    </label>
-                                    <div class="password-input">
-                                        <input id="confirmPassword" v-model="confirmPassword"
-                                            :type="showConfirmPassword ? 'text' : 'password'"
-                                            placeholder="Nhập lại mật khẩu..." required :disabled="isLoading"
-                                            @blur="confirmPasswordTouched = true"
-                                            :class="{ 'input-error': confirmPasswordError, 'input-valid': confirmPasswordTouched && !confirmPasswordError && confirmPassword }" />
-                                        <button type="button" class="toggle-password"
-                                            @click="showConfirmPassword = !showConfirmPassword">
-                                            {{ showConfirmPassword ? '🙈' : '👁️' }}
-                                        </button>
-                                    </div>
-                                    <Transition name="fade">
-                                        <span v-if="confirmPasswordError" class="field-error">{{ confirmPasswordError
-                                        }}</span>
-                                    </Transition>
-                                </div>
-                            </Transition>
-
-                            <!-- Submit button -->
-                            <button type="submit" class="submit-btn" :disabled="isLoading || (!isLogin && !isFormValid)"
-                                :class="{ 'loading': isLoading }">
-                                <span v-if="isLoading" class="loading-spinner"></span>
-                                <span v-else class="btn-content">
-                                    <span class="btn-icon">{{ isLogin ? '🎫' : '✨' }}</span>
-                                    <span>{{ isLogin ? 'Quẹt Thẻ Vào' : 'Đăng Ký Thẻ' }}</span>
-                                </span>
-                            </button>
-                        </form>
-
-                        <!-- Toggle mode -->
-                        <div class="card-footer">
-                            <button type="button" class="toggle-mode-btn" @click="toggleMode" :disabled="isLoading">
-                                {{ isLogin ? 'Chưa có thẻ? Đăng ký ngay!' : 'Đã có thẻ? Đăng nhập' }}
-                            </button>
-                        </div>
-
-                        <!-- Decorative stamp -->
-                        <div class="card-stamp" :class="{ 'stamped': !isLogin }">
-                            <span>{{ isLogin ? '📖' : '✅' }}</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Footer credits -->
-            <div class="login-footer">
-                <p>© 2026 Thư viện Mô bệnh học - Pathology Library</p>
-            </div>
+    <main class="auth-shell">
+      <section class="diagnostic-scene" aria-label="Không gian kính hiển vi số">
+        <div class="scene-heading">
+          <span class="scene-kicker">DIGITAL PATHOLOGY WORKSPACE</span>
+          <h1>Quan sát. Đối chiếu.<br>Đi đến chẩn đoán.</h1>
+          <p>Thư viện ca, Atlas vi thể, HMMD và phân loại WHO trong một hệ thống học tập.</p>
         </div>
-    </div>
+
+        <div class="visual-stage" aria-hidden="true">
+          <div class="orbit orbit-outer"></div>
+          <div class="orbit orbit-middle"></div>
+          <div class="orbit orbit-inner"></div>
+          <div class="scan-line"></div>
+
+          <div class="microscope-hub">
+            <v-icon icon="mdi-microscope" size="118" />
+            <span>GPB / LIVE VIEW</span>
+          </div>
+
+          <article
+            v-for="panel in diagnosticPanels"
+            :key="panel.label"
+            class="diagnostic-panel image-panel"
+            :class="panel.className"
+            :style="{ '--panel-delay': panel.delay }"
+          >
+            <img :src="panel.image" :alt="panel.label" referrerpolicy="no-referrer">
+            <div class="panel-caption">
+              <v-icon :icon="panel.icon" size="15" />
+              <span>{{ panel.label }}</span>
+            </div>
+          </article>
+
+          <article class="diagnostic-panel metric-panel panel-metrics">
+            <div class="metric-header">
+              <v-icon icon="mdi-chart-line" size="18" />
+              <span>PHÂN TÍCH HÌNH THÁI</span>
+            </div>
+            <div class="metric-bars">
+              <span style="height: 43%"></span>
+              <span style="height: 68%"></span>
+              <span style="height: 54%"></span>
+              <span style="height: 86%"></span>
+              <span style="height: 72%"></span>
+              <span style="height: 94%"></span>
+            </div>
+            <small>Đang đối chiếu đặc điểm vi thể</small>
+          </article>
+
+          <article class="diagnostic-panel sequence-panel panel-sequence">
+            <v-icon icon="mdi-dna" size="46" />
+            <div>
+              <strong>DẤU ẤN / MARKERS</strong>
+              <span>TTF-1 · PAX8 · GATA3 · p40</span>
+            </div>
+          </article>
+        </div>
+
+        <div class="scene-status">
+          <span><i></i> Hệ thống trực tuyến</span>
+          <span>WHO · Atlas · HMMD</span>
+        </div>
+      </section>
+
+      <section class="auth-panel">
+        <header class="brand-lockup">
+          <div class="brand-mark"><v-icon icon="mdi-microscope" size="30" /></div>
+          <div>
+            <strong>GPB SYSTEM</strong>
+            <span>GIẢI PHẪU BỆNH SỐ</span>
+          </div>
+        </header>
+
+        <div class="auth-copy">
+          <span class="auth-kicker">TÀI KHOẢN CHUYÊN MÔN</span>
+          <h2>{{ isLogin ? 'Đăng nhập hệ thống' : 'Tạo tài khoản mới' }}</h2>
+          <p>{{ isLogin ? 'Truy cập không gian học tập và tra cứu tích hợp.' : 'Đăng ký tài khoản để bắt đầu sử dụng hệ thống.' }}</p>
+        </div>
+
+        <form class="auth-form" @submit.prevent="handleSubmit">
+          <label class="field-label" for="email">Email</label>
+          <div class="input-shell">
+            <v-icon icon="mdi-email-outline" size="19" />
+            <input
+              id="email"
+              v-model="email"
+              type="email"
+              autocomplete="email"
+              placeholder="ten@benhvien.vn"
+              :disabled="isLoading"
+              required
+            >
+          </div>
+
+          <label class="field-label" for="password">Mật khẩu</label>
+          <div class="input-shell">
+            <v-icon icon="mdi-lock-outline" size="19" />
+            <input
+              id="password"
+              v-model="password"
+              :type="showPassword ? 'text' : 'password'"
+              :autocomplete="isLogin ? 'current-password' : 'new-password'"
+              placeholder="Nhập mật khẩu"
+              :disabled="isLoading"
+              required
+            >
+            <button
+              type="button"
+              class="icon-button"
+              :aria-label="showPassword ? 'Ẩn mật khẩu' : 'Hiện mật khẩu'"
+              :title="showPassword ? 'Ẩn mật khẩu' : 'Hiện mật khẩu'"
+              @click="showPassword = !showPassword"
+            >
+              <v-icon :icon="showPassword ? 'mdi-eye-off-outline' : 'mdi-eye-outline'" size="19" />
+            </button>
+          </div>
+
+          <template v-if="!isLogin">
+            <label class="field-label" for="confirmPassword">Xác nhận mật khẩu</label>
+            <div class="input-shell">
+              <v-icon icon="mdi-lock-check-outline" size="19" />
+              <input
+                id="confirmPassword"
+                v-model="confirmPassword"
+                :type="showConfirmPassword ? 'text' : 'password'"
+                autocomplete="new-password"
+                placeholder="Nhập lại mật khẩu"
+                :disabled="isLoading"
+                required
+              >
+              <button
+                type="button"
+                class="icon-button"
+                :aria-label="showConfirmPassword ? 'Ẩn mật khẩu' : 'Hiện mật khẩu'"
+                :title="showConfirmPassword ? 'Ẩn mật khẩu' : 'Hiện mật khẩu'"
+                @click="showConfirmPassword = !showConfirmPassword"
+              >
+                <v-icon :icon="showConfirmPassword ? 'mdi-eye-off-outline' : 'mdi-eye-outline'" size="19" />
+              </button>
+            </div>
+
+            <div class="password-rules">
+              <span v-for="rule in passwordValidation" :key="rule.label" :class="{ passed: rule.passed }">
+                <v-icon :icon="rule.passed ? 'mdi-check-circle' : 'mdi-circle-outline'" size="14" />
+                {{ rule.label }}
+              </span>
+            </div>
+          </template>
+
+          <p v-if="errorMessage" class="form-message" role="alert">{{ errorMessage }}</p>
+
+          <button class="submit-button" type="submit" :disabled="isLoading">
+            <span v-if="isLoading" class="loading-ring" aria-hidden="true"></span>
+            <v-icon v-else :icon="isLogin ? 'mdi-login' : 'mdi-account-plus-outline'" size="19" />
+            <span>{{ isLoading ? 'Đang xác thực...' : (isLogin ? 'Đăng nhập' : 'Tạo tài khoản') }}</span>
+          </button>
+        </form>
+
+        <button class="mode-button" type="button" :disabled="isLoading" @click="toggleMode">
+          {{ isLogin ? 'Chưa có tài khoản? Đăng ký' : 'Đã có tài khoản? Đăng nhập' }}
+        </button>
+
+        <div class="security-note">
+          <v-icon icon="mdi-shield-check-outline" size="18" />
+          <span>Phiên đăng nhập được bảo vệ bởi Supabase Auth</span>
+        </div>
+      </section>
+    </main>
+
+    <footer class="login-footer">
+      <span>PathologyLib · GPB System</span>
+      <span>Thư viện ca · Atlas · HMMD · WHO</span>
+    </footer>
+  </div>
 </template>
 
 <style scoped>
-/* ===== LOGIN PAGE STYLES ===== */
 .login-page {
-    min-height: 100vh;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    position: relative;
-    overflow: hidden;
-    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
-}
-
-.login-scrim {
-    position: fixed;
-    inset: 0;
-    z-index: 2;
-    pointer-events: none;
-    background: linear-gradient(120deg, rgba(8, 21, 40, 0.9), rgba(16, 46, 72, 0.72), rgba(7, 24, 42, 0.92));
-}
-
-/* ===== ANIMATED BACKGROUND ===== */
-.library-background {
-    position: absolute;
-    inset: 0;
-    overflow: hidden;
-    z-index: 0;
-}
-
-.bookshelf-pattern {
-    position: absolute;
-    inset: 0;
-    background-image:
-        repeating-linear-gradient(90deg,
-            transparent,
-            transparent 80px,
-            rgba(139, 90, 43, 0.1) 80px,
-            rgba(139, 90, 43, 0.1) 82px),
-        repeating-linear-gradient(0deg,
-            transparent,
-            transparent 120px,
-            rgba(139, 90, 43, 0.15) 120px,
-            rgba(139, 90, 43, 0.15) 125px);
-    opacity: 0.5;
-}
-
-.floating-books {
-    position: absolute;
-    inset: 0;
-    pointer-events: none;
-}
-
-.book {
-    position: absolute;
-    font-size: 2rem;
-    opacity: 0.3;
-    animation: floatBook 20s infinite ease-in-out;
-}
-
-.book-1 {
-    top: 10%;
-    left: 5%;
-    animation-delay: 0s;
-}
-
-.book-2 {
-    top: 60%;
-    left: 10%;
-    animation-delay: -4s;
-}
-
-.book-3 {
-    top: 30%;
-    right: 8%;
-    animation-delay: -8s;
-}
-
-.book-4 {
-    top: 75%;
-    right: 15%;
-    animation-delay: -12s;
-}
-
-.book-5 {
-    top: 45%;
-    left: 3%;
-    animation-delay: -16s;
-}
-
-@keyframes floatBook {
-
-    0%,
-    100% {
-        transform: translateY(0) rotate(0deg);
-    }
-
-    25% {
-        transform: translateY(-20px) rotate(5deg);
-    }
-
-    50% {
-        transform: translateY(-10px) rotate(-3deg);
-    }
-
-    75% {
-        transform: translateY(-25px) rotate(3deg);
-    }
-}
-
-.light-rays {
-    position: absolute;
-    top: -50%;
-    left: 50%;
-    width: 200%;
-    height: 200%;
-    background: conic-gradient(from 0deg at 50% 50%,
-            transparent 0deg,
-            rgba(201, 162, 39, 0.03) 10deg,
-            transparent 20deg,
-            rgba(201, 162, 39, 0.02) 40deg,
-            transparent 50deg);
-    animation: rotateRays 60s linear infinite;
-}
-
-@keyframes rotateRays {
-    from {
-        transform: translate(-50%, 0) rotate(0deg);
-    }
-
-    to {
-        transform: translate(-50%, 0) rotate(360deg);
-    }
-}
-
-/* ===== MAIN CONTAINER ===== */
-.login-container {
-    position: relative;
-    z-index: 3;
-    width: 100%;
-    max-width: 900px;
-    padding: 2rem;
-}
-
-/* ===== LIBRARY DESK SCENE ===== */
-.library-desk {
-    display: flex;
-    flex-direction: column;
-    gap: 2rem;
-    background: linear-gradient(145deg, rgba(26, 54, 93, 0.8), rgba(15, 52, 96, 0.9));
-    border-radius: 24px;
-    padding: 2rem;
-    box-shadow:
-        0 25px 80px rgba(0, 0, 0, 0.5),
-        0 0 60px rgba(201, 162, 39, 0.1),
-        inset 0 1px 0 rgba(255, 255, 255, 0.1);
-    backdrop-filter: blur(10px);
-    border: 1px solid rgba(201, 162, 39, 0.2);
-}
-
-/* ===== LIBRARIAN SECTION ===== */
-.librarian-section {
-    display: flex;
-    align-items: flex-start;
-    gap: 1.5rem;
-}
-
-/* Librarian Avatar */
-.librarian-avatar {
-    flex-shrink: 0;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 0.75rem;
-}
-
-.avatar-frame {
-    width: 100px;
-    height: 100px;
-    border-radius: 50%;
-    background: linear-gradient(145deg, #c9a227, #a88720);
-    padding: 4px;
-    box-shadow:
-        0 8px 25px rgba(201, 162, 39, 0.4),
-        inset 0 2px 4px rgba(255, 255, 255, 0.3);
-    animation: gentlePulse 3s ease-in-out infinite;
-}
-
-@keyframes gentlePulse {
-
-    0%,
-    100% {
-        box-shadow: 0 8px 25px rgba(201, 162, 39, 0.4);
-    }
-
-    50% {
-        box-shadow: 0 8px 35px rgba(201, 162, 39, 0.6);
-    }
-}
-
-.librarian-image {
-    width: 100%;
-    height: 100%;
-    border-radius: 50%;
-    background: linear-gradient(180deg, #ffecd2 0%, #fcb69f 100%);
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    position: relative;
-    overflow: hidden;
-}
-
-.face {
-    position: relative;
-    width: 60%;
-    height: 50%;
-}
-
-.glasses {
-    position: absolute;
-    top: 20%;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 80%;
-    height: 35%;
-    border: 2px solid #333;
-    border-radius: 30%;
-    background: rgba(255, 255, 255, 0.2);
-}
-
-.glasses::before {
-    content: '';
-    position: absolute;
-    left: 50%;
-    top: 40%;
-    transform: translateX(-50%);
-    width: 15%;
-    height: 2px;
-    background: #333;
-}
-
-.eyes {
-    position: absolute;
-    top: 25%;
-    left: 50%;
-    transform: translateX(-50%);
-    display: flex;
-    gap: 20px;
-}
-
-.eye {
-    width: 8px;
-    height: 8px;
-    background: #333;
-    border-radius: 50%;
-    animation: blink 4s infinite;
-}
-
-.eye.blink {
-    animation: thinkBlink 1s infinite;
-}
-
-@keyframes blink {
-
-    0%,
-    95%,
-    100% {
-        transform: scaleY(1);
-    }
-
-    97% {
-        transform: scaleY(0.1);
-    }
-}
-
-@keyframes thinkBlink {
-
-    0%,
-    50%,
-    100% {
-        transform: scaleY(1);
-    }
-
-    25%,
-    75% {
-        transform: scaleY(0.1);
-    }
-}
-
-.mouth {
-    position: absolute;
-    bottom: 15%;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 20px;
-    height: 8px;
-    background: #c9756b;
-    border-radius: 0 0 10px 10px;
-    transition: all 0.3s ease;
-}
-
-.mouth.welcome {
-    border-radius: 0 0 10px 10px;
-    height: 8px;
-}
-
-.mouth.thinking {
-    border-radius: 50%;
-    width: 10px;
-    height: 10px;
-}
-
-.mouth.happy {
-    border-radius: 0 0 15px 15px;
-    height: 12px;
-    width: 25px;
-    background: linear-gradient(180deg, #fff 30%, #c9756b 30%);
-}
-
-.mouth.concerned {
-    border-radius: 10px 10px 0 0;
-    height: 6px;
-}
-
-.body {
-    position: absolute;
-    bottom: 0;
-    width: 70%;
-    height: 30%;
-    background: linear-gradient(180deg, #2d5a7b, #1a365d);
-    border-radius: 40% 40% 0 0;
-}
-
-.book-stack {
-    position: absolute;
-    bottom: 5px;
-    right: 5px;
-    display: flex;
-    flex-direction: column;
-    gap: 2px;
-}
-
-.mini-book {
-    width: 15px;
-    height: 4px;
-    border-radius: 1px;
-}
-
-.mini-book:nth-child(1) {
-    background: #e74c3c;
-}
-
-.mini-book:nth-child(2) {
-    background: #3498db;
-}
-
-.mini-book:nth-child(3) {
-    background: #2ecc71;
-}
-
-.name-badge {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    background: linear-gradient(145deg, #1a365d, #0f3460);
-    padding: 0.4rem 0.8rem;
-    border-radius: 20px;
-    border: 1px solid rgba(201, 162, 39, 0.3);
-}
-
-.badge-icon {
-    font-size: 0.9rem;
-}
-
-.badge-text {
-    font-size: 0.75rem;
-    font-weight: 600;
-    color: #c9a227;
-    font-family: var(--font-heading);
-}
-
-/* Dialogue Bubble */
-.dialogue-bubble {
-    flex: 1;
-    background: linear-gradient(145deg, #fff, #f8f6f0);
-    border-radius: 20px;
-    padding: 1.25rem 1.5rem;
-    position: relative;
-    box-shadow:
-        0 10px 30px rgba(0, 0, 0, 0.2),
-        inset 0 1px 0 rgba(255, 255, 255, 0.8);
-    border: 1px solid rgba(201, 162, 39, 0.2);
-    min-height: 80px;
-}
-
-.bubble-content p {
-    margin: 0;
-    font-size: 1rem;
-    line-height: 1.6;
-    color: #1a365d;
-    font-family: var(--font-body);
-}
-
-.cursor {
-    display: inline-block;
-    animation: cursorBlink 0.8s infinite;
-    color: #c9a227;
-    font-weight: bold;
-}
-
-@keyframes cursorBlink {
-
-    0%,
-    50% {
-        opacity: 1;
-    }
-
-    51%,
-    100% {
-        opacity: 0;
-    }
-}
-
-.bubble-tail {
-    position: absolute;
-    left: -10px;
-    top: 30px;
-    width: 0;
-    height: 0;
-    border-top: 10px solid transparent;
-    border-bottom: 10px solid transparent;
-    border-right: 15px solid #fff;
-    filter: drop-shadow(-3px 0 2px rgba(0, 0, 0, 0.1));
-}
-
-/* ===== DESK SURFACE ===== */
-.desk-surface {
-    position: relative;
-    background: linear-gradient(180deg, #8b5a2b 0%, #6d4521 100%);
-    border-radius: 16px;
-    padding: 2rem;
-    box-shadow:
-        0 15px 40px rgba(0, 0, 0, 0.3),
-        inset 0 2px 4px rgba(255, 255, 255, 0.1);
-}
-
-.desk-items {
-    position: absolute;
-    top: -15px;
-    right: 30px;
-    display: flex;
-    gap: 1rem;
-}
-
-.desk-lamp {
-    width: 30px;
-    height: 40px;
-    background: linear-gradient(180deg, #ffd700 0%, #ffb700 100%);
-    clip-path: polygon(30% 0%, 70% 0%, 100% 100%, 0% 100%);
-    box-shadow: 0 0 20px rgba(255, 215, 0, 0.5);
-}
-
-.stamp-pad {
-    width: 40px;
-    height: 25px;
-    background: linear-gradient(145deg, #c9a227, #a88720);
-    border-radius: 4px;
-    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.3);
-}
-
-/* ===== LIBRARY CARD ===== */
-.library-card {
-    background: linear-gradient(145deg, #fffef9, #f5f0e8);
-    border-radius: 16px;
-    padding: 2rem;
-    position: relative;
-    box-shadow:
-        0 10px 30px rgba(0, 0, 0, 0.2),
-        inset 0 1px 0 rgba(255, 255, 255, 0.9);
-    border: 2px solid rgba(201, 162, 39, 0.3);
-    overflow: hidden;
-}
-
-.library-card::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    height: 6px;
-    background: linear-gradient(90deg, #c9a227, #ffd700, #c9a227);
-}
-
-.card-header {
-    text-align: center;
-    margin-bottom: 1.5rem;
-}
-
-.card-logo {
-    width: 60px;
-    height: 60px;
-    margin: 0 auto 0.75rem;
-    background: linear-gradient(145deg, #1a365d, #0f3460);
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    box-shadow:
-        0 8px 20px rgba(26, 54, 93, 0.4),
-        inset 0 1px 0 rgba(255, 255, 255, 0.1);
-}
-
-.logo-icon {
-    font-size: 1.75rem;
-}
-
-.card-title {
-    font-family: var(--font-heading);
-    font-size: 1.5rem;
-    color: #1a365d;
-    margin: 0 0 0.25rem;
-}
-
-.card-subtitle {
-    font-size: 0.85rem;
-    color: #666;
-    margin: 0;
-}
-
-/* Form Fields */
-.card-form {
-    display: flex;
-    flex-direction: column;
-    gap: 1.25rem;
-}
-
-.form-field {
-    display: flex;
-    flex-direction: column;
-    gap: 0.5rem;
-}
-
-.form-field label {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    font-size: 0.9rem;
-    font-weight: 500;
-    color: #1a365d;
-}
-
-.field-icon {
-    font-size: 1rem;
-}
-
-.form-field input {
-    width: 100%;
-    padding: 0.875rem 1rem;
-    border: 2px solid #e0dcd4;
-    border-radius: 10px;
-    font-size: 1rem;
-    font-family: var(--font-body);
-    background: #fff;
-    color: #1a365d;
-    transition: all 0.3s ease;
-}
-
-.form-field input:focus {
-    outline: none;
-    border-color: #c9a227;
-    box-shadow: 0 0 0 4px rgba(201, 162, 39, 0.15);
-}
-
-.form-field input::placeholder {
-    color: #999;
-}
-
-.password-input {
-    position: relative;
-    display: flex;
-    align-items: center;
-}
-
-.password-input input {
-    padding-right: 3rem;
-}
-
-.toggle-password {
-    position: absolute;
-    right: 0.75rem;
-    background: none;
-    border: none;
-    font-size: 1.25rem;
-    cursor: pointer;
-    padding: 0.25rem;
-    opacity: 0.7;
-    transition: opacity 0.2s;
-}
-
-.toggle-password:hover {
-    opacity: 1;
-}
-
-/* Submit Button */
-.submit-btn {
-    margin-top: 0.5rem;
-    padding: 1rem 2rem;
-    background: linear-gradient(145deg, #c9a227, #a88720);
-    border: none;
-    border-radius: 12px;
-    color: #fff;
-    font-size: 1.1rem;
-    font-weight: 600;
-    font-family: var(--font-body);
-    cursor: pointer;
-    transition: all 0.3s ease;
-    box-shadow:
-        0 8px 20px rgba(201, 162, 39, 0.4),
-        inset 0 1px 0 rgba(255, 255, 255, 0.2);
-    position: relative;
-    overflow: hidden;
-}
-
-.submit-btn:hover:not(:disabled) {
-    transform: translateY(-2px);
-    box-shadow:
-        0 12px 30px rgba(201, 162, 39, 0.5),
-        inset 0 1px 0 rgba(255, 255, 255, 0.2);
-}
-
-.submit-btn:active:not(:disabled) {
-    transform: translateY(0);
-}
-
-.submit-btn:disabled {
-    opacity: 0.7;
-    cursor: not-allowed;
-}
-
-.btn-content {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 0.5rem;
-}
-
-.btn-icon {
-    font-size: 1.25rem;
-}
-
-.loading-spinner {
-    width: 24px;
-    height: 24px;
-    border: 3px solid rgba(255, 255, 255, 0.3);
-    border-top-color: #fff;
-    border-radius: 50%;
-    animation: spin 0.8s linear infinite;
-}
-
-@keyframes spin {
-    to {
-        transform: rotate(360deg);
-    }
-}
-
-/* Card Footer */
-.card-footer {
-    text-align: center;
-    margin-top: 1.5rem;
-    padding-top: 1.25rem;
-    border-top: 1px solid #e0dcd4;
-}
-
-.toggle-mode-btn {
-    background: none;
-    border: none;
-    color: #1a365d;
-    font-size: 0.95rem;
-    font-family: var(--font-body);
-    cursor: pointer;
-    transition: color 0.2s ease;
-    text-decoration: underline;
-    text-decoration-color: transparent;
-    text-underline-offset: 4px;
-}
-
-.toggle-mode-btn:hover {
-    color: #c9a227;
-    text-decoration-color: #c9a227;
-}
-
-/* Card Stamp */
-.card-stamp {
-    position: absolute;
-    top: 20px;
-    right: 20px;
-    width: 50px;
-    height: 50px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 1.5rem;
-    opacity: 0.2;
-    transform: rotate(15deg);
-    transition: all 0.5s ease;
-}
-
-.card-stamp.stamped {
-    opacity: 0.8;
-    animation: stampEffect 0.5s ease;
-}
-
-@keyframes stampEffect {
-    0% {
-        transform: rotate(15deg) scale(2);
-        opacity: 0;
-    }
-
-    50% {
-        transform: rotate(15deg) scale(0.9);
-    }
-
-    100% {
-        transform: rotate(15deg) scale(1);
-        opacity: 0.8;
-    }
-}
-
-/* ===== VALIDATION STYLES ===== */
-.form-field.has-error input {
-    border-color: #e74c3c;
-}
-
-.input-error {
-    border-color: #e74c3c !important;
-    box-shadow: 0 0 0 3px rgba(231, 76, 60, 0.15) !important;
-}
-
-.input-valid {
-    border-color: #27ae60 !important;
-}
-
-.field-error {
-    display: block;
-    margin-top: 0.5rem;
-    font-size: 0.8rem;
-    color: #e74c3c;
-    font-weight: 500;
-}
-
-/* Password Strength Indicator */
-.password-strength {
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-    margin-top: 0.75rem;
-}
-
-.strength-bar {
-    flex: 1;
-    height: 6px;
-    background: #e0dcd4;
-    border-radius: 3px;
-    overflow: hidden;
-}
-
-.strength-fill {
-    height: 100%;
-    border-radius: 3px;
-    transition: all 0.3s ease;
-}
-
-.strength-label {
-    font-size: 0.75rem;
-    font-weight: 600;
-    min-width: 70px;
-    text-align: right;
-}
-
-/* Password Requirements */
-.password-requirements {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 0.5rem;
-    margin-top: 1rem;
-    padding: 1rem;
-    background: rgba(26, 54, 93, 0.05);
-    border-radius: 10px;
-    border: 1px solid rgba(26, 54, 93, 0.1);
-}
-
-.requirement {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    font-size: 0.75rem;
-    color: #666;
-    transition: all 0.2s ease;
-}
-
-.requirement.passed {
-    color: #27ae60;
-}
-
-.requirement.passed .req-text {
-    text-decoration: line-through;
-    opacity: 0.7;
-}
-
-.req-icon {
-    font-size: 0.7rem;
-}
-
-.req-text {
-    line-height: 1.3;
-}
-
-/* Fade transition for errors */
-.fade-enter-active,
-.fade-leave-active {
-    transition: opacity 0.2s ease;
-}
-
-.fade-enter-from,
-.fade-leave-to {
-    opacity: 0;
-}
-
-/* Transitions */
-.slide-fade-enter-active,
-.slide-fade-leave-active {
-    transition: all 0.3s ease;
-}
-
-.slide-fade-enter-from,
-.slide-fade-leave-to {
-    opacity: 0;
-    transform: translateY(-10px);
-}
-
-/* ===== FOOTER ===== */
-.login-footer {
-    text-align: center;
-    margin-top: 2rem;
-    opacity: 0.6;
-}
-
-.login-footer p {
-    color: #f5f0e8;
-    font-size: 0.85rem;
-    margin: 0;
-}
-
-/* ===== RESPONSIVE ===== */
-@media (max-width: 768px) {
-    .login-container {
-        padding: 1rem;
-    }
-
-    .library-desk {
-        padding: 1.5rem;
-    }
-
-    .librarian-section {
-        flex-direction: column;
-        align-items: center;
-    }
-
-    .dialogue-bubble {
-        margin-left: 0;
-    }
-
-    .bubble-tail {
-        display: none;
-    }
-
-    .avatar-frame {
-        width: 80px;
-        height: 80px;
-    }
-
-    .card-title {
-        font-size: 1.25rem;
-    }
-
-    .desk-items {
-        display: none;
-    }
+  --cyan: #4fe5f2;
+  --cyan-strong: #11bcd1;
+  --navy: #04151e;
+  --panel: #08232f;
+  --line: #176278;
+  min-height: 100vh;
+  position: relative;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  padding: 34px 28px 62px;
+  color: #eaf9fb;
+  background: var(--navy);
+  font-family: var(--font-body);
+}
+
+.page-grid {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  opacity: .3;
+  background-image:
+    linear-gradient(rgba(79, 229, 242, .08) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(79, 229, 242, .08) 1px, transparent 1px);
+  background-size: 54px 54px;
+  mask-image: linear-gradient(90deg, #000 0 58%, transparent 86%);
+}
+
+.auth-shell {
+  position: relative;
+  z-index: 1;
+  width: min(1180px, 100%);
+  min-height: 710px;
+  display: grid;
+  grid-template-columns: minmax(0, 1.16fr) minmax(390px, .84fr);
+  border: 1px solid #1b6072;
+  background: #061b25;
+  box-shadow: 0 24px 80px rgba(0, 0, 0, .38);
+}
+
+.diagnostic-scene {
+  min-width: 0;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  padding: 42px 44px 28px;
+  overflow: hidden;
+  background: #06212c;
+  border-right: 1px solid #1b6072;
+}
+
+.scene-heading { position: relative; z-index: 3; max-width: 530px; }
+.scene-kicker,
+.auth-kicker { color: var(--cyan); font-size: .7rem; font-weight: 800; letter-spacing: 0; }
+.scene-heading h1 { margin: 9px 0 12px; color: #fff; font: 750 clamp(2rem, 3.1vw, 3.25rem)/1.06 var(--font-body); letter-spacing: 0; }
+.scene-heading p { max-width: 510px; margin: 0; color: #a9c7d0; font-size: .92rem; line-height: 1.65; }
+
+.visual-stage { position: relative; flex: 1; min-height: 430px; margin-top: 8px; }
+.orbit { position: absolute; left: 45%; top: 54%; border: 1px solid #17647a; border-radius: 50%; transform: translate(-50%, -50%); }
+.orbit-outer { width: 360px; height: 360px; border-style: dashed; animation: orbitSpin 26s linear infinite; }
+.orbit-middle { width: 286px; height: 286px; border-color: #258aa0; animation: orbitSpinReverse 18s linear infinite; }
+.orbit-inner { width: 204px; height: 204px; border-style: dashed; border-color: #4fe5f2; animation: orbitSpin 12s linear infinite; }
+.scan-line { position: absolute; left: 45%; top: calc(54% - 180px); width: 1px; height: 360px; background: #42d8e8; transform-origin: 50% 100%; animation: scanSweep 8s linear infinite; opacity: .55; }
+
+.microscope-hub {
+  position: absolute;
+  left: 45%;
+  top: 54%;
+  width: 166px;
+  height: 166px;
+  transform: translate(-50%, -50%);
+  display: grid;
+  place-items: center;
+  color: var(--cyan);
+  background: #071a23;
+  border: 1px solid #4fe5f2;
+  border-radius: 50%;
+  box-shadow: 0 0 34px rgba(45, 205, 225, .17);
+}
+.microscope-hub span { position: absolute; bottom: 18px; color: #a9eff6; font-size: .57rem; font-weight: 800; letter-spacing: 0; }
+
+.diagnostic-panel {
+  position: absolute;
+  z-index: 2;
+  overflow: hidden;
+  border: 1px solid #218098;
+  background: #071b25;
+  box-shadow: 0 12px 28px rgba(0, 0, 0, .28);
+  animation: panelFloat 7s ease-in-out infinite;
+  animation-delay: var(--panel-delay, 0s);
+}
+.image-panel { width: 168px; height: 126px; }
+.image-panel img { width: 100%; height: 94px; display: block; object-fit: cover; filter: saturate(.86) contrast(1.06); }
+.panel-caption { height: 31px; padding: 0 9px; display: flex; align-items: center; gap: 7px; color: #b9eaf0; font-size: .62rem; font-weight: 700; }
+.panel-histology { left: 0; top: 38px; --panel-delay: -1s; }
+.panel-cytology { right: 4px; bottom: 26px; --panel-delay: -4s; }
+
+.metric-panel { right: 0; top: 18px; width: 174px; height: 118px; padding: 12px; }
+.metric-header { display: flex; align-items: center; gap: 7px; color: #76e7f1; font-size: .58rem; font-weight: 800; }
+.metric-bars { height: 53px; margin: 9px 0 6px; display: flex; align-items: flex-end; gap: 8px; border-bottom: 1px solid #1a596a; }
+.metric-bars span { width: 12px; background: #25bfd2; animation: metricPulse 2.8s ease-in-out infinite alternate; }
+.metric-bars span:nth-child(2n) { animation-delay: -.8s; background: #d0a92d; }
+.metric-panel small { color: #7fa8b3; font-size: .53rem; }
+
+.sequence-panel { left: 7px; bottom: 20px; width: 190px; min-height: 84px; padding: 13px; display: flex; align-items: center; gap: 11px; color: var(--cyan); }
+.sequence-panel div { display: grid; gap: 5px; }
+.sequence-panel strong { color: #d9f7fa; font-size: .58rem; letter-spacing: 0; }
+.sequence-panel span { color: #7fb8c3; font-size: .56rem; }
+
+.scene-status { position: relative; z-index: 3; display: flex; justify-content: space-between; gap: 20px; color: #729ba6; font-size: .68rem; }
+.scene-status span:first-child { color: #b6dbe1; }
+.scene-status i { width: 7px; height: 7px; display: inline-block; margin-right: 6px; border-radius: 50%; background: #42d878; box-shadow: 0 0 10px rgba(66, 216, 120, .7); }
+
+.auth-panel {
+  min-width: 0;
+  padding: 46px 48px 34px;
+  display: flex;
+  flex-direction: column;
+  background: #071923;
+}
+.brand-lockup { display: flex; align-items: center; gap: 12px; }
+.brand-mark { width: 48px; height: 48px; display: grid; place-items: center; color: #04212c; background: var(--cyan); border-radius: 5px; }
+.brand-lockup div:last-child { display: grid; gap: 2px; }
+.brand-lockup strong { color: #fff; font: 800 1.05rem var(--font-body); letter-spacing: 0; }
+.brand-lockup span { color: #82aab4; font-size: .62rem; font-weight: 700; letter-spacing: 0; }
+
+.auth-copy { margin-top: 72px; }
+.auth-copy h2 { margin: 9px 0 8px; color: #fff; font: 750 2rem/1.12 var(--font-body); letter-spacing: 0; }
+.auth-copy p { margin: 0; color: #87aab3; font-size: .86rem; line-height: 1.55; }
+
+.auth-form { margin-top: 30px; display: grid; }
+.field-label { margin: 0 0 7px; color: #c7dce1; font-size: .75rem; font-weight: 700; }
+.field-label:not(:first-child) { margin-top: 17px; }
+.input-shell { min-height: 48px; padding: 0 13px; display: flex; align-items: center; gap: 10px; color: #6fc9d4; border: 1px solid #285464; background: #06141c; }
+.input-shell:focus-within { border-color: var(--cyan); box-shadow: 0 0 0 3px rgba(79, 229, 242, .09); }
+.input-shell input { min-width: 0; flex: 1; height: 46px; color: #fff; background: transparent; border: 0; outline: 0; font: 500 .9rem var(--font-body); }
+.input-shell input::placeholder { color: #5f8089; }
+.icon-button { width: 34px; height: 34px; display: grid; place-items: center; color: #7db5bf; background: transparent; border: 0; cursor: pointer; }
+.icon-button:hover { color: #fff; }
+
+.password-rules { margin-top: 12px; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 7px; }
+.password-rules span { display: flex; align-items: center; gap: 5px; color: #718f97; font-size: .65rem; }
+.password-rules span.passed { color: #55d58a; }
+.form-message { margin: 14px 0 0; padding: 10px 12px; color: #ffb9bd; background: #351a22; border-left: 3px solid #ef6670; font-size: .75rem; line-height: 1.45; }
+
+.submit-button { min-height: 49px; margin-top: 22px; display: flex; align-items: center; justify-content: center; gap: 9px; color: #02202a; background: var(--cyan-strong); border: 1px solid #43d7e5; border-radius: 4px; font: 800 .82rem var(--font-body); text-transform: uppercase; letter-spacing: 0; cursor: pointer; transition: transform .18s ease, background .18s ease; }
+.submit-button:hover:not(:disabled) { transform: translateY(-2px); background: #50e4f0; }
+.submit-button:disabled { cursor: wait; opacity: .7; }
+.loading-ring { width: 18px; height: 18px; border: 2px solid rgba(3, 31, 41, .25); border-top-color: #03232d; border-radius: 50%; animation: orbitSpin .7s linear infinite; }
+
+.mode-button { align-self: center; margin-top: 19px; color: #79cdd7; background: transparent; border: 0; font: 650 .75rem var(--font-body); cursor: pointer; }
+.mode-button:hover { color: #fff; }
+.security-note { margin-top: auto; padding-top: 32px; display: flex; align-items: center; justify-content: center; gap: 8px; color: #668b95; font-size: .66rem; }
+
+.login-footer { position: absolute; z-index: 2; right: 28px; bottom: 20px; left: 28px; display: flex; justify-content: space-between; color: #547681; font-size: .62rem; letter-spacing: 0; }
+
+@keyframes orbitSpin { to { transform: translate(-50%, -50%) rotate(360deg); } }
+@keyframes orbitSpinReverse { to { transform: translate(-50%, -50%) rotate(-360deg); } }
+@keyframes scanSweep { to { transform: rotate(360deg); } }
+@keyframes panelFloat { 0%, 100% { translate: 0 0; } 50% { translate: 0 -9px; } }
+@keyframes metricPulse { from { scale: 1 .7; transform-origin: bottom; } to { scale: 1 1; transform-origin: bottom; } }
+
+@media (max-width: 980px) {
+  .login-page { padding: 24px 18px 58px; overflow: auto; }
+  .auth-shell { min-height: 0; grid-template-columns: 1fr; }
+  .diagnostic-scene { min-height: 430px; padding: 30px 32px 20px; border-right: 0; border-bottom: 1px solid #1b6072; }
+  .scene-heading h1 { font-size: 2.15rem; }
+  .scene-heading p { max-width: 560px; }
+  .visual-stage { min-height: 270px; }
+  .orbit { left: 50%; top: 55%; }
+  .orbit-outer { width: 280px; height: 280px; }
+  .orbit-middle { width: 224px; height: 224px; }
+  .orbit-inner { width: 166px; height: 166px; }
+  .scan-line { left: 50%; top: calc(55% - 140px); height: 280px; }
+  .microscope-hub { left: 50%; top: 55%; width: 132px; height: 132px; }
+  .microscope-hub :deep(.v-icon) { font-size: 88px !important; }
+  .image-panel { width: 142px; height: 108px; }
+  .image-panel img { height: 77px; }
+  .metric-panel { width: 154px; }
+  .sequence-panel { width: 170px; }
+  .auth-panel { padding: 38px 42px 34px; }
+  .auth-copy { margin-top: 42px; }
+}
+
+@media (max-width: 620px) {
+  .login-page { padding: 0 0 50px; place-items: start stretch; }
+  .auth-shell { width: 100%; border-width: 0 0 1px; }
+  .diagnostic-scene { min-height: 310px; padding: 24px 20px 12px; }
+  .scene-heading h1 { font-size: 1.72rem; }
+  .scene-heading p { display: none; }
+  .visual-stage { min-height: 205px; margin-top: 2px; }
+  .orbit-outer { width: 202px; height: 202px; }
+  .orbit-middle { width: 164px; height: 164px; }
+  .orbit-inner { width: 124px; height: 124px; }
+  .scan-line { top: calc(55% - 101px); height: 202px; }
+  .microscope-hub { width: 102px; height: 102px; }
+  .microscope-hub :deep(.v-icon) { font-size: 64px !important; }
+  .microscope-hub span { display: none; }
+  .panel-histology { top: 14px; width: 110px; height: 86px; }
+  .panel-histology img { height: 58px; }
+  .panel-histology .panel-caption { height: 27px; padding: 0 6px; font-size: .5rem; }
+  .panel-cytology, .metric-panel { display: none; }
+  .sequence-panel { left: auto; right: 0; bottom: 9px; width: 132px; min-height: 62px; padding: 8px; }
+  .sequence-panel :deep(.v-icon) { font-size: 32px !important; }
+  .sequence-panel span { display: none; }
+  .scene-status { font-size: .57rem; }
+  .scene-status span:last-child { display: none; }
+  .auth-panel { padding: 30px 22px 28px; }
+  .auth-copy { margin-top: 32px; }
+  .auth-copy h2 { font-size: 1.65rem; }
+  .password-rules { grid-template-columns: 1fr; }
+  .login-footer { right: 18px; bottom: 17px; left: 18px; justify-content: center; }
+  .login-footer span:last-child { display: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .orbit, .scan-line, .diagnostic-panel, .metric-bars span, .loading-ring { animation: none !important; }
 }
 </style>
