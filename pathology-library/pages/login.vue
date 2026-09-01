@@ -226,18 +226,8 @@ const librarianClass = computed(() => ({
 
 <template>
     <div class="login-page">
-        <!-- Animated background -->
-        <div class="library-background">
-            <div class="bookshelf-pattern"></div>
-            <div class="floating-books">
-                <div class="book book-1">📕</div>
-                <div class="book book-2">📗</div>
-                <div class="book book-3">📘</div>
-                <div class="book book-4">📙</div>
-                <div class="book book-5">🔬</div>
-            </div>
-            <div class="light-rays"></div>
-        </div>
+        <AnimatedBackground />
+        <div class="login-scrim"></div>
 
         <!-- Main container -->
         <div class="login-container">
@@ -428,6 +418,14 @@ const librarianClass = computed(() => ({
     background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
 }
 
+.login-scrim {
+    position: fixed;
+    inset: 0;
+    z-index: 2;
+    pointer-events: none;
+    background: linear-gradient(120deg, rgba(8, 21, 40, 0.9), rgba(16, 46, 72, 0.72), rgba(7, 24, 42, 0.92));
+}
+
 /* ===== ANIMATED BACKGROUND ===== */
 .library-background {
     position: absolute;
@@ -544,7 +542,7 @@ const librarianClass = computed(() => ({
 /* ===== MAIN CONTAINER ===== */
 .login-container {
     position: relative;
-    z-index: 1;
+    z-index: 3;
     width: 100%;
     max-width: 900px;
     padding: 2rem;

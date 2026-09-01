@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted } from 'vue'
 
+defineProps<{ contained?: boolean }>()
+
 // Scroll state
 const isPaused = ref(false)
 const scrollY = ref(0)
@@ -44,7 +46,7 @@ onUnmounted(() => {
 </script>
 
 <template>
-    <div class="animated-background" :class="{ paused: isPaused }">
+    <div class="animated-background" :class="{ paused: isPaused, contained }">
         <!-- Floating DNA Strands using CSS -->
         <div class="dna-container">
             <div class="dna-strand strand-1">
@@ -107,6 +109,13 @@ onUnmounted(() => {
     pointer-events: none;
     overflow: hidden;
     transition: opacity 0.5s ease;
+}
+
+.animated-background.contained {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    z-index: 0;
 }
 
 /* When paused, reduce opacity and stop animations */

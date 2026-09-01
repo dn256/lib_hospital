@@ -8,6 +8,7 @@ definePageMeta({
 
 const route = useRoute()
 const router = useRouter()
+const embedded = computed(() => route.query.embed === '1')
 const { isEditor } = usePermissions()
 const {
   loaded,
@@ -492,8 +493,9 @@ onMounted(async () => {
 </script>
 
 <template>
-  <div class="atlas-page">
+  <div class="atlas-page" :class="{ embedded }">
     <section class="atlas-hero">
+      <AnimatedBackground contained />
       <div class="hero-content">
         <div class="hero-kicker">
           <span class="live-dot" />
@@ -771,6 +773,7 @@ onMounted(async () => {
 .hero-slide-1 .hero-slide-copy { right: 18px; bottom: 18px; left: 18px; }.hero-slide-1 .hero-slide-copy strong { font-size: 1rem; }
 .hero-gallery-empty { grid-column: 1/-1; grid-row: 1/-1; display: grid; place-content: center; justify-items: center; gap: 10px; color: #9eb6c2; border: 1px dashed rgba(255,255,255,.25); border-radius: 7px; }
 .workspace-tabs { position: sticky; top: 68px; z-index: 30; padding: 0 max(18px, calc((100vw - 1680px) / 2)); background: rgba(255,255,255,.97); border-bottom: 1px solid #d5e0e4; box-shadow: 0 8px 24px rgba(18,50,67,.06); backdrop-filter: blur(12px); }
+.atlas-page.embedded .workspace-tabs { top: 0; }
 .state-panel { min-height: 420px; display: grid; place-content: center; justify-items: center; gap: 14px; color: #385568; }.error-state { color: #a13b3f; }
 .organ-explorer { padding: 28px max(22px, calc((100vw - 1680px) / 2)) 24px; background: #fff; border-bottom: 1px solid #d7e2e6; }
 .organ-explorer-heading { margin-bottom: 15px; display: flex; align-items: flex-end; justify-content: space-between; gap: 18px; }.organ-explorer-heading p { margin: 0 0 3px; color: #16877e; font-size: .66rem; font-weight: 900; }.organ-explorer-heading h2 { margin: 0; color: #15384b; font: 700 1.42rem var(--font-heading); }.organ-explorer-heading > span { color: #718791; font-size: .74rem; }
