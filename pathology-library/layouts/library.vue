@@ -4,10 +4,11 @@ import { computed, ref } from 'vue'
 const route = useRoute()
 const router = useRouter()
 const { user, profile, signOut } = useAuth()
-const { canAccessAdmin } = usePermissions()
+const { canAccessAdmin, canCreateCase } = usePermissions()
 const mobileMenuOpen = ref(false)
 const embedded = computed(() => route.query.embed === '1')
 const isWorkspace = computed(() => route.path === '/workspace')
+const isLibrary = computed(() => route.path === '/library')
 
 const navItems = [
   { title: 'Trang chủ', icon: 'mdi-home-outline', to: '/' },
@@ -59,6 +60,19 @@ const handleLogout = async () => {
 
       <div class="header-actions">
         <v-btn
+          v-if="canCreateCase && isLibrary"
+          to="/cases/new"
+          class="create-case-button"
+          color="accent"
+          variant="flat"
+          size="small"
+          prepend-icon="mdi-plus"
+          aria-label="Tạo ca bệnh mới"
+          title="Tạo ca bệnh mới"
+        >
+          <span class="create-case-label">Tạo ca</span>
+        </v-btn>
+        <v-btn
           v-if="canAccessAdmin"
           to="/admin"
           icon="mdi-shield-crown"
@@ -78,6 +92,12 @@ const handleLogout = async () => {
             </v-btn>
           </template>
           <v-list density="compact" min-width="210">
+            <v-list-item
+              v-if="canCreateCase && isLibrary"
+              to="/cases/new"
+              prepend-icon="mdi-plus-circle"
+              title="Tạo ca bệnh mới"
+            />
             <v-list-item v-if="canAccessAdmin" to="/admin" prepend-icon="mdi-shield-crown" title="Quản trị" />
             <v-list-item prepend-icon="mdi-logout" title="Đăng xuất" @click="handleLogout" />
           </v-list>
@@ -94,6 +114,15 @@ const handleLogout = async () => {
       </div>
 
       <nav v-if="mobileMenuOpen" class="mobile-nav" aria-label="Điều hướng di động">
+        <NuxtLink
+          v-if="canCreateCase && isLibrary"
+          to="/cases/new"
+          class="mobile-link mobile-create-link"
+          @click="mobileMenuOpen = false"
+        >
+          <v-icon size="18">mdi-plus-circle</v-icon>
+          Tạo ca bệnh mới
+        </NuxtLink>
         <NuxtLink
           v-for="item in navItems"
           :key="item.to"
@@ -223,7 +252,16 @@ const handleLogout = async () => {
   display: flex;
   justify-content: flex-end;
   align-items: center;
+  gap: 4px;
   min-width: 0;
+}
+
+.create-case-button {
+  min-width: 92px;
+  color: #102f43;
+  font-weight: 800;
+  letter-spacing: 0;
+  text-transform: none;
 }
 
 .account-button {
@@ -281,6 +319,16 @@ const handleLogout = async () => {
     display: inline-flex;
   }
 
+  .create-case-button {
+    min-width: 36px;
+    width: 36px;
+    padding: 0;
+  }
+
+  .create-case-label {
+    display: none;
+  }
+
   .mobile-nav {
     position: absolute;
     top: 68px;
@@ -308,6 +356,16 @@ const handleLogout = async () => {
 
   .mobile-link:hover {
     background: #eef4f6;
+  }
+
+  .mobile-create-link {
+    color: #102f43;
+    background: #f4d769;
+    font-weight: 800;
+  }
+
+  .mobile-create-link:hover {
+    background: #eac64c;
   }
 }
 
