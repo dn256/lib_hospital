@@ -6,13 +6,17 @@ const router = useRouter()
 const { user, profile, signOut } = useAuth()
 const { canAccessAdmin } = usePermissions()
 const mobileMenuOpen = ref(false)
+const embedded = computed(() => route.query.embed === '1')
+const isWorkspace = computed(() => route.path === '/workspace')
 
 const navItems = [
-  { title: 'Thư viện ca', icon: 'mdi-bookshelf', to: '/' },
+  { title: 'Trang chủ', icon: 'mdi-home-outline', to: '/' },
+  { title: 'Thư viện ca', icon: 'mdi-bookshelf', to: '/library' },
   { title: 'Atlas GPB', icon: 'mdi-microscope', to: '/atlas' },
   { title: 'Tra cứu HMMD', icon: 'mdi-test-tube', to: '/hmmd' },
   { title: 'Danh mục WHO', icon: 'mdi-book-open-page-variant', to: '/atlas?view=who' },
   { title: 'Kho ảnh', icon: 'mdi-image-multiple', to: '/atlas?view=images' },
+  { title: 'Đa nhiệm', icon: 'mdi-view-split-vertical', to: '/workspace' },
 ]
 
 const displayName = computed(() => profile.value?.display_name || user.value?.email?.split('@')[0] || 'Người học')
@@ -30,8 +34,8 @@ const handleLogout = async () => {
 </script>
 
 <template>
-  <div class="library-shell">
-    <header class="library-header">
+  <div class="library-shell" :class="{ embedded, 'workspace-shell': isWorkspace }">
+    <header v-if="!embedded" class="library-header">
       <NuxtLink to="/" class="brand" aria-label="Về trang chủ PathologyLib">
         <span class="brand-mark"><v-icon size="23">mdi-microscope</v-icon></span>
         <span class="brand-copy">
@@ -107,7 +111,7 @@ const handleLogout = async () => {
       <slot />
     </main>
 
-    <footer class="library-footer">
+    <footer v-if="!embedded && !isWorkspace" class="library-footer">
       <span>PathologyLib · Atlas GPB</span>
       <span>Chỉ dùng cho học tập, không thay thế chẩn đoán chuyên khoa.</span>
     </footer>
@@ -248,6 +252,11 @@ const handleLogout = async () => {
   min-height: calc(100vh - 122px);
 }
 
+.library-shell.embedded .library-main,
+.library-shell.workspace-shell .library-main {
+  min-height: 100vh;
+}
+
 .library-footer {
   min-height: 54px;
   padding: 15px 28px;
@@ -259,7 +268,7 @@ const handleLogout = async () => {
   font-size: 0.78rem;
 }
 
-@media (max-width: 1100px) {
+@media (max-width: 1320px) {
   .library-header {
     grid-template-columns: auto 1fr auto;
   }

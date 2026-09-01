@@ -23,8 +23,14 @@ export default defineNuxtConfig({
   // Auth is persisted by Supabase in browser storage. Keep protected learning
   // workspaces client-rendered so the guard can restore the session first.
   routeRules: {
+    '/': { ssr: false },
+    '/login': { ssr: false },
+    '/library': { ssr: false },
+    '/workspace': { ssr: false },
     '/atlas': { ssr: false },
     '/hmmd': { ssr: false },
+    '/cases/**': { ssr: false },
+    '/admin/**': { ssr: false },
   },
 
   typescript: {
