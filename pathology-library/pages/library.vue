@@ -1,33 +1,18 @@
 <script setup lang="ts">
 import { ref, watch, onMounted, computed, nextTick } from "vue";
-import { useRouter } from "vue-router";
 import { useCases } from "~/composables/useCases";
 import { useCatalogs } from "~/composables/useCatalogs";
-import { useAuth } from "~/composables/useAuth";
-import { usePermissions } from "~/composables/usePermissions";
 import { useVietnameseFilter } from "~/composables/useVietnameseFilter";
 
-definePageMeta({ middleware: "auth" });
+definePageMeta({ layout: "library", middleware: "auth" });
 
 const { vietnameseFilter } = useVietnameseFilter();
 
-const router = useRouter();
 const route = useRoute();
 const embedded = computed(() => route.query.embed === "1");
 const { search, count } = useCases();
 const { organs, diagnoses, tags, loadAll } = useCatalogs();
-const { user, profile, signOut } = useAuth();
-const { canAccessAdmin, canCreateCase } = usePermissions();
 const supabase = useSupabaseClient();
-
-// Navigation functions
-const goToLogin = () => router.push("/login");
-const goToNewCase = () => router.push("/cases/new");
-const goToAdmin = () => router.push("/admin");
-const handleLogout = async () => {
-  await signOut();
-  router.push("/login");
-};
 
 // Search state
 const keyword = ref("");
@@ -316,129 +301,6 @@ const trustIndicators = [
 
     <!-- Main Content -->
     <div class="main-content">
-      <!-- Sticky Header -->
-      <header v-if="!embedded" class="site-header">
-        <v-container fluid class="px-6 px-md-12">
-          <div class="d-flex align-center justify-space-between">
-            <!-- Logo -->
-            <div class="d-flex align-center">
-              <div class="logo-icon">
-                <v-icon color="white" size="22">mdi-microscope</v-icon>
-              </div>
-              <div class="logo-text ml-3">
-                <span class="logo-name">PathologyLib</span>
-                <span class="logo-tagline">Thư viện Y học số</span>
-              </div>
-            </div>
-
-            <!-- Navigation -->
-            <nav class="main-nav d-none d-md-flex">
-              <NuxtLink to="/" class="nav-item">
-                <v-icon size="18" class="mr-2">mdi-home</v-icon>
-                Trang chủ
-              </NuxtLink>
-              <a href="#categories" class="nav-item">
-                <v-icon size="18" class="mr-2">mdi-folder-multiple</v-icon>
-                Danh mục
-              </a>
-              <NuxtLink to="/atlas" class="nav-item">
-                <v-icon size="18" class="mr-2">mdi-microscope</v-icon>
-                Atlas GPB
-              </NuxtLink>
-              <a href="#" class="nav-item">
-                <v-icon size="18" class="mr-2">mdi-information</v-icon>
-                Giới thiệu
-              </a>
-            </nav>
-
-            <!-- Actions -->
-            <div class="header-actions d-flex align-center gap-3">
-              <v-btn icon variant="text" color="white" class="d-none d-sm-flex">
-                <v-icon>mdi-bell-outline</v-icon>
-              </v-btn>
-              <!-- User is logged in -->
-              <template v-if="user">
-                <!-- Admin Button (only for authorized users) -->
-                <v-btn
-                  v-if="canAccessAdmin"
-                  color="warning"
-                  variant="flat"
-                  rounded="pill"
-                  class="mr-2 d-none d-md-flex"
-                  @click="goToAdmin"
-                >
-                  <v-icon start size="18">mdi-shield-crown</v-icon>
-                  Quản lý
-                </v-btn>
-                <v-btn
-                  v-if="canCreateCase"
-                  color="primary"
-                  variant="flat"
-                  rounded="pill"
-                  class="mr-2"
-                  @click="goToNewCase"
-                >
-                  <v-icon start size="18">mdi-plus</v-icon>
-                  Tạo mới
-                </v-btn>
-                <v-menu>
-                  <template #activator="{ props }">
-                    <v-btn
-                      color="accent"
-                      variant="flat"
-                      rounded="pill"
-                      v-bind="props"
-                    >
-                      <v-icon start size="18">mdi-account-circle</v-icon>
-                      {{ profile?.display_name || user.email?.split("@")[0] }}
-                      <v-icon end size="16">mdi-chevron-down</v-icon>
-                    </v-btn>
-                  </template>
-                  <v-list density="compact">
-                    <!-- Admin link in menu (for mobile) -->
-                    <v-list-item v-if="canAccessAdmin" @click="goToAdmin">
-                      <template #prepend>
-                        <v-icon size="18" color="warning"
-                          >mdi-shield-crown</v-icon
-                        >
-                      </template>
-                      <v-list-item-title>Quản lý thư viện</v-list-item-title>
-                    </v-list-item>
-                    <v-list-item v-if="canCreateCase" @click="goToNewCase">
-                      <template #prepend>
-                        <v-icon size="18">mdi-plus-box</v-icon>
-                      </template>
-                      <v-list-item-title>Tạo ca bệnh mới</v-list-item-title>
-                    </v-list-item>
-                    <v-divider />
-                    <v-list-item @click="handleLogout">
-                      <template #prepend>
-                        <v-icon size="18" color="error">mdi-logout</v-icon>
-                      </template>
-                      <v-list-item-title class="text-error"
-                        >Đăng xuất</v-list-item-title
-                      >
-                    </v-list-item>
-                  </v-list>
-                </v-menu>
-              </template>
-              <!-- User is not logged in -->
-              <v-btn
-                v-else
-                color="accent"
-                variant="flat"
-                rounded="pill"
-                class="login-btn"
-                @click="goToLogin"
-              >
-                <v-icon start size="18">mdi-account-circle</v-icon>
-                Đăng nhập
-              </v-btn>
-            </div>
-          </div>
-        </v-container>
-      </header>
-
       <!-- Hero Section -->
       <section class="hero-section">
         <v-container>
@@ -987,75 +849,6 @@ const trustIndicators = [
         </v-container>
       </section>
 
-      <!-- Footer -->
-      <footer v-if="!embedded" class="site-footer">
-        <v-container>
-          <v-row>
-            <v-col cols="12" md="4">
-              <div class="footer-brand">
-                <div class="d-flex align-center mb-4">
-                  <div class="footer-logo">
-                    <v-icon color="white" size="20">mdi-microscope</v-icon>
-                  </div>
-                  <span class="footer-name ml-3">PathologyLib</span>
-                </div>
-                <p class="footer-desc">
-                  Thư viện mô bệnh học số hàng đầu Việt Nam. Công cụ tra cứu
-                  chuyên nghiệp cho cộng đồng Y học.
-                </p>
-              </div>
-            </v-col>
-            <v-col cols="6" md="2">
-              <div class="footer-links">
-                <div class="footer-title">Khám phá</div>
-                <a href="#">Danh mục</a>
-                <a href="#">Mẫu mới nhất</a>
-                <a href="#">Phổ biến</a>
-              </div>
-            </v-col>
-            <v-col cols="6" md="2">
-              <div class="footer-links">
-                <div class="footer-title">Hỗ trợ</div>
-                <a href="#">Hướng dẫn</a>
-                <a href="#">FAQ</a>
-                <a href="#">Liên hệ</a>
-              </div>
-            </v-col>
-            <v-col cols="12" md="4">
-              <div class="footer-links">
-                <div class="footer-title">Theo dõi chúng tôi</div>
-                <div class="social-links">
-                  <v-btn
-                    icon
-                    variant="tonal"
-                    color="white"
-                    size="small"
-                    class="mr-2"
-                  >
-                    <v-icon>mdi-facebook</v-icon>
-                  </v-btn>
-                  <v-btn
-                    icon
-                    variant="tonal"
-                    color="white"
-                    size="small"
-                    class="mr-2"
-                  >
-                    <v-icon>mdi-youtube</v-icon>
-                  </v-btn>
-                  <v-btn icon variant="tonal" color="white" size="small">
-                    <v-icon>mdi-linkedin</v-icon>
-                  </v-btn>
-                </div>
-              </div>
-            </v-col>
-          </v-row>
-          <v-divider class="my-6" color="white" opacity="0.2"></v-divider>
-          <div class="footer-bottom text-center">
-            <p>© 2025 PathologyLib. Bảo lưu mọi quyền.</p>
-          </div>
-        </v-container>
-      </footer>
     </div>
   </div>
 </template>
@@ -1097,82 +890,12 @@ const trustIndicators = [
 }
 
 /* ===========================
-   HEADER
-   =========================== */
-.site-header {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  z-index: 1000;
-  padding: 16px 0;
-  background: rgba(15, 23, 42, 0.8);
-  backdrop-filter: blur(20px);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-}
-
-.logo-icon {
-  width: 44px;
-  height: 44px;
-  background: linear-gradient(135deg, #c9a227, #d4af37);
-  border-radius: 12px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.logo-text {
-  display: flex;
-  flex-direction: column;
-}
-
-.logo-name {
-  font-family: "Crimson Pro", serif;
-  font-size: 1.25rem;
-  font-weight: 600;
-  color: white;
-  line-height: 1.2;
-}
-
-.logo-tagline {
-  font-size: 0.7rem;
-  color: rgba(255, 255, 255, 0.6);
-  letter-spacing: 0.5px;
-}
-
-.main-nav {
-  display: flex;
-  gap: 8px;
-}
-
-.nav-item {
-  display: flex;
-  align-items: center;
-  padding: 10px 18px;
-  color: rgba(255, 255, 255, 0.7);
-  font-size: 0.9rem;
-  font-weight: 500;
-  border-radius: 10px;
-  transition: all 0.2s ease;
-}
-
-.nav-item:hover,
-.nav-item.active {
-  color: white;
-  background: rgba(255, 255, 255, 0.1);
-}
-
-.login-btn {
-  font-weight: 600;
-}
-
-/* ===========================
    HERO SECTION
    =========================== */
 .hero-section {
-  padding-top: 140px;
+  padding-top: 72px;
   padding-bottom: 60px;
-  min-height: 100vh;
+  min-height: calc(100vh - 68px);
   display: flex;
   align-items: center;
 }
@@ -1556,64 +1279,6 @@ const trustIndicators = [
 
 .cta-icon {
   color: rgba(255, 255, 255, 0.1);
-}
-
-/* ===========================
-   FOOTER
-   =========================== */
-.site-footer {
-  padding: 60px 0 40px;
-  background: rgba(0, 0, 0, 0.3);
-}
-
-.footer-logo {
-  width: 40px;
-  height: 40px;
-  background: linear-gradient(135deg, #c9a227, #d4af37);
-  border-radius: 10px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.footer-name {
-  font-family: "Crimson Pro", serif;
-  font-size: 1.25rem;
-  font-weight: 600;
-  color: white;
-}
-
-.footer-desc {
-  font-size: 0.9rem;
-  color: rgba(255, 255, 255, 0.6);
-  line-height: 1.6;
-}
-
-.footer-links {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-
-.footer-title {
-  font-weight: 600;
-  color: white;
-  margin-bottom: 8px;
-}
-
-.footer-links a {
-  color: rgba(255, 255, 255, 0.6);
-  font-size: 0.9rem;
-  transition: color 0.2s;
-}
-
-.footer-links a:hover {
-  color: #c9a227;
-}
-
-.footer-bottom {
-  font-size: 0.85rem;
-  color: rgba(255, 255, 255, 0.5);
 }
 
 /* ===========================

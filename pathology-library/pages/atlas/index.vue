@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, onMounted, ref, watch } from 'vue'
+import { matchesPathologySearch, pathologySearchScore } from '~/utils/pathologySearch'
 
 definePageMeta({
   layout: 'library',
@@ -96,24 +97,7 @@ const normalize = (value: unknown) => String(value || '')
   .toLowerCase()
   .trim()
 
-const containsSearchTerms = (value: unknown, queryValue: unknown) => {
-  const rawQuery = String(queryValue || '').toLowerCase().trim()
-  if (!rawQuery) return true
-
-  const rawText = String(value || '').toLowerCase()
-  const normalizedText = normalize(value)
-  if (rawText.includes(rawQuery)) return true
-
-  const rawWords = rawText.split(/[^\p{L}\p{N}+/-]+/u).filter(Boolean)
-  const normalizedWords = normalizedText.split(/[^a-z0-9+/-]+/).filter(Boolean)
-  return rawQuery.split(/\s+/).filter(Boolean).every((rawToken) => {
-    const normalizedToken = normalize(rawToken)
-    const keepVietnameseMarks = rawToken !== normalizedToken
-    const token = keepVietnameseMarks ? rawToken : normalizedToken
-    const words = keepVietnameseMarks ? rawWords : normalizedWords
-    return words.some((word) => word === token || (token.length >= 3 && word.startsWith(token)))
-  })
-}
+const containsSearchTerms = (value: unknown, queryValue: unknown) => matchesPathologySearch(value, queryValue)
 
 const splitLines = (value: string) => value.split(/\r?\n/).map((line) => line.trim()).filter(Boolean)
 const splitMarkers = (value: string) => value.split(/[,;\n]/).map((line) => line.trim()).filter(Boolean)
@@ -331,11 +315,24 @@ const translate = (value: string) => {
 const whoVolumes = computed<any[]>(() => whoCatalog.value?.volumes || [])
 const whoEntries = computed<any[]>(() => whoCatalog.value?.entries || [])
 const whoFiltered = computed(() => {
-  return whoEntries.value.filter((entry) => {
-    if (whoVolume.value !== 'all' && entry.volumeId !== whoVolume.value) return false
-    if (!whoQuery.value) return entry.entryType === 'diagnosis'
-    return containsSearchTerms([entry.nameEn, translate(entry.nameEn), entry.sectionEn, translate(entry.sectionEn), entry.groupEn].join(' '), whoQuery.value)
-  })
+  const fieldsFor = (entry: any) => [
+    entry.nameEn,
+    translate(entry.nameEn),
+    entry.sectionEn,
+    translate(entry.sectionEn),
+    entry.groupEn,
+    translate(entry.groupEn),
+  ]
+
+  return whoEntries.value
+    .filter((entry) => {
+      if (whoVolume.value !== 'all' && entry.volumeId !== whoVolume.value) return false
+      if (!whoQuery.value) return entry.entryType === 'diagnosis'
+      return matchesPathologySearch(fieldsFor(entry), whoQuery.value)
+    })
+    .sort((a, b) => whoQuery.value
+      ? pathologySearchScore(fieldsFor(b), whoQuery.value) - pathologySearchScore(fieldsFor(a), whoQuery.value)
+      : 0)
 })
 const visibleWhoEntries = computed(() => whoFiltered.value.slice(0, whoLimit.value))
 const volumeFor = (id: string) => whoVolumes.value.find((volume) => volume.id === id)
@@ -343,16 +340,23 @@ const volumeFor = (id: string) => whoVolumes.value.find((volume) => volume.id ==
 const webEntries = computed<any[]>(() => webPathologyCatalog.value?.entries || [])
 const webOrgans = computed<any[]>(() => webPathologyCatalog.value?.organs || [])
 const webFiltered = computed(() => {
-  return webEntries.value.filter((entry) => {
-    if (imageOrgan.value !== 'all' && entry.organ !== imageOrgan.value) return false
-    return containsSearchTerms([
+  const fieldsFor = (entry: any) => [
       entry.titleEn,
       translate(entry.titleEn),
       ...(entry.trailEn || []),
       ...(entry.trailEn || []).map(translate),
       entry.organ,
-    ].join(' '), imageQuery.value)
-  })
+      translate(entry.organ),
+    ]
+
+  return webEntries.value
+    .filter((entry) => {
+      if (imageOrgan.value !== 'all' && entry.organ !== imageOrgan.value) return false
+      return matchesPathologySearch(fieldsFor(entry), imageQuery.value)
+    })
+    .sort((a, b) => imageQuery.value
+      ? pathologySearchScore(fieldsFor(b), imageQuery.value) - pathologySearchScore(fieldsFor(a), imageQuery.value)
+      : 0)
 })
 const visibleWebEntries = computed(() => webFiltered.value.slice(0, imageLimit.value))
 
@@ -649,7 +653,7 @@ onMounted(async () => {
       <section v-show="activeView === 'who'" class="content-view">
         <header class="view-header"><div><p>WHO CLASSIFICATION OF TUMOURS ONLINE</p><h2>Danh mục WHO dẫn đúng từng mục</h2><span>Giữ nguyên tên tiếng Anh chính thức và bổ sung bản dịch tiếng Việt để tra cứu.</span></div><div class="view-counter"><strong>{{ whoFiltered.length.toLocaleString('vi-VN') }}</strong><span>mục phù hợp</span></div></header>
         <div class="library-filter">
-          <v-text-field v-model="whoQuery" prepend-inner-icon="mdi-magnify" placeholder="Tìm tiếng Việt hoặc English…" hide-details clearable />
+          <v-text-field v-model="whoQuery" prepend-inner-icon="mdi-magnify" placeholder="Tìm tên đầy đủ hoặc từ viết tắt Việt/Anh…" hide-details clearable />
           <v-select v-model="whoVolume" :items="[{ id: 'all', nameVi: 'Tất cả quyển WHO' }, ...whoVolumes]" item-title="nameVi" item-value="id" hide-details />
         </div>
         <div class="source-grid">
@@ -666,7 +670,7 @@ onMounted(async () => {
       <section v-show="activeView === 'images'" class="content-view">
         <header class="view-header"><div><p>KHO LIÊN KẾT ẢNH WEBPATHOLOGY</p><h2>Mở gallery đúng chủ đề trên nguồn gốc</h2><span>Atlas chỉ lập chỉ mục và dẫn nguồn; không sao chép ảnh có bản quyền.</span></div><div class="view-counter"><strong>{{ webFiltered.length.toLocaleString('vi-VN') }}</strong><span>gallery phù hợp</span></div></header>
         <div class="library-filter">
-          <v-text-field v-model="imageQuery" prepend-inner-icon="mdi-magnify" placeholder="Tìm dạ dày, stomach, adenocarcinoma…" hide-details clearable />
+          <v-text-field v-model="imageQuery" prepend-inner-icon="mdi-magnify" placeholder="Tìm tên đầy đủ hoặc từ viết tắt Việt/Anh…" hide-details clearable />
           <v-select v-model="imageOrgan" :items="[{ id: 'all', name: 'Tất cả cơ quan' }, ...webOrgans.map((organ: any) => ({ id: organ.id || organ.organ || organ, name: translate(organ.nameEn || organ.name || organ.id || organ) }))]" item-title="name" item-value="id" hide-details />
         </div>
         <div class="source-grid">
