@@ -80,6 +80,11 @@ const paginatedItems = computed(() => {
 
 const pageFrom = computed(() => filteredItems.value.length === 0 ? 0 : (currentPage.value - 1) * pageSize.value + 1)
 const pageTo = computed(() => Math.min(currentPage.value * pageSize.value, filteredItems.value.length))
+const rowNumber = (index: number) => (currentPage.value - 1) * pageSize.value + index + 1
+const parentName = (parentId: number | null) => {
+    if (!parentId) return ''
+    return currentItems.value.find((item: any) => item.id === parentId)?.name || `ID ${parentId}`
+}
 
 // Reset page when tab or search changes
 watch(activeTab, () => {
@@ -210,7 +215,7 @@ const dialogTitle = computed(() => {
             <v-card-text>
                 <!-- Toolbar -->
                 <div class="toolbar mb-4">
-                    <v-text-field v-model="searchKeyword" placeholder="Tìm theo tên, ID..."
+                    <v-text-field v-model="searchKeyword" placeholder="Tìm theo tên, mã hoặc ID dữ liệu..."
                         prepend-inner-icon="mdi-magnify" variant="outlined" density="compact" hide-details clearable
                         class="search-input" />
                     <v-btn v-if="canManageCatalogs" color="primary" prepend-icon="mdi-plus" @click="openCreateDialog">
@@ -229,7 +234,7 @@ const dialogTitle = computed(() => {
                 <v-table v-else hover>
                     <thead>
                         <tr>
-                            <th>ID</th>
+                            <th>STT</th>
                             <th>Tên</th>
                             <th v-if="activeTab === 'diagnoses'">ICD-O Code</th>
                             <th v-if="activeTab !== 'tags'">Parent</th>
@@ -238,9 +243,9 @@ const dialogTitle = computed(() => {
                         </tr>
                     </thead>
                     <tbody>
-                        <tr v-for="item in paginatedItems" :key="item.id">
+                        <tr v-for="(item, index) in paginatedItems" :key="item.id">
                             <td>
-                                <code class="item-id">{{ item.id }}</code>
+                                <span class="row-number">{{ rowNumber(index) }}</span>
                             </td>
                             <td>{{ item.name }}</td>
                             <td v-if="activeTab === 'diagnoses'">
@@ -248,7 +253,7 @@ const dialogTitle = computed(() => {
                                 <span v-else class="text-grey">-</span>
                             </td>
                             <td v-if="activeTab !== 'tags'">
-                                <span v-if="item.parent_id">{{ item.parent_id }}</span>
+                                <span v-if="item.parent_id">{{ parentName(item.parent_id) }}</span>
                                 <span v-else class="text-grey">-</span>
                             </td>
                             <td v-if="activeTab === 'organs'">
@@ -390,11 +395,13 @@ const dialogTitle = computed(() => {
     max-width: 300px;
 }
 
-.item-id {
-    background: #f0f4f8;
-    padding: 0.2rem 0.4rem;
-    border-radius: 4px;
-    font-size: 0.8rem;
+.row-number {
+    min-width: 2rem;
+    display: inline-flex;
+    justify-content: center;
+    color: #27465a;
+    font-size: 0.85rem;
+    font-weight: 700;
 }
 
 .dialog-title {

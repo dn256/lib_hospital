@@ -8,6 +8,8 @@ const query = ref('')
 const organ = ref('all')
 const positiveMarkers = ref<string[]>([])
 const negativeMarkers = ref<string[]>([])
+const positiveMarkerSearch = ref('')
+const negativeMarkerSearch = ref('')
 const limit = ref(36)
 const selectedCase = ref<any | null>(null)
 const dialogOpen = ref(false)
@@ -61,19 +63,38 @@ const organItems = computed(() => {
 })
 
 const markerItems = computed(() => {
-  const variants = new Map<string, { title: string, count: number }>()
+  const variants = new Map<string, { title: string, value: string, key: string, count: number }>()
   for (const item of cases.value) {
     for (const marker of [...(item.positive || []), ...(item.negative || [])]) {
       const key = markerKey(marker)
       if (!key) continue
       const current = variants.get(key)
-      variants.set(key, { title: current?.title || marker, count: (current?.count || 0) + 1 })
+      variants.set(key, {
+        title: current?.title || marker,
+        value: current?.value || marker,
+        key,
+        count: (current?.count || 0) + 1,
+      })
     }
   }
   return [...variants.values()]
     .sort((a, b) => b.count - a.count || a.title.localeCompare(b.title))
-    .map((item) => item.title)
 })
+
+const markerOptions = (searchValue: string, selected: string[], excluded: string[]) => {
+  const searchKey = markerKey(searchValue)
+  const selectedKeys = new Set(selected.map(markerKey))
+  const excludedKeys = new Set(excluded.map(markerKey))
+  const selectedOptions = markerItems.value.filter((item) => selectedKeys.has(item.key))
+  const matchingOptions = markerItems.value.filter((item) => {
+    if (selectedKeys.has(item.key) || excludedKeys.has(item.key)) return false
+    return !searchKey || item.key.includes(searchKey)
+  })
+  return [...selectedOptions, ...matchingOptions].slice(0, searchKey ? 80 : 40)
+}
+
+const positiveMarkerItems = computed(() => markerOptions(positiveMarkerSearch.value, positiveMarkers.value, negativeMarkers.value))
+const negativeMarkerItems = computed(() => markerOptions(negativeMarkerSearch.value, negativeMarkers.value, positiveMarkers.value))
 
 const searchTextFor = (item: any) => normalize([
   item.caseCode,
@@ -102,7 +123,8 @@ const filteredCases = computed(() => {
     if (!hasMarkers(item.positive || [], positiveMarkers.value)) return false
     if (!hasMarkers(item.negative || [], negativeMarkers.value)) return false
     const searchText = searchTextFor(item)
-    return tokens.every((token) => searchText.includes(token))
+    const compactSearchText = markerKey(searchText)
+    return tokens.every((token) => searchText.includes(token) || compactSearchText.includes(markerKey(token)))
   })
 })
 
@@ -141,10 +163,56 @@ onMounted(() => load().catch(() => undefined))
 
     <section class="search-panel">
       <div class="search-grid">
-        <v-text-field v-model="query" label="Tên bệnh, mô tả, vị trí hoặc ICD" placeholder="VD: small cell, ung thư vú, dạ dày, C16.9…" prepend-inner-icon="mdi-magnify" clearable hide-details />
+        <v-text-field v-model="query" label="Tên bệnh, mô tả, marker, vị trí hoặc ICD" placeholder="Nhập tiếng Việt, tiếng Anh, marker hoặc mã bệnh…" prepend-inner-icon="mdi-magnify" clearable hide-details />
         <v-select v-model="organ" :items="organItems" label="Cơ quan" hide-details />
-        <v-autocomplete v-model="positiveMarkers" :items="markerItems" label="Dấu ấn dương tính" placeholder="VD: TTF1, Napsin A" multiple chips closable-chips clearable hide-details />
-        <v-autocomplete v-model="negativeMarkers" :items="markerItems" label="Dấu ấn âm tính" placeholder="VD: p40, CK5/6" multiple chips closable-chips clearable hide-details />
+        <v-autocomplete
+          v-model="positiveMarkers"
+          v-model:search="positiveMarkerSearch"
+          :items="positiveMarkerItems"
+          item-title="title"
+          item-value="value"
+          label="Dấu ấn dương tính"
+          placeholder="Gõ tên dấu ấn…"
+          prepend-inner-icon="mdi-plus-circle-outline"
+          multiple
+          chips
+          closable-chips
+          clearable
+          auto-select-first
+          no-filter
+          hide-details
+          :menu-props="{ maxHeight: 420 }"
+        >
+          <template #item="{ props, item }">
+            <v-list-item v-bind="props">
+              <template #append><span class="marker-count">{{ item.raw.count.toLocaleString('vi-VN') }} ca</span></template>
+            </v-list-item>
+          </template>
+        </v-autocomplete>
+        <v-autocomplete
+          v-model="negativeMarkers"
+          v-model:search="negativeMarkerSearch"
+          :items="negativeMarkerItems"
+          item-title="title"
+          item-value="value"
+          label="Dấu ấn âm tính"
+          placeholder="Gõ tên dấu ấn…"
+          prepend-inner-icon="mdi-minus-circle-outline"
+          multiple
+          chips
+          closable-chips
+          clearable
+          auto-select-first
+          no-filter
+          hide-details
+          :menu-props="{ maxHeight: 420 }"
+        >
+          <template #item="{ props, item }">
+            <v-list-item v-bind="props">
+              <template #append><span class="marker-count">{{ item.raw.count.toLocaleString('vi-VN') }} ca</span></template>
+            </v-list-item>
+          </template>
+        </v-autocomplete>
       </div>
       <div class="result-line"><strong>{{ filteredCases.length.toLocaleString('vi-VN') }}</strong> ca phù hợp</div>
     </section>
@@ -197,6 +265,7 @@ onMounted(() => load().catch(() => undefined))
 .eyebrow { margin: 0 0 8px; color: #63d9d0; font: 700 .76rem var(--font-body); letter-spacing: .08em; }.hmmd-hero h1 { margin: 0; font: 700 clamp(2rem, 4vw, 3.4rem)/1.05 var(--font-heading); letter-spacing: 0; }.hmmd-hero p:last-child { max-width: 780px; margin: 14px 0 0; color: #d7e6eb; }
 .hero-stats { display: grid; grid-template-columns: repeat(3, minmax(90px, 1fr)); border: 1px solid rgba(255,255,255,.2); }.hero-stats span { padding: 14px 18px; border-right: 1px solid rgba(255,255,255,.2); font-size: .76rem; }.hero-stats span:last-child { border-right: 0; }.hero-stats strong { display: block; color: #f2cf55; font-size: 1.5rem; }
 .data-notice { margin: 16px 0; }.search-panel { padding: 20px; background: white; border: 1px solid #cbd9de; }.search-grid { display: grid; grid-template-columns: 1.5fr 1fr 1fr 1fr; gap: 12px; }.result-line { margin-top: 16px; color: #5b717c; }.result-line strong { color: #0e7180; }
+.marker-count { color: #71858f; font-size: .72rem; font-weight: 700; }
 .state-box { min-height: 320px; display: grid; place-content: center; justify-items: center; gap: 14px; }.case-grid { margin-top: 16px; display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap: 12px; }.hmmd-card { min-width: 0; display: flex; flex-direction: column; padding: 18px; background: white; border: 1px solid #c9d7dc; cursor: pointer; transition: border-color .18s, transform .18s; }.hmmd-card:hover { border-color: #168b91; transform: translateY(-2px); }.hmmd-card header,.hmmd-card footer { display: flex; align-items: center; justify-content: space-between; gap: 10px; }.hmmd-card header span { color: #087a82; font-weight: 700; }.hmmd-card header small { color: #72858e; }.hmmd-card h2 { margin: 12px 0 8px; font: 700 1.08rem/1.38 var(--font-body); letter-spacing: 0; }.clinical { min-height: 48px; margin: 0 0 12px; color: #5c717c; font-size: .86rem; }.marker-groups { display: grid; gap: 8px; margin-top: auto; }.marker-groups>div { display: flex; flex-wrap: wrap; gap: 5px; }.marker-groups b { width: 52px; font-size: .74rem; }.marker-groups>div:first-child b { color: #087a60; }.marker-groups>div:nth-child(2) b { color: #b3424b; }.marker-groups span,.marker-groups em,.detail-markers span { padding: 3px 7px; color: #395663; background: #edf4f5; border: 1px solid #d4e2e5; font: 600 .7rem var(--font-body); font-style: normal; }.hmmd-card footer { margin-top: 16px; padding-top: 12px; color: #0d6874; border-top: 1px solid #e2eaed; font-size: .8rem; }
 .load-more { padding: 24px; text-align: center; }.detail-card { border-top: 4px solid #e0b62f; }.detail-title { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; white-space: normal; }.detail-title small { color: #087a82; }.detail-title h2 { margin-top: 6px; font: 700 1.35rem/1.35 var(--font-body); letter-spacing: 0; }.detail-card section { margin-bottom: 18px; }.detail-card h3 { margin-bottom: 8px; color: #173b4e; font: 700 .84rem var(--font-body); text-transform: uppercase; }.preserve-lines { white-space: pre-line; }.detail-markers { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }.detail-markers section { padding: 14px; background: #f4f8f9; border-left: 3px solid #168b91; }.detail-markers section:nth-child(2) { border-left-color: #c74a58; }.detail-markers section div { display: flex; flex-wrap: wrap; gap: 6px; }.detail-meta { display: grid; grid-template-columns: repeat(3,1fr); border: 1px solid #d7e2e5; }.detail-meta span { padding: 12px; border-right: 1px solid #d7e2e5; }.detail-meta span:last-child { border-right: 0; }.detail-meta b { display: block; margin-bottom: 4px; color: #72858e; font-size: .72rem; text-transform: uppercase; }
 @media (max-width: 1100px) { .search-grid { grid-template-columns: 1fr 1fr; }.case-grid { grid-template-columns: 1fr 1fr; }.hmmd-hero { align-items: flex-start; flex-direction: column; } }
