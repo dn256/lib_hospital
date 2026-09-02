@@ -1,7 +1,7 @@
 // Vietnamese display names are curated independently from the NordiQC sync so
 // source refreshes cannot overwrite medical terminology reviewed for the UI.
 export const IHC_MARKER_VI: Record<string, string> = {
-  'ALK (lung)': 'Kinase lymphôm thoái sản (đánh giá ở u phổi)',
+  'ALK (lung)': 'Protein ALK (đánh giá trong ung thư phổi)',
   AMACR: 'Alpha-methylacyl-CoA racemase',
   ASMA: 'Actin cơ trơn alpha',
   BAP1: 'Protein 1 liên kết BRCA1',

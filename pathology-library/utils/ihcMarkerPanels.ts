@@ -51,8 +51,8 @@ export const IHC_DIAGNOSTIC_PANELS: IhcDiagnosticPanel[] = [
   panel('breast-ecad', 'Tuyến vú: ống hay tiểu thùy', 'Hỗ trợ phân biệt kiểu ống với kiểu tiểu thùy', 'Mất kết dính màng E-cadherin hỗ trợ kiểu tiểu thùy khi phù hợp hình thái; GATA3/TRPS1 xác nhận biệt hóa vú nhưng không giải quyết riêng câu hỏi ống-tiểu thùy.', [
     ['ECAD', 'Đánh giá kết dính màng'], ['GATA3', 'Xác nhận biệt hóa vú'], ['TRPS1', 'Bổ trợ nguồn gốc vú'], ['CK8/18', 'Hỗ trợ biểu mô lòng tuyến'],
   ]),
-  panel('gi-origin', 'Nguồn gốc tiêu hóa dưới', 'Carcinoma tuyến nghi nguồn gốc ruột/đại trực tràng', 'CDX2 hỗ trợ biệt hóa ruột; SATB2 tăng độ đặc hiệu cho nguồn gốc đại trực tràng khi phối hợp; CK20/CK7 mô tả kiểu cytokeratin nhưng không tự xác định cơ quan.', [
-    ['CDX2', 'Biệt hóa ruột'], ['SATB2', 'Bổ trợ nguồn gốc đại trực tràng'], ['CK20', 'Kiểu cytokeratin tiêu hóa/urothelial'], ['CK7', 'Đối chiếu kiểu cytokeratin'], ['CEA', 'Hỗ trợ biệt hóa tuyến'],
+  panel('gi-origin', 'Nguồn gốc tiêu hóa dưới', 'Carcinôm tuyến nghi nguồn gốc ruột/đại trực tràng', 'CDX2 hỗ trợ biệt hóa ruột; SATB2 tăng độ đặc hiệu cho nguồn gốc đại trực tràng khi phối hợp; CK20/CK7 mô tả kiểu cytokeratin nhưng không tự xác định cơ quan.', [
+    ['CDX2', 'Biệt hóa ruột'], ['SATB2', 'Bổ trợ nguồn gốc đại trực tràng'], ['CK20', 'Kiểu cytokeratin tiêu hóa hoặc biểu mô đường niệu'], ['CK7', 'Đối chiếu kiểu cytokeratin'], ['CEA', 'Hỗ trợ biệt hóa tuyến'],
   ]),
   panel('hepatocellular', 'Biệt hóa tế bào gan', 'HCC hay carcinoma di căn/đường mật', 'Hepatocyte antigen và glypican-3 bổ trợ biệt hóa tế bào gan; CK7/CK19 có thể gợi kiểu đường mật hoặc kiểu tiền thân nhưng phải đọc cùng hình thái.', [
     ['HEPA', 'Hỗ trợ biệt hóa tế bào gan'], ['GPC3', 'Hỗ trợ HCC, nhất là u biệt hóa kém'], ['CK7', 'Hỗ trợ đường mật trong panel'], ['CK19', 'Hỗ trợ đường mật/kiểu tiền thân'], ['CEA', 'Kiểu canalicular có thể hỗ trợ HCC'],
@@ -60,8 +60,8 @@ export const IHC_DIAGNOSTIC_PANELS: IhcDiagnosticPanel[] = [
   panel('pancreatobiliary', 'Biệt hóa tụy - đường mật', 'Carcinoma tuyến nghi nguồn gốc tụy hoặc đường mật', 'CK7/CK19 và claudin-4 hỗ trợ kiểu hình biểu mô nhưng ít đặc hiệu; mất biểu hiện nhân SMAD4 có thể hỗ trợ nguồn gốc tụy trong bối cảnh phù hợp, song biểu hiện còn bảo tồn không loại trừ.', [
     ['CK7', 'Kiểu cytokeratin thường gặp'], ['CK19', 'Hỗ trợ biểu mô ống mật/tụy'], ['CLDN4', 'Hỗ trợ carcinoma'], ['CEA', 'Hỗ trợ biệt hóa tuyến'], ['Smad4', 'Đánh giá mất biểu hiện nhân trong tế bào u'],
   ]),
-  panel('urothelial', 'Biệt hóa niệu mạc', 'Carcinoma nghi nguồn gốc niệu mạc', 'GATA3 nhạy nhưng không đặc hiệu; uroplakin II/III đặc hiệu hơn và bổ trợ; p63/p40 cùng CK7/CK20 giúp nhận diện kiểu basal và kiểu cytokeratin.', [
-    ['GATA3', 'Marker định dòng nhạy'], ['URO II/III', 'Marker niệu mạc đặc hiệu hơn'], ['p63', 'Hỗ trợ basal/niệu mạc'], ['p40', 'Bổ trợ biệt hóa basal/vảy'], ['CK7', 'Kiểu cytokeratin'], ['CK20', 'Kiểu cytokeratin'],
+  panel('urothelial', 'Biệt hóa biểu mô đường niệu', 'Carcinôm nghi nguồn gốc biểu mô đường niệu (niệu mạc)', 'GATA3 nhạy nhưng không đặc hiệu; uroplakin II/III đặc hiệu hơn và có vai trò bổ trợ; p63/p40 cùng CK7/CK20 giúp nhận diện kiểu hình tế bào đáy và kiểu cytokeratin.', [
+    ['GATA3', 'Marker định dòng nhạy'], ['URO II/III', 'Marker biểu mô đường niệu đặc hiệu hơn'], ['p63', 'Hỗ trợ kiểu hình tế bào đáy/biểu mô đường niệu'], ['p40', 'Bổ trợ biệt hóa tế bào đáy/tế bào vảy'], ['CK7', 'Kiểu cytokeratin'], ['CK20', 'Kiểu cytokeratin'],
   ]),
   panel('prostate-origin', 'Nguồn gốc tuyến tiền liệt', 'Carcinoma di căn nghi nguồn gốc tiền liệt tuyến', 'NKX3.1 có độ nhạy cao cho nguồn gốc tiền liệt; PSA/PAP bổ trợ nhưng có thể giảm ở u biệt hóa kém; P501S là marker bổ sung.', [
     ['NKX3.1', 'Marker nhân định hướng nguồn gốc tiền liệt'], ['PSA', 'Biệt hóa tuyến tiền liệt'], ['PAP', 'Bổ trợ PSA'], ['P501S', 'Bổ trợ nguồn gốc tiền liệt'],
@@ -105,7 +105,7 @@ export const IHC_DIAGNOSTIC_PANELS: IhcDiagnosticPanel[] = [
   panel('large-bcell', 'Lymphôm tế bào B lớn', 'Định kiểu miễn dịch và tăng sinh', 'CD20/PAX5 xác nhận dòng B; CD10/BCL6/MUM1 mô tả chương trình biệt hóa; MYC/BCL2 và Ki-67 cung cấp thông tin biểu hiện/tăng sinh nhưng không thay thế xét nghiệm tái sắp xếp gen.', [
     ['CD20', 'Dòng B'], ['PAX5', 'Dòng B'], ['CD10', 'Chương trình trung tâm mầm'], ['Bcl-6', 'Chương trình trung tâm mầm'], ['MUM1', 'Biệt hóa hậu trung tâm mầm/plasma'], ['C-MYC', 'Biểu hiện MYC'], ['Bcl-2', 'Biểu hiện BCL2'], ['Ki67', 'Chỉ số tăng sinh'],
   ]),
-  panel('hodgkin-alcl', 'Hodgkin hay ALCL', 'Tế bào lớn CD30 dương tính', 'CD30 nhạy nhưng không đặc hiệu; CD15/PAX5 yếu hỗ trợ Hodgkin cổ điển; EMA và marker T hỗ trợ ALCL. Khi cần ALK trong ALCL phải dùng assay đã thẩm định cho bệnh cảnh huyết học, không thay bằng assay ALK dành cho phổi.', [
+  panel('hodgkin-alcl', 'Hodgkin hay ALCL', 'Tế bào lớn CD30 dương tính', 'CD30 nhạy nhưng không đặc hiệu; CD15/PAX5 yếu hỗ trợ lymphôm Hodgkin cổ điển; EMA và dấu ấn dòng T hỗ trợ ALCL. Khi cần ALK trong ALCL phải dùng hệ thống xét nghiệm đã thẩm định cho bệnh cảnh huyết học, không thay bằng xét nghiệm ALK dành cho phổi.', [
     ['CD30', 'Marker hoạt hóa chính'], ['CD15', 'Hỗ trợ Hodgkin cổ điển'], ['PAX5', 'Thường yếu ở Hodgkin cổ điển'], ['MUM1', 'Thường biểu hiện nhưng ít đặc hiệu'], ['EMA', 'Có thể hỗ trợ ALCL'], ['CD45', 'Phân dòng tạo máu'], ['CD3', 'Đánh giá kiểu hình T'],
   ]),
   panel('plasma-cell', 'Tương bào và tính đơn dòng', 'Tăng sinh tương bào', 'CD138/MUM1 hỗ trợ nhận diện tương bào; kappa/lambda đánh giá hạn chế chuỗi nhẹ; IgM và CD20 giúp mô tả mức biệt hóa nhưng phải đối chiếu flow cytometry hoặc kỹ thuật khác khi cần.', [
@@ -129,24 +129,28 @@ export const IHC_DIAGNOSTIC_PANELS: IhcDiagnosticPanel[] = [
   panel('trophoblastic', 'Tổn thương nguyên bào nuôi', 'Thai trứng và u nguyên bào nuôi', 'p57 phản ánh biểu hiện alen mẹ và hỗ trợ phân biệt thai trứng toàn phần với các tình huống khác; hCG hỗ trợ hợp bào nuôi. Cần tích hợp hình thái, ploidy/genotyping khi cần.', [
     ['p57', 'Mất nhân hỗ trợ thai trứng toàn phần trong bối cảnh phù hợp'], ['HCG', 'Hỗ trợ hợp bào nuôi'], ['SALL4', 'Hỗ trợ thành phần tế bào mầm/túi noãn hoàng'], ['Ki67', 'Mô tả tăng sinh, không chẩn đoán đơn độc'],
   ]),
-  panel('predictive-cdx', 'Dấu ấn dự báo phụ thuộc assay', 'Chọn điều trị đích hoặc miễn dịch', 'Mỗi marker phải dùng đúng clone, nền tảng, thuật toán, loại bệnh phẩm và ngưỡng của chỉ định. Không ghép điểm số giữa các assay hoặc cơ quan.', [
-    ['ALK (lung)', 'ALK rearrangement/protein expression trong NSCLC'], ['HER2 IHC', 'Biểu hiện protein HER2'], ['HER2 ISH', 'Khuếch đại ERBB2'], ['PD-L1 (IC)', 'Tỷ lệ tế bào miễn dịch theo assay/chỉ định'], ['PD-L1 (TPS/CPS)', 'TPS hoặc CPS theo assay/chỉ định'], ['CLDN18.2', 'Biểu hiện màng phụ thuộc assay'], ['FOLR1', 'Biểu hiện màng trong chỉ định phụ khoa'], ['BRAF', 'Protein BRAF V600E trong chỉ định phù hợp'],
+  panel('predictive-cdx', 'Dấu ấn dự báo phụ thuộc hệ thống xét nghiệm', 'Chọn điều trị đích hoặc miễn dịch', 'Mỗi dấu ấn phải dùng đúng clone, nền tảng, thuật toán, loại bệnh phẩm và ngưỡng của chỉ định. Không ghép điểm số giữa các hệ thống xét nghiệm hoặc cơ quan.', [
+    ['ALK (lung)', 'Tái sắp xếp ALK / biểu hiện protein trong NSCLC'], ['HER2 IHC', 'Biểu hiện protein HER2'], ['HER2 ISH', 'Khuếch đại ERBB2'], ['PD-L1 (IC)', 'Tỷ lệ tế bào miễn dịch theo hệ thống xét nghiệm/chỉ định'], ['PD-L1 (TPS/CPS)', 'TPS hoặc CPS theo hệ thống xét nghiệm/chỉ định'], ['CLDN18.2', 'Biểu hiện màng phụ thuộc hệ thống xét nghiệm'], ['FOLR1', 'Biểu hiện màng trong chỉ định phụ khoa'], ['BRAF', 'Protein BRAF V600E trong chỉ định phù hợp'],
   ], [nordiqc, fdaCdx]),
   panel('cell-cycle', 'Chu kỳ tế bào và tăng sinh', 'Đánh giá kiểu biểu hiện bất thường và hoạt tính tăng sinh', 'Ki-67 mô tả tỷ lệ tăng sinh; p53 và p16 được đọc theo kiểu hình, không chỉ dương/âm; cyclin D1, MYC, BCL2/BCL6 có ý nghĩa phụ thuộc thực thể và kiến trúc.', [
-    ['Ki67', 'Tỷ lệ nhân tăng sinh'], ['p53', 'Kiểu biểu hiện, không phải xét nghiệm trình tự trực tiếp'], ['p16', 'Kiểu block/mosaic/mất tùy bối cảnh'], ['CyD1', 'Chu kỳ tế bào'], ['C-MYC', 'Yếu tố phiên mã tăng sinh'], ['Bcl-2', 'Chống apoptosis'], ['Bcl-6', 'Chương trình trung tâm mầm'], ['BRAF', 'Dấu thay thế V600E trong assay phù hợp'],
+    ['Ki67', 'Tỷ lệ nhân tăng sinh'], ['p53', 'Kiểu biểu hiện, không phải xét nghiệm trình tự trực tiếp'], ['p16', 'Kiểu block/mosaic/mất tùy bối cảnh'], ['CyD1', 'Chu kỳ tế bào'], ['C-MYC', 'Yếu tố phiên mã tăng sinh'], ['Bcl-2', 'Chống apoptosis'], ['Bcl-6', 'Chương trình trung tâm mầm'], ['BRAF', 'Dấu thay thế V600E trong hệ thống xét nghiệm phù hợp'],
   ]),
 ]
 
 export const IHC_PANEL_REFERENCES = [
-  { organization: 'NordiQC', title: 'Danh mục ngoại kiểm và protocol HMMD', url: nordiqc },
+  { organization: 'NordiQC', title: 'Danh mục ngoại kiểm và quy trình hóa mô miễn dịch', url: nordiqc },
   { organization: 'WHO/IARC', title: 'WHO Classification of Tumours Online', url: 'https://tumourclassification.iarc.who.int/' },
-  { organization: 'College of American Pathologists', title: 'Danh mục hướng dẫn xét nghiệm và biomarker', url: 'https://www.cap.org/protocols-and-guidelines/cap-guidelines/current-cap-guidelines/' },
-  { organization: 'U.S. FDA', title: 'Danh sách companion diagnostic được cấp phép', url: fdaCdx },
-  { organization: 'Human Protein Atlas', title: 'Tissue Atlas và phương pháp IHC', url: 'https://www.proteinatlas.org/humanproteome/tissue/method/ih%2Bimaging' },
-  { organization: 'Human Protein Atlas', title: 'Giấy phép dữ liệu và hình ảnh', url: 'https://www.proteinatlas.org/about/licence' },
+  { organization: 'WHO/IARC', title: 'ICD-O-4: Phân loại bệnh quốc tế về ung thư học', url: 'https://tumourclassification.iarc.who.int/icd-o-4/' },
+  { organization: 'College of American Pathologists', title: 'Hướng dẫn xét nghiệm và dấu ấn sinh học', url: 'https://www.cap.org/protocols-and-guidelines/cap-guidelines/current-cap-guidelines/' },
+  { organization: 'U.S. FDA', title: 'Danh sách xét nghiệm chẩn đoán đồng hành được phê duyệt', url: fdaCdx },
+  { organization: 'Human Protein Atlas', title: 'Atlas mô người và phương pháp hóa mô miễn dịch', url: 'https://www.proteinatlas.org/humanproteome/tissue/method/ih%2Bimaging' },
   { organization: 'ICCR', title: 'Bộ dữ liệu báo cáo ung thư quốc tế', url: 'https://www.iccr-cancer.org/datasets/published-datasets/' },
-  { organization: 'PathologyOutlines', title: 'Danh mục stains và marker chẩn đoán', url: 'https://www.pathologyoutlines.com/stains.html' },
-  { organization: 'RCPAQAP', title: 'Special stains and immunohistochemistry resources', url: 'https://specialstains.rcpaqap.com.au/' },
+  { organization: 'PathologyOutlines', title: 'Danh mục phương pháp nhuộm và dấu ấn chẩn đoán', url: 'https://www.pathologyoutlines.com/stains.html' },
+  { organization: 'WebPathology', title: 'Thư viện hình ảnh mô bệnh học theo cơ quan', url: 'https://www.webpathology.com/' },
+  { organization: 'RCPAQAP', title: 'Tài nguyên nhuộm đặc biệt và hóa mô miễn dịch', url: 'https://specialstains.rcpaqap.com.au/' },
+  { organization: 'Royal College of Pathologists', title: 'Bộ dữ liệu ung thư và hướng dẫn xử lý bệnh phẩm', url: 'https://www.rcpath.org/profession/guidelines/cancer-datasets-and-tissue-pathways.html' },
+  { organization: 'IASLC', title: 'Tài nguyên giáo dục bệnh học ung thư phổi', url: 'https://education.iaslc.org/' },
+  { organization: 'Wikimedia Commons', title: 'Kho ảnh mô bệnh học có thông tin giấy phép', url: 'https://commons.wikimedia.org/wiki/Category:Histopathology' },
 ] as const
 
 export const panelsForMarker = (marker: string) => IHC_DIAGNOSTIC_PANELS.filter(item =>

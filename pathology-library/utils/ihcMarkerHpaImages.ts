@@ -4,31 +4,8 @@
 import type { IhcMarkerImagePair } from './ihcMarkerImages'
 
 export const IHC_MARKER_HPA_IMAGES: Record<string, IhcMarkerImagePair> = {
-    "ALK (lung)":  {
-                       "note":  "Ảnh mô bình thường từ Human Protein Atlas dùng để học vị trí và mức biểu hiện mô của ALK. Không dùng cặp ảnh này để chấm điểm u, xác nhận âm tính chẩn đoán hoặc thay thế ảnh của assay/clone chuyên biệt.",
-                       "positive":  {
-                                        "label":  "Có biểu hiện (high)",
-                                        "tissue":  "Cerebral cortex",
-                                        "finding":  "HPA ghi nhận mức biểu hiện high của ALK trong mô tham chiếu này.",
-                                        "antibody":  "HPA Tissue Atlas · ALK",
-                                        "imageUrl":  "https://images.proteinatlas.org/10694/26100_B_8_5_rna_selected.jpg",
-                                        "sourceUrl":  "https://www.proteinatlas.org/ENSG00000171094-ALK/tissue",
-                                        "source":  "Human Protein Atlas",
-                                        "license":  "CC BY 4.0"
-                                    },
-                       "negative":  {
-                                        "label":  "Không phát hiện",
-                                        "tissue":  "Liver",
-                                        "finding":  "HPA không phát hiện biểu hiện ALK trong mô tham chiếu này.",
-                                        "antibody":  "HPA Tissue Atlas · ALK",
-                                        "imageUrl":  "https://images.proteinatlas.org/10694/26075_A_7_4_rna_selected.jpg",
-                                        "sourceUrl":  "https://www.proteinatlas.org/ENSG00000171094-ALK/tissue",
-                                        "source":  "Human Protein Atlas",
-                                        "license":  "CC BY 4.0"
-                                    }
-                   },
     "AMACR":  {
-                  "note":  "Ảnh mô bình thường từ Human Protein Atlas dùng để học vị trí và mức biểu hiện mô của AMACR. Không dùng cặp ảnh này để chấm điểm u, xác nhận âm tính chẩn đoán hoặc thay thế ảnh của assay/clone chuyên biệt.",
+                  "note":  "Ảnh mô bình thường từ Human Protein Atlas dùng để học vị trí và mức biểu hiện mô của AMACR. Không dùng cặp ảnh này để chấm điểm u, xác nhận âm tính chẩn đoán hoặc thay thế ảnh của hệ thống xét nghiệm/clone chuyên biệt.",
                   "positive":  {
                                    "label":  "Có biểu hiện (high)",
                                    "tissue":  "Kidney",
@@ -51,7 +28,7 @@ export const IHC_MARKER_HPA_IMAGES: Record<string, IhcMarkerImagePair> = {
                                }
               },
     "ASMA":  {
-                 "note":  "Ảnh mô bình thường từ Human Protein Atlas dùng để học vị trí và mức biểu hiện mô của ACTA2. Không dùng cặp ảnh này để chấm điểm u, xác nhận âm tính chẩn đoán hoặc thay thế ảnh của assay/clone chuyên biệt.",
+                 "note":  "Ảnh mô bình thường từ Human Protein Atlas dùng để học vị trí và mức biểu hiện mô của ACTA2. Không dùng cặp ảnh này để chấm điểm u, xác nhận âm tính chẩn đoán hoặc thay thế ảnh của hệ thống xét nghiệm/clone chuyên biệt.",
                  "positive":  {
                                   "label":  "Có biểu hiện (high)",
                                   "tissue":  "Breast",
@@ -74,7 +51,7 @@ export const IHC_MARKER_HPA_IMAGES: Record<string, IhcMarkerImagePair> = {
                               }
              },
     "Bcl-2":  {
-                  "note":  "Ảnh mô bình thường từ Human Protein Atlas dùng để học vị trí và mức biểu hiện mô của BCL2. Không dùng cặp ảnh này để chấm điểm u, xác nhận âm tính chẩn đoán hoặc thay thế ảnh của assay/clone chuyên biệt.",
+                  "note":  "Ảnh mô bình thường từ Human Protein Atlas dùng để học vị trí và mức biểu hiện mô của BCL2. Không dùng cặp ảnh này để chấm điểm u, xác nhận âm tính chẩn đoán hoặc thay thế ảnh của hệ thống xét nghiệm/clone chuyên biệt.",
                   "positive":  {
                                    "label":  "Có biểu hiện (high)",
                                    "tissue":  "Lymph node",
@@ -97,7 +74,7 @@ export const IHC_MARKER_HPA_IMAGES: Record<string, IhcMarkerImagePair> = {
                                }
               },
     "Bcl-6":  {
-                  "note":  "Ảnh mô bình thường từ Human Protein Atlas dùng để học vị trí và mức biểu hiện mô của BCL6. Không dùng cặp ảnh này để chấm điểm u, xác nhận âm tính chẩn đoán hoặc thay thế ảnh của assay/clone chuyên biệt.",
+                  "note":  "Ảnh mô bình thường từ Human Protein Atlas dùng để học vị trí và mức biểu hiện mô của BCL6. Không dùng cặp ảnh này để chấm điểm u, xác nhận âm tính chẩn đoán hoặc thay thế ảnh của hệ thống xét nghiệm/clone chuyên biệt.",
                   "positive":  {
                                    "label":  "Có biểu hiện (high)",
                                    "tissue":  "Lymph node",
@@ -120,7 +97,7 @@ export const IHC_MARKER_HPA_IMAGES: Record<string, IhcMarkerImagePair> = {
                                }
               },
     "CA125":  {
-                  "note":  "Ảnh mô bình thường từ Human Protein Atlas dùng để học vị trí và mức biểu hiện mô của MUC16. Không dùng cặp ảnh này để chấm điểm u, xác nhận âm tính chẩn đoán hoặc thay thế ảnh của assay/clone chuyên biệt.",
+                  "note":  "Ảnh mô bình thường từ Human Protein Atlas dùng để học vị trí và mức biểu hiện mô của MUC16. Không dùng cặp ảnh này để chấm điểm u, xác nhận âm tính chẩn đoán hoặc thay thế ảnh của hệ thống xét nghiệm/clone chuyên biệt.",
                   "positive":  {
                                    "label":  "Có biểu hiện (high)",
                                    "tissue":  "Cervix",
@@ -143,7 +120,7 @@ export const IHC_MARKER_HPA_IMAGES: Record<string, IhcMarkerImagePair> = {
                                }
               },
     "CALRET":  {
-                   "note":  "Ảnh mô bình thường từ Human Protein Atlas dùng để học vị trí và mức biểu hiện mô của CALB2. Không dùng cặp ảnh này để chấm điểm u, xác nhận âm tính chẩn đoán hoặc thay thế ảnh của assay/clone chuyên biệt.",
+                   "note":  "Ảnh mô bình thường từ Human Protein Atlas dùng để học vị trí và mức biểu hiện mô của CALB2. Không dùng cặp ảnh này để chấm điểm u, xác nhận âm tính chẩn đoán hoặc thay thế ảnh của hệ thống xét nghiệm/clone chuyên biệt.",
                    "positive":  {
                                     "label":  "Có biểu hiện (high)",
                                     "tissue":  "Hypothalamus",
@@ -166,7 +143,7 @@ export const IHC_MARKER_HPA_IMAGES: Record<string, IhcMarkerImagePair> = {
                                 }
                },
     "CD10":  {
-                 "note":  "Ảnh mô bình thường từ Human Protein Atlas dùng để học vị trí và mức biểu hiện mô của MME. Không dùng cặp ảnh này để chấm điểm u, xác nhận âm tính chẩn đoán hoặc thay thế ảnh của assay/clone chuyên biệt.",
+                 "note":  "Ảnh mô bình thường từ Human Protein Atlas dùng để học vị trí và mức biểu hiện mô của MME. Không dùng cặp ảnh này để chấm điểm u, xác nhận âm tính chẩn đoán hoặc thay thế ảnh của hệ thống xét nghiệm/clone chuyên biệt.",
                  "positive":  {
                                   "label":  "Có biểu hiện (high)",
                                   "tissue":  "Small intestine",
@@ -189,7 +166,7 @@ export const IHC_MARKER_HPA_IMAGES: Record<string, IhcMarkerImagePair> = {
                               }
              },
     "CD117":  {
-                  "note":  "Ảnh mô bình thường từ Human Protein Atlas dùng để học vị trí và mức biểu hiện mô của KIT. Không dùng cặp ảnh này để chấm điểm u, xác nhận âm tính chẩn đoán hoặc thay thế ảnh của assay/clone chuyên biệt.",
+                  "note":  "Ảnh mô bình thường từ Human Protein Atlas dùng để học vị trí và mức biểu hiện mô của KIT. Không dùng cặp ảnh này để chấm điểm u, xác nhận âm tính chẩn đoán hoặc thay thế ảnh của hệ thống xét nghiệm/clone chuyên biệt.",
                   "positive":  {
                                    "label":  "Có biểu hiện (medium)",
                                    "tissue":  "Testis",
@@ -212,7 +189,7 @@ export const IHC_MARKER_HPA_IMAGES: Record<string, IhcMarkerImagePair> = {
                                }
               },
     "CD138":  {
-                  "note":  "Ảnh mô bình thường từ Human Protein Atlas dùng để học vị trí và mức biểu hiện mô của SDC1. Không dùng cặp ảnh này để chấm điểm u, xác nhận âm tính chẩn đoán hoặc thay thế ảnh của assay/clone chuyên biệt.",
+                  "note":  "Ảnh mô bình thường từ Human Protein Atlas dùng để học vị trí và mức biểu hiện mô của SDC1. Không dùng cặp ảnh này để chấm điểm u, xác nhận âm tính chẩn đoán hoặc thay thế ảnh của hệ thống xét nghiệm/clone chuyên biệt.",
                   "positive":  {
                                    "label":  "Có biểu hiện (high)",
                                    "tissue":  "Placenta",
@@ -235,7 +212,7 @@ export const IHC_MARKER_HPA_IMAGES: Record<string, IhcMarkerImagePair> = {
                                }
               },
     "CD14":  {
-                 "note":  "Ảnh mô bình thường từ Human Protein Atlas dùng để học vị trí và mức biểu hiện mô của CD14. Không dùng cặp ảnh này để chấm điểm u, xác nhận âm tính chẩn đoán hoặc thay thế ảnh của assay/clone chuyên biệt.",
+                 "note":  "Ảnh mô bình thường từ Human Protein Atlas dùng để học vị trí và mức biểu hiện mô của CD14. Không dùng cặp ảnh này để chấm điểm u, xác nhận âm tính chẩn đoán hoặc thay thế ảnh của hệ thống xét nghiệm/clone chuyên biệt.",
                  "positive":  {
                                   "label":  "Có biểu hiện (medium)",
                                   "tissue":  "Lymph node",
@@ -258,7 +235,7 @@ export const IHC_MARKER_HPA_IMAGES: Record<string, IhcMarkerImagePair> = {
                               }
              },
     "CD15":  {
-                 "note":  "Ảnh mô bình thường từ Human Protein Atlas dùng để học vị trí và mức biểu hiện mô của FUT4. Không dùng cặp ảnh này để chấm điểm u, xác nhận âm tính chẩn đoán hoặc thay thế ảnh của assay/clone chuyên biệt.",
+                 "note":  "Ảnh mô bình thường từ Human Protein Atlas dùng để học vị trí và mức biểu hiện mô của FUT4. Không dùng cặp ảnh này để chấm điểm u, xác nhận âm tính chẩn đoán hoặc thay thế ảnh của hệ thống xét nghiệm/clone chuyên biệt.",
                  "positive":  {
                                   "label":  "Có biểu hiện (high)",
                                   "tissue":  "Bone marrow",
@@ -281,7 +258,7 @@ export const IHC_MARKER_HPA_IMAGES: Record<string, IhcMarkerImagePair> = {
                               }
              },
     "CD163":  {
-                  "note":  "Ảnh mô bình thường từ Human Protein Atlas dùng để học vị trí và mức biểu hiện mô của CD163. Không dùng cặp ảnh này để chấm điểm u, xác nhận âm tính chẩn đoán hoặc thay thế ảnh của assay/clone chuyên biệt.",
+                  "note":  "Ảnh mô bình thường từ Human Protein Atlas dùng để học vị trí và mức biểu hiện mô của CD163. Không dùng cặp ảnh này để chấm điểm u, xác nhận âm tính chẩn đoán hoặc thay thế ảnh của hệ thống xét nghiệm/clone chuyên biệt.",
                   "positive":  {
                                    "label":  "Có biểu hiện (high)",
                                    "tissue":  "Lung",
@@ -304,7 +281,7 @@ export const IHC_MARKER_HPA_IMAGES: Record<string, IhcMarkerImagePair> = {
                                }
               },
     "CD19":  {
-                 "note":  "Ảnh mô bình thường từ Human Protein Atlas dùng để học vị trí và mức biểu hiện mô của CD19. Không dùng cặp ảnh này để chấm điểm u, xác nhận âm tính chẩn đoán hoặc thay thế ảnh của assay/clone chuyên biệt.",
+                 "note":  "Ảnh mô bình thường từ Human Protein Atlas dùng để học vị trí và mức biểu hiện mô của CD19. Không dùng cặp ảnh này để chấm điểm u, xác nhận âm tính chẩn đoán hoặc thay thế ảnh của hệ thống xét nghiệm/clone chuyên biệt.",
                  "positive":  {
                                   "label":  "Có biểu hiện (high)",
                                   "tissue":  "Appendix",
@@ -327,7 +304,7 @@ export const IHC_MARKER_HPA_IMAGES: Record<string, IhcMarkerImagePair> = {
                               }
              },
     "CD20":  {
-                 "note":  "Ảnh mô bình thường từ Human Protein Atlas dùng để học vị trí và mức biểu hiện mô của MS4A1. Không dùng cặp ảnh này để chấm điểm u, xác nhận âm tính chẩn đoán hoặc thay thế ảnh của assay/clone chuyên biệt.",
+                 "note":  "Ảnh mô bình thường từ Human Protein Atlas dùng để học vị trí và mức biểu hiện mô của MS4A1. Không dùng cặp ảnh này để chấm điểm u, xác nhận âm tính chẩn đoán hoặc thay thế ảnh của hệ thống xét nghiệm/clone chuyên biệt.",
                  "positive":  {
                                   "label":  "Có biểu hiện (high)",
                                   "tissue":  "Lymph node",
@@ -350,7 +327,7 @@ export const IHC_MARKER_HPA_IMAGES: Record<string, IhcMarkerImagePair> = {
                               }
              },
     "CD23":  {
-                 "note":  "Ảnh mô bình thường từ Human Protein Atlas dùng để học vị trí và mức biểu hiện mô của FCER2. Không dùng cặp ảnh này để chấm điểm u, xác nhận âm tính chẩn đoán hoặc thay thế ảnh của assay/clone chuyên biệt.",
+                 "note":  "Ảnh mô bình thường từ Human Protein Atlas dùng để học vị trí và mức biểu hiện mô của FCER2. Không dùng cặp ảnh này để chấm điểm u, xác nhận âm tính chẩn đoán hoặc thay thế ảnh của hệ thống xét nghiệm/clone chuyên biệt.",
                  "positive":  {
                                   "label":  "Có biểu hiện (high)",
                                   "tissue":  "Lymph node",
@@ -373,7 +350,7 @@ export const IHC_MARKER_HPA_IMAGES: Record<string, IhcMarkerImagePair> = {
                               }
              },
     "CD3":  {
-                "note":  "Ảnh mô bình thường từ Human Protein Atlas dùng để học vị trí và mức biểu hiện mô của CD3D. Không dùng cặp ảnh này để chấm điểm u, xác nhận âm tính chẩn đoán hoặc thay thế ảnh của assay/clone chuyên biệt.",
+                "note":  "Ảnh mô bình thường từ Human Protein Atlas dùng để học vị trí và mức biểu hiện mô của CD3D. Không dùng cặp ảnh này để chấm điểm u, xác nhận âm tính chẩn đoán hoặc thay thế ảnh của hệ thống xét nghiệm/clone chuyên biệt.",
                 "positive":  {
                                  "label":  "Có biểu hiện (medium)",
                                  "tissue":  "Kidney",
@@ -396,7 +373,7 @@ export const IHC_MARKER_HPA_IMAGES: Record<string, IhcMarkerImagePair> = {
                              }
             },
     "CD30":  {
-                 "note":  "Ảnh mô bình thường từ Human Protein Atlas dùng để học vị trí và mức biểu hiện mô của TNFRSF8. Không dùng cặp ảnh này để chấm điểm u, xác nhận âm tính chẩn đoán hoặc thay thế ảnh của assay/clone chuyên biệt.",
+                 "note":  "Ảnh mô bình thường từ Human Protein Atlas dùng để học vị trí và mức biểu hiện mô của TNFRSF8. Không dùng cặp ảnh này để chấm điểm u, xác nhận âm tính chẩn đoán hoặc thay thế ảnh của hệ thống xét nghiệm/clone chuyên biệt.",
                  "positive":  {
                                   "label":  "Có biểu hiện (high)",
                                   "tissue":  "Testis",
@@ -419,7 +396,7 @@ export const IHC_MARKER_HPA_IMAGES: Record<string, IhcMarkerImagePair> = {
                               }
              },
     "CD31":  {
-                 "note":  "Ảnh mô bình thường từ Human Protein Atlas dùng để học vị trí và mức biểu hiện mô của PECAM1. Không dùng cặp ảnh này để chấm điểm u, xác nhận âm tính chẩn đoán hoặc thay thế ảnh của assay/clone chuyên biệt.",
+                 "note":  "Ảnh mô bình thường từ Human Protein Atlas dùng để học vị trí và mức biểu hiện mô của PECAM1. Không dùng cặp ảnh này để chấm điểm u, xác nhận âm tính chẩn đoán hoặc thay thế ảnh của hệ thống xét nghiệm/clone chuyên biệt.",
                  "positive":  {
                                   "label":  "Có biểu hiện (high)",
                                   "tissue":  "Kidney",
@@ -442,7 +419,7 @@ export const IHC_MARKER_HPA_IMAGES: Record<string, IhcMarkerImagePair> = {
                               }
              },
     "CD34":  {
-                 "note":  "Ảnh mô bình thường từ Human Protein Atlas dùng để học vị trí và mức biểu hiện mô của CD34. Không dùng cặp ảnh này để chấm điểm u, xác nhận âm tính chẩn đoán hoặc thay thế ảnh của assay/clone chuyên biệt.",
+                 "note":  "Ảnh mô bình thường từ Human Protein Atlas dùng để học vị trí và mức biểu hiện mô của CD34. Không dùng cặp ảnh này để chấm điểm u, xác nhận âm tính chẩn đoán hoặc thay thế ảnh của hệ thống xét nghiệm/clone chuyên biệt.",
                  "positive":  {
                                   "label":  "Có biểu hiện (high)",
                                   "tissue":  "Placenta",
@@ -465,7 +442,7 @@ export const IHC_MARKER_HPA_IMAGES: Record<string, IhcMarkerImagePair> = {
                               }
              },
     "CD4":  {
-                "note":  "Ảnh mô bình thường từ Human Protein Atlas dùng để học vị trí và mức biểu hiện mô của CD4. Không dùng cặp ảnh này để chấm điểm u, xác nhận âm tính chẩn đoán hoặc thay thế ảnh của assay/clone chuyên biệt.",
+                "note":  "Ảnh mô bình thường từ Human Protein Atlas dùng để học vị trí và mức biểu hiện mô của CD4. Không dùng cặp ảnh này để chấm điểm u, xác nhận âm tính chẩn đoán hoặc thay thế ảnh của hệ thống xét nghiệm/clone chuyên biệt.",
                 "positive":  {
                                  "label":  "Có biểu hiện (medium)",
                                  "tissue":  "Spleen",
@@ -488,7 +465,7 @@ export const IHC_MARKER_HPA_IMAGES: Record<string, IhcMarkerImagePair> = {
                              }
             },
     "CD45":  {
-                 "note":  "Ảnh mô bình thường từ Human Protein Atlas dùng để học vị trí và mức biểu hiện mô của PTPRC. Không dùng cặp ảnh này để chấm điểm u, xác nhận âm tính chẩn đoán hoặc thay thế ảnh của assay/clone chuyên biệt.",
+                 "note":  "Ảnh mô bình thường từ Human Protein Atlas dùng để học vị trí và mức biểu hiện mô của PTPRC. Không dùng cặp ảnh này để chấm điểm u, xác nhận âm tính chẩn đoán hoặc thay thế ảnh của hệ thống xét nghiệm/clone chuyên biệt.",
                  "positive":  {
                                   "label":  "Có biểu hiện (high)",
                                   "tissue":  "Appendix",
@@ -511,7 +488,7 @@ export const IHC_MARKER_HPA_IMAGES: Record<string, IhcMarkerImagePair> = {
                               }
              },
     "CD5":  {
-                "note":  "Ảnh mô bình thường từ Human Protein Atlas dùng để học vị trí và mức biểu hiện mô của CD5. Không dùng cặp ảnh này để chấm điểm u, xác nhận âm tính chẩn đoán hoặc thay thế ảnh của assay/clone chuyên biệt.",
+                "note":  "Ảnh mô bình thường từ Human Protein Atlas dùng để học vị trí và mức biểu hiện mô của CD5. Không dùng cặp ảnh này để chấm điểm u, xác nhận âm tính chẩn đoán hoặc thay thế ảnh của hệ thống xét nghiệm/clone chuyên biệt.",
                 "positive":  {
                                  "label":  "Có biểu hiện (high)",
                                  "tissue":  "Tonsil",
@@ -534,7 +511,7 @@ export const IHC_MARKER_HPA_IMAGES: Record<string, IhcMarkerImagePair> = {
                              }
             },
     "CD56":  {
-                 "note":  "Ảnh mô bình thường từ Human Protein Atlas dùng để học vị trí và mức biểu hiện mô của NCAM1. Không dùng cặp ảnh này để chấm điểm u, xác nhận âm tính chẩn đoán hoặc thay thế ảnh của assay/clone chuyên biệt.",
+                 "note":  "Ảnh mô bình thường từ Human Protein Atlas dùng để học vị trí và mức biểu hiện mô của NCAM1. Không dùng cặp ảnh này để chấm điểm u, xác nhận âm tính chẩn đoán hoặc thay thế ảnh của hệ thống xét nghiệm/clone chuyên biệt.",
                  "positive":  {
                                   "label":  "Có biểu hiện (high)",
                                   "tissue":  "Cerebral cortex",
@@ -557,7 +534,7 @@ export const IHC_MARKER_HPA_IMAGES: Record<string, IhcMarkerImagePair> = {
                               }
              },
     "CD68":  {
-                 "note":  "Ảnh mô bình thường từ Human Protein Atlas dùng để học vị trí và mức biểu hiện mô của CD68. Không dùng cặp ảnh này để chấm điểm u, xác nhận âm tính chẩn đoán hoặc thay thế ảnh của assay/clone chuyên biệt.",
+                 "note":  "Ảnh mô bình thường từ Human Protein Atlas dùng để học vị trí và mức biểu hiện mô của CD68. Không dùng cặp ảnh này để chấm điểm u, xác nhận âm tính chẩn đoán hoặc thay thế ảnh của hệ thống xét nghiệm/clone chuyên biệt.",
                  "positive":  {
                                   "label":  "Có biểu hiện (high)",
                                   "tissue":  "Spleen",
@@ -580,7 +557,7 @@ export const IHC_MARKER_HPA_IMAGES: Record<string, IhcMarkerImagePair> = {
                               }
              },
     "CD79a":  {
-                  "note":  "Ảnh mô bình thường từ Human Protein Atlas dùng để học vị trí và mức biểu hiện mô của CD79A. Không dùng cặp ảnh này để chấm điểm u, xác nhận âm tính chẩn đoán hoặc thay thế ảnh của assay/clone chuyên biệt.",
+                  "note":  "Ảnh mô bình thường từ Human Protein Atlas dùng để học vị trí và mức biểu hiện mô của CD79A. Không dùng cặp ảnh này để chấm điểm u, xác nhận âm tính chẩn đoán hoặc thay thế ảnh của hệ thống xét nghiệm/clone chuyên biệt.",
                   "positive":  {
                                    "label":  "Có biểu hiện (high)",
                                    "tissue":  "Lymph node",
@@ -603,7 +580,7 @@ export const IHC_MARKER_HPA_IMAGES: Record<string, IhcMarkerImagePair> = {
                                }
               },
     "CD8":  {
-                "note":  "Ảnh mô bình thường từ Human Protein Atlas dùng để học vị trí và mức biểu hiện mô của CD8A. Không dùng cặp ảnh này để chấm điểm u, xác nhận âm tính chẩn đoán hoặc thay thế ảnh của assay/clone chuyên biệt.",
+                "note":  "Ảnh mô bình thường từ Human Protein Atlas dùng để học vị trí và mức biểu hiện mô của CD8A. Không dùng cặp ảnh này để chấm điểm u, xác nhận âm tính chẩn đoán hoặc thay thế ảnh của hệ thống xét nghiệm/clone chuyên biệt.",
                 "positive":  {
                                  "label":  "Có biểu hiện (high)",
                                  "tissue":  "Lymph node",
@@ -626,7 +603,7 @@ export const IHC_MARKER_HPA_IMAGES: Record<string, IhcMarkerImagePair> = {
                              }
             },
     "CD99":  {
-                 "note":  "Ảnh mô bình thường từ Human Protein Atlas dùng để học vị trí và mức biểu hiện mô của CD99. Không dùng cặp ảnh này để chấm điểm u, xác nhận âm tính chẩn đoán hoặc thay thế ảnh của assay/clone chuyên biệt.",
+                 "note":  "Ảnh mô bình thường từ Human Protein Atlas dùng để học vị trí và mức biểu hiện mô của CD99. Không dùng cặp ảnh này để chấm điểm u, xác nhận âm tính chẩn đoán hoặc thay thế ảnh của hệ thống xét nghiệm/clone chuyên biệt.",
                  "positive":  {
                                   "label":  "Có biểu hiện (high)",
                                   "tissue":  "Pancreas",
@@ -649,7 +626,7 @@ export const IHC_MARKER_HPA_IMAGES: Record<string, IhcMarkerImagePair> = {
                               }
              },
     "CDX2":  {
-                 "note":  "Ảnh mô bình thường từ Human Protein Atlas dùng để học vị trí và mức biểu hiện mô của CDX2. Không dùng cặp ảnh này để chấm điểm u, xác nhận âm tính chẩn đoán hoặc thay thế ảnh của assay/clone chuyên biệt.",
+                 "note":  "Ảnh mô bình thường từ Human Protein Atlas dùng để học vị trí và mức biểu hiện mô của CDX2. Không dùng cặp ảnh này để chấm điểm u, xác nhận âm tính chẩn đoán hoặc thay thế ảnh của hệ thống xét nghiệm/clone chuyên biệt.",
                  "positive":  {
                                   "label":  "Có biểu hiện (high)",
                                   "tissue":  "Duodenum",
@@ -672,7 +649,7 @@ export const IHC_MARKER_HPA_IMAGES: Record<string, IhcMarkerImagePair> = {
                               }
              },
     "CEA":  {
-                "note":  "Ảnh mô bình thường từ Human Protein Atlas dùng để học vị trí và mức biểu hiện mô của CEACAM5. Không dùng cặp ảnh này để chấm điểm u, xác nhận âm tính chẩn đoán hoặc thay thế ảnh của assay/clone chuyên biệt.",
+                "note":  "Ảnh mô bình thường từ Human Protein Atlas dùng để học vị trí và mức biểu hiện mô của CEACAM5. Không dùng cặp ảnh này để chấm điểm u, xác nhận âm tính chẩn đoán hoặc thay thế ảnh của hệ thống xét nghiệm/clone chuyên biệt.",
                 "positive":  {
                                  "label":  "Có biểu hiện (high)",
                                  "tissue":  "Rectum",
@@ -695,7 +672,7 @@ export const IHC_MARKER_HPA_IMAGES: Record<string, IhcMarkerImagePair> = {
                              }
             },
     "CGA":  {
-                "note":  "Ảnh mô bình thường từ Human Protein Atlas dùng để học vị trí và mức biểu hiện mô của CHGA. Không dùng cặp ảnh này để chấm điểm u, xác nhận âm tính chẩn đoán hoặc thay thế ảnh của assay/clone chuyên biệt.",
+                "note":  "Ảnh mô bình thường từ Human Protein Atlas dùng để học vị trí và mức biểu hiện mô của CHGA. Không dùng cặp ảnh này để chấm điểm u, xác nhận âm tính chẩn đoán hoặc thay thế ảnh của hệ thống xét nghiệm/clone chuyên biệt.",
                 "positive":  {
                                  "label":  "Có biểu hiện (high)",
                                  "tissue":  "Pancreas",
@@ -718,7 +695,7 @@ export const IHC_MARKER_HPA_IMAGES: Record<string, IhcMarkerImagePair> = {
                              }
             },
     "CK19":  {
-                 "note":  "Ảnh mô bình thường từ Human Protein Atlas dùng để học vị trí và mức biểu hiện mô của KRT19. Không dùng cặp ảnh này để chấm điểm u, xác nhận âm tính chẩn đoán hoặc thay thế ảnh của assay/clone chuyên biệt.",
+                 "note":  "Ảnh mô bình thường từ Human Protein Atlas dùng để học vị trí và mức biểu hiện mô của KRT19. Không dùng cặp ảnh này để chấm điểm u, xác nhận âm tính chẩn đoán hoặc thay thế ảnh của hệ thống xét nghiệm/clone chuyên biệt.",
                  "positive":  {
                                   "label":  "Có biểu hiện (high)",
                                   "tissue":  "Kidney",
@@ -741,7 +718,7 @@ export const IHC_MARKER_HPA_IMAGES: Record<string, IhcMarkerImagePair> = {
                               }
              },
     "CK20":  {
-                 "note":  "Ảnh mô bình thường từ Human Protein Atlas dùng để học vị trí và mức biểu hiện mô của KRT20. Không dùng cặp ảnh này để chấm điểm u, xác nhận âm tính chẩn đoán hoặc thay thế ảnh của assay/clone chuyên biệt.",
+                 "note":  "Ảnh mô bình thường từ Human Protein Atlas dùng để học vị trí và mức biểu hiện mô của KRT20. Không dùng cặp ảnh này để chấm điểm u, xác nhận âm tính chẩn đoán hoặc thay thế ảnh của hệ thống xét nghiệm/clone chuyên biệt.",
                  "positive":  {
                                   "label":  "Có biểu hiện (high)",
                                   "tissue":  "Colon",
@@ -764,7 +741,7 @@ export const IHC_MARKER_HPA_IMAGES: Record<string, IhcMarkerImagePair> = {
                               }
              },
     "CK5":  {
-                "note":  "Ảnh mô bình thường từ Human Protein Atlas dùng để học vị trí và mức biểu hiện mô của KRT5. Không dùng cặp ảnh này để chấm điểm u, xác nhận âm tính chẩn đoán hoặc thay thế ảnh của assay/clone chuyên biệt.",
+                "note":  "Ảnh mô bình thường từ Human Protein Atlas dùng để học vị trí và mức biểu hiện mô của KRT5. Không dùng cặp ảnh này để chấm điểm u, xác nhận âm tính chẩn đoán hoặc thay thế ảnh của hệ thống xét nghiệm/clone chuyên biệt.",
                 "positive":  {
                                  "label":  "Có biểu hiện (high)",
                                  "tissue":  "Skin 1",
@@ -787,7 +764,7 @@ export const IHC_MARKER_HPA_IMAGES: Record<string, IhcMarkerImagePair> = {
                              }
             },
     "CK7":  {
-                "note":  "Ảnh mô bình thường từ Human Protein Atlas dùng để học vị trí và mức biểu hiện mô của KRT7. Không dùng cặp ảnh này để chấm điểm u, xác nhận âm tính chẩn đoán hoặc thay thế ảnh của assay/clone chuyên biệt.",
+                "note":  "Ảnh mô bình thường từ Human Protein Atlas dùng để học vị trí và mức biểu hiện mô của KRT7. Không dùng cặp ảnh này để chấm điểm u, xác nhận âm tính chẩn đoán hoặc thay thế ảnh của hệ thống xét nghiệm/clone chuyên biệt.",
                 "positive":  {
                                  "label":  "Có biểu hiện (high)",
                                  "tissue":  "Breast",
@@ -810,7 +787,7 @@ export const IHC_MARKER_HPA_IMAGES: Record<string, IhcMarkerImagePair> = {
                              }
             },
     "CK8/18":  {
-                   "note":  "Ảnh mô bình thường từ Human Protein Atlas dùng để học vị trí và mức biểu hiện mô của KRT8. Không dùng cặp ảnh này để chấm điểm u, xác nhận âm tính chẩn đoán hoặc thay thế ảnh của assay/clone chuyên biệt.",
+                   "note":  "Ảnh mô bình thường từ Human Protein Atlas dùng để học vị trí và mức biểu hiện mô của KRT8. Không dùng cặp ảnh này để chấm điểm u, xác nhận âm tính chẩn đoán hoặc thay thế ảnh của hệ thống xét nghiệm/clone chuyên biệt.",
                    "positive":  {
                                     "label":  "Có biểu hiện (high)",
                                     "tissue":  "Prostate",
@@ -833,7 +810,7 @@ export const IHC_MARKER_HPA_IMAGES: Record<string, IhcMarkerImagePair> = {
                                 }
                },
     "CLDN18.2":  {
-                     "note":  "Ảnh mô bình thường từ Human Protein Atlas dùng để học vị trí và mức biểu hiện mô của CLDN18. Không dùng cặp ảnh này để chấm điểm u, xác nhận âm tính chẩn đoán hoặc thay thế ảnh của assay/clone chuyên biệt.",
+                     "note":  "Ảnh mô bình thường từ Human Protein Atlas dùng để học vị trí và mức biểu hiện mô của CLDN18. Không dùng cặp ảnh này để chấm điểm u, xác nhận âm tính chẩn đoán hoặc thay thế ảnh của hệ thống xét nghiệm/clone chuyên biệt.",
                      "positive":  {
                                       "label":  "Có biểu hiện (high)",
                                       "tissue":  "Stomach 2",
@@ -856,7 +833,7 @@ export const IHC_MARKER_HPA_IMAGES: Record<string, IhcMarkerImagePair> = {
                                   }
                  },
     "CLDN4":  {
-                  "note":  "Ảnh mô bình thường từ Human Protein Atlas dùng để học vị trí và mức biểu hiện mô của CLDN4. Không dùng cặp ảnh này để chấm điểm u, xác nhận âm tính chẩn đoán hoặc thay thế ảnh của assay/clone chuyên biệt.",
+                  "note":  "Ảnh mô bình thường từ Human Protein Atlas dùng để học vị trí và mức biểu hiện mô của CLDN4. Không dùng cặp ảnh này để chấm điểm u, xác nhận âm tính chẩn đoán hoặc thay thế ảnh của hệ thống xét nghiệm/clone chuyên biệt.",
                   "positive":  {
                                    "label":  "Có biểu hiện (high)",
                                    "tissue":  "Kidney",
@@ -879,7 +856,7 @@ export const IHC_MARKER_HPA_IMAGES: Record<string, IhcMarkerImagePair> = {
                                }
               },
     "DES":  {
-                "note":  "Ảnh mô bình thường từ Human Protein Atlas dùng để học vị trí và mức biểu hiện mô của DES. Không dùng cặp ảnh này để chấm điểm u, xác nhận âm tính chẩn đoán hoặc thay thế ảnh của assay/clone chuyên biệt.",
+                "note":  "Ảnh mô bình thường từ Human Protein Atlas dùng để học vị trí và mức biểu hiện mô của DES. Không dùng cặp ảnh này để chấm điểm u, xác nhận âm tính chẩn đoán hoặc thay thế ảnh của hệ thống xét nghiệm/clone chuyên biệt.",
                 "positive":  {
                                  "label":  "Có biểu hiện (high)",
                                  "tissue":  "Skeletal muscle",
@@ -902,7 +879,7 @@ export const IHC_MARKER_HPA_IMAGES: Record<string, IhcMarkerImagePair> = {
                              }
             },
     "DOG1":  {
-                 "note":  "Ảnh mô bình thường từ Human Protein Atlas dùng để học vị trí và mức biểu hiện mô của ANO1. Không dùng cặp ảnh này để chấm điểm u, xác nhận âm tính chẩn đoán hoặc thay thế ảnh của assay/clone chuyên biệt.",
+                 "note":  "Ảnh mô bình thường từ Human Protein Atlas dùng để học vị trí và mức biểu hiện mô của ANO1. Không dùng cặp ảnh này để chấm điểm u, xác nhận âm tính chẩn đoán hoặc thay thế ảnh của hệ thống xét nghiệm/clone chuyên biệt.",
                  "positive":  {
                                   "label":  "Có biểu hiện (high)",
                                   "tissue":  "Salivary gland",
@@ -925,7 +902,7 @@ export const IHC_MARKER_HPA_IMAGES: Record<string, IhcMarkerImagePair> = {
                               }
              },
     "ECAD":  {
-                 "note":  "Ảnh mô bình thường từ Human Protein Atlas dùng để học vị trí và mức biểu hiện mô của CDH1. Không dùng cặp ảnh này để chấm điểm u, xác nhận âm tính chẩn đoán hoặc thay thế ảnh của assay/clone chuyên biệt.",
+                 "note":  "Ảnh mô bình thường từ Human Protein Atlas dùng để học vị trí và mức biểu hiện mô của CDH1. Không dùng cặp ảnh này để chấm điểm u, xác nhận âm tính chẩn đoán hoặc thay thế ảnh của hệ thống xét nghiệm/clone chuyên biệt.",
                  "positive":  {
                                   "label":  "Có biểu hiện (high)",
                                   "tissue":  "Kidney",
@@ -948,7 +925,7 @@ export const IHC_MARKER_HPA_IMAGES: Record<string, IhcMarkerImagePair> = {
                               }
              },
     "EMA":  {
-                "note":  "Ảnh mô bình thường từ Human Protein Atlas dùng để học vị trí và mức biểu hiện mô của MUC1. Không dùng cặp ảnh này để chấm điểm u, xác nhận âm tính chẩn đoán hoặc thay thế ảnh của assay/clone chuyên biệt.",
+                "note":  "Ảnh mô bình thường từ Human Protein Atlas dùng để học vị trí và mức biểu hiện mô của MUC1. Không dùng cặp ảnh này để chấm điểm u, xác nhận âm tính chẩn đoán hoặc thay thế ảnh của hệ thống xét nghiệm/clone chuyên biệt.",
                 "positive":  {
                                  "label":  "Có biểu hiện (high)",
                                  "tissue":  "Stomach 2",
@@ -971,7 +948,7 @@ export const IHC_MARKER_HPA_IMAGES: Record<string, IhcMarkerImagePair> = {
                              }
             },
     "EpCAM":  {
-                  "note":  "Ảnh mô bình thường từ Human Protein Atlas dùng để học vị trí và mức biểu hiện mô của EPCAM. Không dùng cặp ảnh này để chấm điểm u, xác nhận âm tính chẩn đoán hoặc thay thế ảnh của assay/clone chuyên biệt.",
+                  "note":  "Ảnh mô bình thường từ Human Protein Atlas dùng để học vị trí và mức biểu hiện mô của EPCAM. Không dùng cặp ảnh này để chấm điểm u, xác nhận âm tính chẩn đoán hoặc thay thế ảnh của hệ thống xét nghiệm/clone chuyên biệt.",
                   "positive":  {
                                    "label":  "Có biểu hiện (high)",
                                    "tissue":  "Kidney",
@@ -994,7 +971,7 @@ export const IHC_MARKER_HPA_IMAGES: Record<string, IhcMarkerImagePair> = {
                                }
               },
     "ER":  {
-               "note":  "Ảnh mô bình thường từ Human Protein Atlas dùng để học vị trí và mức biểu hiện mô của ESR1. Không dùng cặp ảnh này để chấm điểm u, xác nhận âm tính chẩn đoán hoặc thay thế ảnh của assay/clone chuyên biệt.",
+               "note":  "Ảnh mô bình thường từ Human Protein Atlas dùng để học vị trí và mức biểu hiện mô của ESR1. Không dùng cặp ảnh này để chấm điểm u, xác nhận âm tính chẩn đoán hoặc thay thế ảnh của hệ thống xét nghiệm/clone chuyên biệt.",
                "positive":  {
                                 "label":  "Có biểu hiện (high)",
                                 "tissue":  "Endometrium 2",
@@ -1017,7 +994,7 @@ export const IHC_MARKER_HPA_IMAGES: Record<string, IhcMarkerImagePair> = {
                             }
            },
     "ERG":  {
-                "note":  "Ảnh mô bình thường từ Human Protein Atlas dùng để học vị trí và mức biểu hiện mô của ERG. Không dùng cặp ảnh này để chấm điểm u, xác nhận âm tính chẩn đoán hoặc thay thế ảnh của assay/clone chuyên biệt.",
+                "note":  "Ảnh mô bình thường từ Human Protein Atlas dùng để học vị trí và mức biểu hiện mô của ERG. Không dùng cặp ảnh này để chấm điểm u, xác nhận âm tính chẩn đoán hoặc thay thế ảnh của hệ thống xét nghiệm/clone chuyên biệt.",
                 "positive":  {
                                  "label":  "Có biểu hiện (medium)",
                                  "tissue":  "Testis",
@@ -1040,7 +1017,7 @@ export const IHC_MARKER_HPA_IMAGES: Record<string, IhcMarkerImagePair> = {
                              }
             },
     "GATA3":  {
-                  "note":  "Ảnh mô bình thường từ Human Protein Atlas dùng để học vị trí và mức biểu hiện mô của GATA3. Không dùng cặp ảnh này để chấm điểm u, xác nhận âm tính chẩn đoán hoặc thay thế ảnh của assay/clone chuyên biệt.",
+                  "note":  "Ảnh mô bình thường từ Human Protein Atlas dùng để học vị trí và mức biểu hiện mô của GATA3. Không dùng cặp ảnh này để chấm điểm u, xác nhận âm tính chẩn đoán hoặc thay thế ảnh của hệ thống xét nghiệm/clone chuyên biệt.",
                   "positive":  {
                                    "label":  "Có biểu hiện (high)",
                                    "tissue":  "Kidney",
@@ -1063,7 +1040,7 @@ export const IHC_MARKER_HPA_IMAGES: Record<string, IhcMarkerImagePair> = {
                                }
               },
     "GCDFP":  {
-                  "note":  "Ảnh mô bình thường từ Human Protein Atlas dùng để học vị trí và mức biểu hiện mô của PIP. Không dùng cặp ảnh này để chấm điểm u, xác nhận âm tính chẩn đoán hoặc thay thế ảnh của assay/clone chuyên biệt.",
+                  "note":  "Ảnh mô bình thường từ Human Protein Atlas dùng để học vị trí và mức biểu hiện mô của PIP. Không dùng cặp ảnh này để chấm điểm u, xác nhận âm tính chẩn đoán hoặc thay thế ảnh của hệ thống xét nghiệm/clone chuyên biệt.",
                   "positive":  {
                                    "label":  "Có biểu hiện (high)",
                                    "tissue":  "Salivary gland",
@@ -1086,7 +1063,7 @@ export const IHC_MARKER_HPA_IMAGES: Record<string, IhcMarkerImagePair> = {
                                }
               },
     "GFAP":  {
-                 "note":  "Ảnh mô bình thường từ Human Protein Atlas dùng để học vị trí và mức biểu hiện mô của GFAP. Không dùng cặp ảnh này để chấm điểm u, xác nhận âm tính chẩn đoán hoặc thay thế ảnh của assay/clone chuyên biệt.",
+                 "note":  "Ảnh mô bình thường từ Human Protein Atlas dùng để học vị trí và mức biểu hiện mô của GFAP. Không dùng cặp ảnh này để chấm điểm u, xác nhận âm tính chẩn đoán hoặc thay thế ảnh của hệ thống xét nghiệm/clone chuyên biệt.",
                  "positive":  {
                                   "label":  "Có biểu hiện (medium)",
                                   "tissue":  "Cerebral cortex",
@@ -1109,7 +1086,7 @@ export const IHC_MARKER_HPA_IMAGES: Record<string, IhcMarkerImagePair> = {
                               }
              },
     "HCG":  {
-                "note":  "Ảnh mô bình thường từ Human Protein Atlas dùng để học vị trí và mức biểu hiện mô của CGB3. Không dùng cặp ảnh này để chấm điểm u, xác nhận âm tính chẩn đoán hoặc thay thế ảnh của assay/clone chuyên biệt.",
+                "note":  "Ảnh mô bình thường từ Human Protein Atlas dùng để học vị trí và mức biểu hiện mô của CGB3. Không dùng cặp ảnh này để chấm điểm u, xác nhận âm tính chẩn đoán hoặc thay thế ảnh của hệ thống xét nghiệm/clone chuyên biệt.",
                 "positive":  {
                                  "label":  "Có biểu hiện (high)",
                                  "tissue":  "Placenta",
@@ -1132,7 +1109,7 @@ export const IHC_MARKER_HPA_IMAGES: Record<string, IhcMarkerImagePair> = {
                              }
             },
     "HEPA":  {
-                 "note":  "Ảnh mô bình thường từ Human Protein Atlas dùng để học vị trí và mức biểu hiện mô của CPS1. Không dùng cặp ảnh này để chấm điểm u, xác nhận âm tính chẩn đoán hoặc thay thế ảnh của assay/clone chuyên biệt.",
+                 "note":  "Ảnh mô bình thường từ Human Protein Atlas dùng để học vị trí và mức biểu hiện mô của CPS1. Không dùng cặp ảnh này để chấm điểm u, xác nhận âm tính chẩn đoán hoặc thay thế ảnh của hệ thống xét nghiệm/clone chuyên biệt.",
                  "positive":  {
                                   "label":  "Có biểu hiện (high)",
                                   "tissue":  "Small intestine",
@@ -1155,7 +1132,7 @@ export const IHC_MARKER_HPA_IMAGES: Record<string, IhcMarkerImagePair> = {
                               }
              },
     "HER2 IHC":  {
-                     "note":  "Ảnh mô bình thường từ Human Protein Atlas dùng để học vị trí và mức biểu hiện mô của ERBB2. Không dùng cặp ảnh này để chấm điểm u, xác nhận âm tính chẩn đoán hoặc thay thế ảnh của assay/clone chuyên biệt.",
+                     "note":  "Ảnh mô bình thường từ Human Protein Atlas dùng để học vị trí và mức biểu hiện mô của ERBB2. Không dùng cặp ảnh này để chấm điểm u, xác nhận âm tính chẩn đoán hoặc thay thế ảnh của hệ thống xét nghiệm/clone chuyên biệt.",
                      "positive":  {
                                       "label":  "Có biểu hiện (medium)",
                                       "tissue":  "Testis",
@@ -1178,7 +1155,7 @@ export const IHC_MARKER_HPA_IMAGES: Record<string, IhcMarkerImagePair> = {
                                   }
                  },
     "Ki67":  {
-                 "note":  "Ảnh mô bình thường từ Human Protein Atlas dùng để học vị trí và mức biểu hiện mô của MKI67. Không dùng cặp ảnh này để chấm điểm u, xác nhận âm tính chẩn đoán hoặc thay thế ảnh của assay/clone chuyên biệt.",
+                 "note":  "Ảnh mô bình thường từ Human Protein Atlas dùng để học vị trí và mức biểu hiện mô của MKI67. Không dùng cặp ảnh này để chấm điểm u, xác nhận âm tính chẩn đoán hoặc thay thế ảnh của hệ thống xét nghiệm/clone chuyên biệt.",
                  "positive":  {
                                   "label":  "Có biểu hiện (high)",
                                   "tissue":  "Lymph node",
@@ -1201,7 +1178,7 @@ export const IHC_MARKER_HPA_IMAGES: Record<string, IhcMarkerImagePair> = {
                               }
              },
     "MAMGLO":  {
-                   "note":  "Ảnh mô bình thường từ Human Protein Atlas dùng để học vị trí và mức biểu hiện mô của SCGB2A2. Không dùng cặp ảnh này để chấm điểm u, xác nhận âm tính chẩn đoán hoặc thay thế ảnh của assay/clone chuyên biệt.",
+                   "note":  "Ảnh mô bình thường từ Human Protein Atlas dùng để học vị trí và mức biểu hiện mô của SCGB2A2. Không dùng cặp ảnh này để chấm điểm u, xác nhận âm tính chẩn đoán hoặc thay thế ảnh của hệ thống xét nghiệm/clone chuyên biệt.",
                    "positive":  {
                                     "label":  "Có biểu hiện (medium)",
                                     "tissue":  "Lactating breast",
@@ -1224,7 +1201,7 @@ export const IHC_MARKER_HPA_IMAGES: Record<string, IhcMarkerImagePair> = {
                                 }
                },
     "MLA":  {
-                "note":  "Ảnh mô bình thường từ Human Protein Atlas dùng để học vị trí và mức biểu hiện mô của MLANA. Không dùng cặp ảnh này để chấm điểm u, xác nhận âm tính chẩn đoán hoặc thay thế ảnh của assay/clone chuyên biệt.",
+                "note":  "Ảnh mô bình thường từ Human Protein Atlas dùng để học vị trí và mức biểu hiện mô của MLANA. Không dùng cặp ảnh này để chấm điểm u, xác nhận âm tính chẩn đoán hoặc thay thế ảnh của hệ thống xét nghiệm/clone chuyên biệt.",
                 "positive":  {
                                  "label":  "Có biểu hiện (medium)",
                                  "tissue":  "Retina",
@@ -1247,7 +1224,7 @@ export const IHC_MARKER_HPA_IMAGES: Record<string, IhcMarkerImagePair> = {
                              }
             },
     "MSA":  {
-                "note":  "Ảnh mô bình thường từ Human Protein Atlas dùng để học vị trí và mức biểu hiện mô của PMEL. Không dùng cặp ảnh này để chấm điểm u, xác nhận âm tính chẩn đoán hoặc thay thế ảnh của assay/clone chuyên biệt.",
+                "note":  "Ảnh mô bình thường từ Human Protein Atlas dùng để học vị trí và mức biểu hiện mô của PMEL. Không dùng cặp ảnh này để chấm điểm u, xác nhận âm tính chẩn đoán hoặc thay thế ảnh của hệ thống xét nghiệm/clone chuyên biệt.",
                 "positive":  {
                                  "label":  "Có biểu hiện (high)",
                                  "tissue":  "Skin 1",
@@ -1270,7 +1247,7 @@ export const IHC_MARKER_HPA_IMAGES: Record<string, IhcMarkerImagePair> = {
                              }
             },
     "MUM1":  {
-                 "note":  "Ảnh mô bình thường từ Human Protein Atlas dùng để học vị trí và mức biểu hiện mô của IRF4. Không dùng cặp ảnh này để chấm điểm u, xác nhận âm tính chẩn đoán hoặc thay thế ảnh của assay/clone chuyên biệt.",
+                 "note":  "Ảnh mô bình thường từ Human Protein Atlas dùng để học vị trí và mức biểu hiện mô của IRF4. Không dùng cặp ảnh này để chấm điểm u, xác nhận âm tính chẩn đoán hoặc thay thế ảnh của hệ thống xét nghiệm/clone chuyên biệt.",
                  "positive":  {
                                   "label":  "Có biểu hiện (medium)",
                                   "tissue":  "Bone marrow",
@@ -1293,7 +1270,7 @@ export const IHC_MARKER_HPA_IMAGES: Record<string, IhcMarkerImagePair> = {
                               }
              },
     "Napsin A":  {
-                     "note":  "Ảnh mô bình thường từ Human Protein Atlas dùng để học vị trí và mức biểu hiện mô của NAPSA. Không dùng cặp ảnh này để chấm điểm u, xác nhận âm tính chẩn đoán hoặc thay thế ảnh của assay/clone chuyên biệt.",
+                     "note":  "Ảnh mô bình thường từ Human Protein Atlas dùng để học vị trí và mức biểu hiện mô của NAPSA. Không dùng cặp ảnh này để chấm điểm u, xác nhận âm tính chẩn đoán hoặc thay thế ảnh của hệ thống xét nghiệm/clone chuyên biệt.",
                      "positive":  {
                                       "label":  "Có biểu hiện (high)",
                                       "tissue":  "Lung",
@@ -1316,7 +1293,7 @@ export const IHC_MARKER_HPA_IMAGES: Record<string, IhcMarkerImagePair> = {
                                   }
                  },
     "NFP":  {
-                "note":  "Ảnh mô bình thường từ Human Protein Atlas dùng để học vị trí và mức biểu hiện mô của NEFL. Không dùng cặp ảnh này để chấm điểm u, xác nhận âm tính chẩn đoán hoặc thay thế ảnh của assay/clone chuyên biệt.",
+                "note":  "Ảnh mô bình thường từ Human Protein Atlas dùng để học vị trí và mức biểu hiện mô của NEFL. Không dùng cặp ảnh này để chấm điểm u, xác nhận âm tính chẩn đoán hoặc thay thế ảnh của hệ thống xét nghiệm/clone chuyên biệt.",
                 "positive":  {
                                  "label":  "Có biểu hiện (high)",
                                  "tissue":  "Cerebral cortex",
@@ -1339,7 +1316,7 @@ export const IHC_MARKER_HPA_IMAGES: Record<string, IhcMarkerImagePair> = {
                              }
             },
     "NKX3.1":  {
-                   "note":  "Ảnh mô bình thường từ Human Protein Atlas dùng để học vị trí và mức biểu hiện mô của NKX3-1. Không dùng cặp ảnh này để chấm điểm u, xác nhận âm tính chẩn đoán hoặc thay thế ảnh của assay/clone chuyên biệt.",
+                   "note":  "Ảnh mô bình thường từ Human Protein Atlas dùng để học vị trí và mức biểu hiện mô của NKX3-1. Không dùng cặp ảnh này để chấm điểm u, xác nhận âm tính chẩn đoán hoặc thay thế ảnh của hệ thống xét nghiệm/clone chuyên biệt.",
                    "positive":  {
                                     "label":  "Có biểu hiện (high)",
                                     "tissue":  "Prostate",
@@ -1362,7 +1339,7 @@ export const IHC_MARKER_HPA_IMAGES: Record<string, IhcMarkerImagePair> = {
                                 }
                },
     "p40":  {
-                "note":  "Ảnh mô bình thường từ Human Protein Atlas dùng để học vị trí và mức biểu hiện mô của TP63. Không dùng cặp ảnh này để chấm điểm u, xác nhận âm tính chẩn đoán hoặc thay thế ảnh của assay/clone chuyên biệt.",
+                "note":  "Ảnh mô bình thường từ Human Protein Atlas dùng để học vị trí và mức biểu hiện mô của TP63. Không dùng cặp ảnh này để chấm điểm u, xác nhận âm tính chẩn đoán hoặc thay thế ảnh của hệ thống xét nghiệm/clone chuyên biệt.",
                 "positive":  {
                                  "label":  "Có biểu hiện (high)",
                                  "tissue":  "Skin 1",
@@ -1385,7 +1362,7 @@ export const IHC_MARKER_HPA_IMAGES: Record<string, IhcMarkerImagePair> = {
                              }
             },
     "P501S":  {
-                  "note":  "Ảnh mô bình thường từ Human Protein Atlas dùng để học vị trí và mức biểu hiện mô của SLC45A3. Không dùng cặp ảnh này để chấm điểm u, xác nhận âm tính chẩn đoán hoặc thay thế ảnh của assay/clone chuyên biệt.",
+                  "note":  "Ảnh mô bình thường từ Human Protein Atlas dùng để học vị trí và mức biểu hiện mô của SLC45A3. Không dùng cặp ảnh này để chấm điểm u, xác nhận âm tính chẩn đoán hoặc thay thế ảnh của hệ thống xét nghiệm/clone chuyên biệt.",
                   "positive":  {
                                    "label":  "Có biểu hiện (high)",
                                    "tissue":  "Prostate",
@@ -1408,7 +1385,7 @@ export const IHC_MARKER_HPA_IMAGES: Record<string, IhcMarkerImagePair> = {
                                }
               },
     "p53":  {
-                "note":  "Ảnh mô bình thường từ Human Protein Atlas dùng để học vị trí và mức biểu hiện mô của TP53. Không dùng cặp ảnh này để chấm điểm u, xác nhận âm tính chẩn đoán hoặc thay thế ảnh của assay/clone chuyên biệt.",
+                "note":  "Ảnh mô bình thường từ Human Protein Atlas dùng để học vị trí và mức biểu hiện mô của TP53. Không dùng cặp ảnh này để chấm điểm u, xác nhận âm tính chẩn đoán hoặc thay thế ảnh của hệ thống xét nghiệm/clone chuyên biệt.",
                 "positive":  {
                                  "label":  "Có biểu hiện (medium)",
                                  "tissue":  "Oral mucosa",
@@ -1431,7 +1408,7 @@ export const IHC_MARKER_HPA_IMAGES: Record<string, IhcMarkerImagePair> = {
                              }
             },
     "p57":  {
-                "note":  "Ảnh mô bình thường từ Human Protein Atlas dùng để học vị trí và mức biểu hiện mô của CDKN1C. Không dùng cặp ảnh này để chấm điểm u, xác nhận âm tính chẩn đoán hoặc thay thế ảnh của assay/clone chuyên biệt.",
+                "note":  "Ảnh mô bình thường từ Human Protein Atlas dùng để học vị trí và mức biểu hiện mô của CDKN1C. Không dùng cặp ảnh này để chấm điểm u, xác nhận âm tính chẩn đoán hoặc thay thế ảnh của hệ thống xét nghiệm/clone chuyên biệt.",
                 "positive":  {
                                  "label":  "Có biểu hiện (high)",
                                  "tissue":  "Kidney",
@@ -1454,7 +1431,7 @@ export const IHC_MARKER_HPA_IMAGES: Record<string, IhcMarkerImagePair> = {
                              }
             },
     "p63":  {
-                "note":  "Ảnh mô bình thường từ Human Protein Atlas dùng để học vị trí và mức biểu hiện mô của TP63. Không dùng cặp ảnh này để chấm điểm u, xác nhận âm tính chẩn đoán hoặc thay thế ảnh của assay/clone chuyên biệt.",
+                "note":  "Ảnh mô bình thường từ Human Protein Atlas dùng để học vị trí và mức biểu hiện mô của TP63. Không dùng cặp ảnh này để chấm điểm u, xác nhận âm tính chẩn đoán hoặc thay thế ảnh của hệ thống xét nghiệm/clone chuyên biệt.",
                 "positive":  {
                                  "label":  "Có biểu hiện (high)",
                                  "tissue":  "Skin 1",
@@ -1477,7 +1454,7 @@ export const IHC_MARKER_HPA_IMAGES: Record<string, IhcMarkerImagePair> = {
                              }
             },
     "PAX2":  {
-                 "note":  "Ảnh mô bình thường từ Human Protein Atlas dùng để học vị trí và mức biểu hiện mô của PAX2. Không dùng cặp ảnh này để chấm điểm u, xác nhận âm tính chẩn đoán hoặc thay thế ảnh của assay/clone chuyên biệt.",
+                 "note":  "Ảnh mô bình thường từ Human Protein Atlas dùng để học vị trí và mức biểu hiện mô của PAX2. Không dùng cặp ảnh này để chấm điểm u, xác nhận âm tính chẩn đoán hoặc thay thế ảnh của hệ thống xét nghiệm/clone chuyên biệt.",
                  "positive":  {
                                   "label":  "Có biểu hiện (high)",
                                   "tissue":  "Epididymis",
@@ -1500,7 +1477,7 @@ export const IHC_MARKER_HPA_IMAGES: Record<string, IhcMarkerImagePair> = {
                               }
              },
     "PAX5":  {
-                 "note":  "Ảnh mô bình thường từ Human Protein Atlas dùng để học vị trí và mức biểu hiện mô của PAX5. Không dùng cặp ảnh này để chấm điểm u, xác nhận âm tính chẩn đoán hoặc thay thế ảnh của assay/clone chuyên biệt.",
+                 "note":  "Ảnh mô bình thường từ Human Protein Atlas dùng để học vị trí và mức biểu hiện mô của PAX5. Không dùng cặp ảnh này để chấm điểm u, xác nhận âm tính chẩn đoán hoặc thay thế ảnh của hệ thống xét nghiệm/clone chuyên biệt.",
                  "positive":  {
                                   "label":  "Có biểu hiện (medium)",
                                   "tissue":  "Spleen",
@@ -1523,7 +1500,7 @@ export const IHC_MARKER_HPA_IMAGES: Record<string, IhcMarkerImagePair> = {
                               }
              },
     "PAX8":  {
-                 "note":  "Ảnh mô bình thường từ Human Protein Atlas dùng để học vị trí và mức biểu hiện mô của PAX8. Không dùng cặp ảnh này để chấm điểm u, xác nhận âm tính chẩn đoán hoặc thay thế ảnh của assay/clone chuyên biệt.",
+                 "note":  "Ảnh mô bình thường từ Human Protein Atlas dùng để học vị trí và mức biểu hiện mô của PAX8. Không dùng cặp ảnh này để chấm điểm u, xác nhận âm tính chẩn đoán hoặc thay thế ảnh của hệ thống xét nghiệm/clone chuyên biệt.",
                  "positive":  {
                                   "label":  "Có biểu hiện (high)",
                                   "tissue":  "Thyroid gland",
@@ -1546,7 +1523,7 @@ export const IHC_MARKER_HPA_IMAGES: Record<string, IhcMarkerImagePair> = {
                               }
              },
     "PD-L1 (IC)":  {
-                       "note":  "Ảnh mô bình thường từ Human Protein Atlas dùng để học vị trí và mức biểu hiện mô của CD274. Không dùng cặp ảnh này để chấm điểm u, xác nhận âm tính chẩn đoán hoặc thay thế ảnh của assay/clone chuyên biệt.",
+                       "note":  "Ảnh mô bình thường từ Human Protein Atlas dùng để học vị trí và mức biểu hiện mô của CD274. Không dùng cặp ảnh này để chấm điểm u, xác nhận âm tính chẩn đoán hoặc thay thế ảnh của hệ thống xét nghiệm/clone chuyên biệt.",
                        "positive":  {
                                         "label":  "Có biểu hiện (medium)",
                                         "tissue":  "Lung",
@@ -1569,7 +1546,7 @@ export const IHC_MARKER_HPA_IMAGES: Record<string, IhcMarkerImagePair> = {
                                     }
                    },
     "PD-L1 (TPS/CPS)":  {
-                            "note":  "Ảnh mô bình thường từ Human Protein Atlas dùng để học vị trí và mức biểu hiện mô của CD274. Không dùng cặp ảnh này để chấm điểm u, xác nhận âm tính chẩn đoán hoặc thay thế ảnh của assay/clone chuyên biệt.",
+                            "note":  "Ảnh mô bình thường từ Human Protein Atlas dùng để học vị trí và mức biểu hiện mô của CD274. Không dùng cặp ảnh này để chấm điểm u, xác nhận âm tính chẩn đoán hoặc thay thế ảnh của hệ thống xét nghiệm/clone chuyên biệt.",
                             "positive":  {
                                              "label":  "Có biểu hiện (medium)",
                                              "tissue":  "Lung",
@@ -1592,7 +1569,7 @@ export const IHC_MARKER_HPA_IMAGES: Record<string, IhcMarkerImagePair> = {
                                          }
                         },
     "PLAP":  {
-                 "note":  "Ảnh mô bình thường từ Human Protein Atlas dùng để học vị trí và mức biểu hiện mô của ALPP. Không dùng cặp ảnh này để chấm điểm u, xác nhận âm tính chẩn đoán hoặc thay thế ảnh của assay/clone chuyên biệt.",
+                 "note":  "Ảnh mô bình thường từ Human Protein Atlas dùng để học vị trí và mức biểu hiện mô của ALPP. Không dùng cặp ảnh này để chấm điểm u, xác nhận âm tính chẩn đoán hoặc thay thế ảnh của hệ thống xét nghiệm/clone chuyên biệt.",
                  "positive":  {
                                   "label":  "Có biểu hiện (high)",
                                   "tissue":  "Placenta",
@@ -1615,7 +1592,7 @@ export const IHC_MARKER_HPA_IMAGES: Record<string, IhcMarkerImagePair> = {
                               }
              },
     "PMS2":  {
-                 "note":  "Ảnh mô bình thường từ Human Protein Atlas dùng để học vị trí và mức biểu hiện mô của PMS2. Không dùng cặp ảnh này để chấm điểm u, xác nhận âm tính chẩn đoán hoặc thay thế ảnh của assay/clone chuyên biệt.",
+                 "note":  "Ảnh mô bình thường từ Human Protein Atlas dùng để học vị trí và mức biểu hiện mô của PMS2. Không dùng cặp ảnh này để chấm điểm u, xác nhận âm tính chẩn đoán hoặc thay thế ảnh của hệ thống xét nghiệm/clone chuyên biệt.",
                  "positive":  {
                                   "label":  "Có biểu hiện (high)",
                                   "tissue":  "Cerebral cortex",
@@ -1638,7 +1615,7 @@ export const IHC_MARKER_HPA_IMAGES: Record<string, IhcMarkerImagePair> = {
                               }
              },
     "Podop":  {
-                  "note":  "Ảnh mô bình thường từ Human Protein Atlas dùng để học vị trí và mức biểu hiện mô của PDPN. Không dùng cặp ảnh này để chấm điểm u, xác nhận âm tính chẩn đoán hoặc thay thế ảnh của assay/clone chuyên biệt.",
+                  "note":  "Ảnh mô bình thường từ Human Protein Atlas dùng để học vị trí và mức biểu hiện mô của PDPN. Không dùng cặp ảnh này để chấm điểm u, xác nhận âm tính chẩn đoán hoặc thay thế ảnh của hệ thống xét nghiệm/clone chuyên biệt.",
                   "positive":  {
                                    "label":  "Có biểu hiện (medium)",
                                    "tissue":  "Testis",
@@ -1661,7 +1638,7 @@ export const IHC_MARKER_HPA_IMAGES: Record<string, IhcMarkerImagePair> = {
                                }
               },
     "PR":  {
-               "note":  "Ảnh mô bình thường từ Human Protein Atlas dùng để học vị trí và mức biểu hiện mô của PGR. Không dùng cặp ảnh này để chấm điểm u, xác nhận âm tính chẩn đoán hoặc thay thế ảnh của assay/clone chuyên biệt.",
+               "note":  "Ảnh mô bình thường từ Human Protein Atlas dùng để học vị trí và mức biểu hiện mô của PGR. Không dùng cặp ảnh này để chấm điểm u, xác nhận âm tính chẩn đoán hoặc thay thế ảnh của hệ thống xét nghiệm/clone chuyên biệt.",
                "positive":  {
                                 "label":  "Có biểu hiện (high)",
                                 "tissue":  "Fallopian tube",
@@ -1684,7 +1661,7 @@ export const IHC_MARKER_HPA_IMAGES: Record<string, IhcMarkerImagePair> = {
                             }
            },
     "PRAME":  {
-                  "note":  "Ảnh mô bình thường từ Human Protein Atlas dùng để học vị trí và mức biểu hiện mô của PRAME. Không dùng cặp ảnh này để chấm điểm u, xác nhận âm tính chẩn đoán hoặc thay thế ảnh của assay/clone chuyên biệt.",
+                  "note":  "Ảnh mô bình thường từ Human Protein Atlas dùng để học vị trí và mức biểu hiện mô của PRAME. Không dùng cặp ảnh này để chấm điểm u, xác nhận âm tính chẩn đoán hoặc thay thế ảnh của hệ thống xét nghiệm/clone chuyên biệt.",
                   "positive":  {
                                    "label":  "Có biểu hiện (high)",
                                    "tissue":  "Testis",
@@ -1707,7 +1684,7 @@ export const IHC_MARKER_HPA_IMAGES: Record<string, IhcMarkerImagePair> = {
                                }
               },
     "PSA":  {
-                "note":  "Ảnh mô bình thường từ Human Protein Atlas dùng để học vị trí và mức biểu hiện mô của KLK3. Không dùng cặp ảnh này để chấm điểm u, xác nhận âm tính chẩn đoán hoặc thay thế ảnh của assay/clone chuyên biệt.",
+                "note":  "Ảnh mô bình thường từ Human Protein Atlas dùng để học vị trí và mức biểu hiện mô của KLK3. Không dùng cặp ảnh này để chấm điểm u, xác nhận âm tính chẩn đoán hoặc thay thế ảnh của hệ thống xét nghiệm/clone chuyên biệt.",
                 "positive":  {
                                  "label":  "Có biểu hiện (high)",
                                  "tissue":  "Prostate",
@@ -1730,7 +1707,7 @@ export const IHC_MARKER_HPA_IMAGES: Record<string, IhcMarkerImagePair> = {
                              }
             },
     "SALL4":  {
-                  "note":  "Ảnh mô bình thường từ Human Protein Atlas dùng để học vị trí và mức biểu hiện mô của SALL4. Không dùng cặp ảnh này để chấm điểm u, xác nhận âm tính chẩn đoán hoặc thay thế ảnh của assay/clone chuyên biệt.",
+                  "note":  "Ảnh mô bình thường từ Human Protein Atlas dùng để học vị trí và mức biểu hiện mô của SALL4. Không dùng cặp ảnh này để chấm điểm u, xác nhận âm tính chẩn đoán hoặc thay thế ảnh của hệ thống xét nghiệm/clone chuyên biệt.",
                   "positive":  {
                                    "label":  "Có biểu hiện (high)",
                                    "tissue":  "Ovary",
@@ -1753,7 +1730,7 @@ export const IHC_MARKER_HPA_IMAGES: Record<string, IhcMarkerImagePair> = {
                                }
               },
     "SATB2":  {
-                  "note":  "Ảnh mô bình thường từ Human Protein Atlas dùng để học vị trí và mức biểu hiện mô của SATB2. Không dùng cặp ảnh này để chấm điểm u, xác nhận âm tính chẩn đoán hoặc thay thế ảnh của assay/clone chuyên biệt.",
+                  "note":  "Ảnh mô bình thường từ Human Protein Atlas dùng để học vị trí và mức biểu hiện mô của SATB2. Không dùng cặp ảnh này để chấm điểm u, xác nhận âm tính chẩn đoán hoặc thay thế ảnh của hệ thống xét nghiệm/clone chuyên biệt.",
                   "positive":  {
                                    "label":  "Có biểu hiện (high)",
                                    "tissue":  "Rectum",
@@ -1776,7 +1753,7 @@ export const IHC_MARKER_HPA_IMAGES: Record<string, IhcMarkerImagePair> = {
                                }
               },
     "Smad4":  {
-                  "note":  "Ảnh mô bình thường từ Human Protein Atlas dùng để học vị trí và mức biểu hiện mô của SMAD4. Không dùng cặp ảnh này để chấm điểm u, xác nhận âm tính chẩn đoán hoặc thay thế ảnh của assay/clone chuyên biệt.",
+                  "note":  "Ảnh mô bình thường từ Human Protein Atlas dùng để học vị trí và mức biểu hiện mô của SMAD4. Không dùng cặp ảnh này để chấm điểm u, xác nhận âm tính chẩn đoán hoặc thay thế ảnh của hệ thống xét nghiệm/clone chuyên biệt.",
                   "positive":  {
                                    "label":  "Có biểu hiện (high)",
                                    "tissue":  "Colon",
@@ -1799,7 +1776,7 @@ export const IHC_MARKER_HPA_IMAGES: Record<string, IhcMarkerImagePair> = {
                                }
               },
     "SMH":  {
-                "note":  "Ảnh mô bình thường từ Human Protein Atlas dùng để học vị trí và mức biểu hiện mô của MYH11. Không dùng cặp ảnh này để chấm điểm u, xác nhận âm tính chẩn đoán hoặc thay thế ảnh của assay/clone chuyên biệt.",
+                "note":  "Ảnh mô bình thường từ Human Protein Atlas dùng để học vị trí và mức biểu hiện mô của MYH11. Không dùng cặp ảnh này để chấm điểm u, xác nhận âm tính chẩn đoán hoặc thay thế ảnh của hệ thống xét nghiệm/clone chuyên biệt.",
                 "positive":  {
                                  "label":  "Có biểu hiện (high)",
                                  "tissue":  "Smooth muscle",
@@ -1822,7 +1799,7 @@ export const IHC_MARKER_HPA_IMAGES: Record<string, IhcMarkerImagePair> = {
                              }
             },
     "SOX10":  {
-                  "note":  "Ảnh mô bình thường từ Human Protein Atlas dùng để học vị trí và mức biểu hiện mô của SOX10. Không dùng cặp ảnh này để chấm điểm u, xác nhận âm tính chẩn đoán hoặc thay thế ảnh của assay/clone chuyên biệt.",
+                  "note":  "Ảnh mô bình thường từ Human Protein Atlas dùng để học vị trí và mức biểu hiện mô của SOX10. Không dùng cặp ảnh này để chấm điểm u, xác nhận âm tính chẩn đoán hoặc thay thế ảnh của hệ thống xét nghiệm/clone chuyên biệt.",
                   "positive":  {
                                    "label":  "Có biểu hiện (high)",
                                    "tissue":  "Salivary gland",
@@ -1845,7 +1822,7 @@ export const IHC_MARKER_HPA_IMAGES: Record<string, IhcMarkerImagePair> = {
                                }
               },
     "SOX11":  {
-                  "note":  "Ảnh mô bình thường từ Human Protein Atlas dùng để học vị trí và mức biểu hiện mô của SOX11. Không dùng cặp ảnh này để chấm điểm u, xác nhận âm tính chẩn đoán hoặc thay thế ảnh của assay/clone chuyên biệt.",
+                  "note":  "Ảnh mô bình thường từ Human Protein Atlas dùng để học vị trí và mức biểu hiện mô của SOX11. Không dùng cặp ảnh này để chấm điểm u, xác nhận âm tính chẩn đoán hoặc thay thế ảnh của hệ thống xét nghiệm/clone chuyên biệt.",
                   "positive":  {
                                    "label":  "Có biểu hiện (medium)",
                                    "tissue":  "Testis",
@@ -1868,7 +1845,7 @@ export const IHC_MARKER_HPA_IMAGES: Record<string, IhcMarkerImagePair> = {
                                }
               },
     "SYP":  {
-                "note":  "Ảnh mô bình thường từ Human Protein Atlas dùng để học vị trí và mức biểu hiện mô của SYP. Không dùng cặp ảnh này để chấm điểm u, xác nhận âm tính chẩn đoán hoặc thay thế ảnh của assay/clone chuyên biệt.",
+                "note":  "Ảnh mô bình thường từ Human Protein Atlas dùng để học vị trí và mức biểu hiện mô của SYP. Không dùng cặp ảnh này để chấm điểm u, xác nhận âm tính chẩn đoán hoặc thay thế ảnh của hệ thống xét nghiệm/clone chuyên biệt.",
                 "positive":  {
                                  "label":  "Có biểu hiện (high)",
                                  "tissue":  "Duodenum",
@@ -1891,7 +1868,7 @@ export const IHC_MARKER_HPA_IMAGES: Record<string, IhcMarkerImagePair> = {
                              }
             },
     "TRPS1":  {
-                  "note":  "Ảnh mô bình thường từ Human Protein Atlas dùng để học vị trí và mức biểu hiện mô của TRPS1. Không dùng cặp ảnh này để chấm điểm u, xác nhận âm tính chẩn đoán hoặc thay thế ảnh của assay/clone chuyên biệt.",
+                  "note":  "Ảnh mô bình thường từ Human Protein Atlas dùng để học vị trí và mức biểu hiện mô của TRPS1. Không dùng cặp ảnh này để chấm điểm u, xác nhận âm tính chẩn đoán hoặc thay thế ảnh của hệ thống xét nghiệm/clone chuyên biệt.",
                   "positive":  {
                                    "label":  "Có biểu hiện (high)",
                                    "tissue":  "Breast",
@@ -1914,7 +1891,7 @@ export const IHC_MARKER_HPA_IMAGES: Record<string, IhcMarkerImagePair> = {
                                }
               },
     "TTF1":  {
-                 "note":  "Ảnh mô bình thường từ Human Protein Atlas dùng để học vị trí và mức biểu hiện mô của NKX2-1. Không dùng cặp ảnh này để chấm điểm u, xác nhận âm tính chẩn đoán hoặc thay thế ảnh của assay/clone chuyên biệt.",
+                 "note":  "Ảnh mô bình thường từ Human Protein Atlas dùng để học vị trí và mức biểu hiện mô của NKX2-1. Không dùng cặp ảnh này để chấm điểm u, xác nhận âm tính chẩn đoán hoặc thay thế ảnh của hệ thống xét nghiệm/clone chuyên biệt.",
                  "positive":  {
                                   "label":  "Có biểu hiện (high)",
                                   "tissue":  "Thyroid gland",
@@ -1937,7 +1914,7 @@ export const IHC_MARKER_HPA_IMAGES: Record<string, IhcMarkerImagePair> = {
                               }
              },
     "URO II/III":  {
-                       "note":  "Ảnh mô bình thường từ Human Protein Atlas dùng để học vị trí và mức biểu hiện mô của UPK2. Không dùng cặp ảnh này để chấm điểm u, xác nhận âm tính chẩn đoán hoặc thay thế ảnh của assay/clone chuyên biệt.",
+                       "note":  "Ảnh mô bình thường từ Human Protein Atlas dùng để học vị trí và mức biểu hiện mô của UPK2. Không dùng cặp ảnh này để chấm điểm u, xác nhận âm tính chẩn đoán hoặc thay thế ảnh của hệ thống xét nghiệm/clone chuyên biệt.",
                        "positive":  {
                                         "label":  "Có biểu hiện (medium)",
                                         "tissue":  "Urinary bladder",
@@ -1960,7 +1937,7 @@ export const IHC_MARKER_HPA_IMAGES: Record<string, IhcMarkerImagePair> = {
                                     }
                    },
     "WT1":  {
-                "note":  "Ảnh mô bình thường từ Human Protein Atlas dùng để học vị trí và mức biểu hiện mô của WT1. Không dùng cặp ảnh này để chấm điểm u, xác nhận âm tính chẩn đoán hoặc thay thế ảnh của assay/clone chuyên biệt.",
+                "note":  "Ảnh mô bình thường từ Human Protein Atlas dùng để học vị trí và mức biểu hiện mô của WT1. Không dùng cặp ảnh này để chấm điểm u, xác nhận âm tính chẩn đoán hoặc thay thế ảnh của hệ thống xét nghiệm/clone chuyên biệt.",
                 "positive":  {
                                  "label":  "Có biểu hiện (high)",
                                  "tissue":  "Fallopian tube",
