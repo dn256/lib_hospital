@@ -1,7 +1,7 @@
 ﻿$ErrorActionPreference = 'Stop'
 
 $geneMap = [ordered]@{
-  'ALK (lung)'='ALK'; 'AMACR'='AMACR'; 'ASMA'='ACTA2'; 'BAP1'='BAP1'; 'Bcl-2'='BCL2'; 'Bcl-6'='BCL6'; 'BRAF'='BRAF'; 'C-MYC'='MYC'; 'CA125'='MUC16'; 'CALRET'='CALB2'
+  'AMACR'='AMACR'; 'ASMA'='ACTA2'; 'BAP1'='BAP1'; 'Bcl-2'='BCL2'; 'Bcl-6'='BCL6'; 'BRAF'='BRAF'; 'C-MYC'='MYC'; 'CA125'='MUC16'; 'CALRET'='CALB2'
   'CD10'='MME'; 'CD117'='KIT'; 'CD138'='SDC1'; 'CD14'='CD14'; 'CD15'='FUT4'; 'CD163'='CD163'; 'CD19'='CD19'; 'CD20'='MS4A1'; 'CD23'='FCER2'; 'CD3'='CD3D'
   'CD30'='TNFRSF8'; 'CD31'='PECAM1'; 'CD34'='CD34'; 'CD4'='CD4'; 'CD45'='PTPRC'; 'CD5'='CD5'; 'CD56'='NCAM1'; 'CD68'='CD68'; 'CD79a'='CD79A'; 'CD8'='CD8A'; 'CD99'='CD99'
   'CDX2'='CDX2'; 'CEA'='CEACAM5'; 'CGA'='CHGA'; 'CK19'='KRT19'; 'CK20'='KRT20'; 'CK5'='KRT5'; 'CK7'='KRT7'; 'CK8/18'='KRT8'; 'CLDN18.2'='CLDN18'; 'CLDN4'='CLDN4'
@@ -65,7 +65,7 @@ foreach ($pair in $geneMap.GetEnumerator()) {
 
     $sourceUrl = "https://www.proteinatlas.org/$ensembl-$gene/tissue"
     $records[$marker] = [ordered]@{
-      note = "Ảnh mô bình thường từ Human Protein Atlas dùng để học vị trí và mức biểu hiện mô của $gene. Không dùng cặp ảnh này để chấm điểm u, xác nhận âm tính chẩn đoán hoặc thay thế ảnh của assay/clone chuyên biệt."
+      note = "Ảnh mô bình thường từ Human Protein Atlas dùng để học vị trí và mức biểu hiện mô của $gene. Không dùng cặp ảnh này để chấm điểm u, xác nhận âm tính chẩn đoán hoặc thay thế ảnh của hệ thống xét nghiệm/clone chuyên biệt."
       positive = [ordered]@{
         label = "Có biểu hiện ($($positive.level))"
         tissue = $positive.tissue

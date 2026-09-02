@@ -41,16 +41,6 @@ const hpa = (
 const note = 'Ảnh mô người từ Human Protein Atlas dùng để học nhận biết tín hiệu và mô chứng. Đây không phải ảnh chuẩn để tự chấm điểm xét nghiệm dự báo hoặc để loại trừ chẩn đoán.'
 
 export const IHC_MARKER_IMAGES: Record<string, IhcMarkerImagePair> = {
-  alk: {
-    note: 'Ảnh HPA minh họa biểu hiện ALK ở mô người bình thường bằng kháng thể HPA010694: tế bào thần kinh là vùng có biểu hiện, còn tế bào gan là vùng không phát hiện. Đây không phải clone D5F3 và không phải cặp ảnh chấm điểm ung thư phổi; hãy mở hướng dẫn FDA đi kèm để xem hình dương tính, âm tính và nhiễu của assay D5F3.',
-    positive: hpa('Biểu hiện cao', 'Vỏ não', 'Tế bào thần kinh bắt màu bào tương và nhân; đây là biểu hiện mô tham chiếu của HPA, không phải tín hiệu tế bào u phổi.', 'HPA010694', 'https://images.proteinatlas.org/10694/26100_B_8_5_rna_selected.jpg', 'https://www.proteinatlas.org/ENSG00000171094-ALK/tissue'),
-    negative: hpa('Không phát hiện', 'Gan', 'Không phát hiện biểu hiện ALK ở tế bào gan trong mẫu mô tham chiếu HPA.', 'HPA010694', 'https://images.proteinatlas.org/10694/26075_A_7_4_rna_selected.jpg', 'https://www.proteinatlas.org/ENSG00000171094-ALK/tissue'),
-    diagnosticGuide: {
-      title: 'Mở bộ ảnh đọc ALK D5F3 chính thức',
-      note: 'Hướng dẫn FDA có hình dương tính, âm tính và các kiểu bắt màu cần loại trừ.',
-      url: 'https://www.accessdata.fda.gov/cdrh_docs/pdf14/P140025C.pdf#page=9',
-    },
-  },
   er: {
     note,
     positive: hpa('Có biểu hiện', 'Tuyến vú', 'Tế bào tuyến bắt màu mức trung bình; tế bào mỡ và tế bào cơ-biểu mô không phát hiện.', 'CAB000037', 'https://images.proteinatlas.org/37/288_B_2_4.jpg', 'https://www.proteinatlas.org/ENSG00000091831-ESR1/tissue'),

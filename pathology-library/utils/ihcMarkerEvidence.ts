@@ -57,8 +57,8 @@ export const IHC_MARKER_EVIDENCE: Record<string, IhcMarkerEvidence> = {
   BRAF: nordiqcEvidence(
     'Bào tương',
     'Với kháng thể đặc hiệu BRAF V600E đã thẩm định, tín hiệu bào tương rõ, không nhập nhằng trong tế bào u hỗ trợ sự hiện diện của đột biến BRAF V600E ở các chỉ định phù hợp như melanoma và ung thư biểu mô tuyến đại trực tràng.',
-    'Không có tín hiệu bào tương đặc hiệu phù hợp với kiểu âm tính của assay. Kết quả âm không loại trừ các biến thể BRAF ngoài V600E và không thay thế xét nghiệm phân tử khi kết quả bất tương hợp.',
-    'Nên dùng mô u đã biết trạng thái BRAF V600E dương và âm. Biểu mô ruột thừa bình thường thường âm hoặc chỉ có tín hiệu bào tương rất nhạt; bắt màu cơ trơn yếu và tín hiệu nhân có thể gặp tùy assay.',
+    'Không có tín hiệu bào tương đặc hiệu phù hợp với kiểu âm tính của hệ thống xét nghiệm. Kết quả âm tính không loại trừ các biến thể BRAF ngoài V600E và không thay thế xét nghiệm phân tử khi kết quả bất tương hợp.',
+    'Nên dùng mô u đã biết trạng thái BRAF V600E dương và âm. Biểu mô ruột thừa bình thường thường âm hoặc chỉ có tín hiệu bào tương rất nhạt; bắt màu cơ trơn yếu và tín hiệu nhân có thể gặp tùy hệ thống xét nghiệm.',
     [
       'Sàng lọc protein BRAF V600E trong melanoma hoặc ung thư biểu mô tuyến đại trực tràng bằng clone và quy trình đã thẩm định.',
       'Hỗ trợ thuật toán phân tử hoặc điều trị đích khi hướng dẫn của cơ quan và chỉ định cho phép.',
@@ -98,15 +98,15 @@ export const IHC_MARKER_EVIDENCE: Record<string, IhcMarkerEvidence> = {
   ),
   GATA3: nordiqcEvidence(
     'Nhân',
-    'Bắt màu nhân trong tế bào u hỗ trợ biệt hóa tuyến vú hoặc niệu mạc trong đúng bối cảnh. Ung thư biểu mô niệu mạc thường biểu hiện rộng; ung thư vú bộ ba âm tính có thể biểu hiện yếu hoặc không đồng nhất.',
-    'Âm tính không loại trừ nguồn gốc vú, đặc biệt ở carcinoma vú bộ ba âm tính, và không loại trừ carcinoma niệu mạc biệt hóa kém. Dương tính cũng không đặc hiệu tuyệt đối cho hai cơ quan này.',
+    'Bắt màu nhân trong tế bào u hỗ trợ biệt hóa tuyến vú hoặc biểu mô đường niệu (niệu mạc) trong đúng bối cảnh. Carcinôm đường niệu thường biểu hiện rộng; ung thư vú bộ ba âm tính có thể biểu hiện yếu hoặc không đồng nhất.',
+    'Âm tính không loại trừ nguồn gốc vú, đặc biệt ở carcinôm vú bộ ba âm tính, và không loại trừ carcinôm đường niệu biệt hóa kém. Dương tính cũng không đặc hiệu tuyệt đối cho hai nguồn gốc này.',
     'Tế bào podocyte và biểu mô ống góp ở thận, tế bào T hỗ trợ ở amidan và biểu mô lát vùng đáy-trung gian cổ tử cung là các quần thể chứng dương. Carcinoma phổi âm đã biết hỗ trợ đánh giá độ đặc hiệu.',
     [
-      'Định hướng nguồn gốc vú hoặc niệu mạc trong carcinoma chưa rõ nguyên phát.',
-      'Phối hợp TRPS1, mammaglobin, GCDFP-15, ER/PR cho nguồn gốc vú; phối hợp uroplakin, p63/p40 và CK7/CK20 cho nguồn gốc niệu mạc.',
+      'Định hướng nguồn gốc vú hoặc biểu mô đường niệu trong carcinôm chưa rõ nguyên phát.',
+      'Phối hợp TRPS1, mammaglobin, GCDFP-15, ER/PR cho nguồn gốc vú; phối hợp uroplakin II/III, p63/p40 và CK7/CK20 cho nguồn gốc biểu mô đường niệu.',
     ],
     [
-      'Không gán nguồn gốc vú hoặc niệu mạc chỉ dựa trên GATA3.',
+      'Không gán nguồn gốc vú hoặc biểu mô đường niệu chỉ dựa trên GATA3.',
       'Chỉ tính tín hiệu nhân; nền bào tương không phải tín hiệu đặc hiệu.',
     ],
   ),
@@ -142,7 +142,7 @@ export const IHC_MARKER_EVIDENCE: Record<string, IhcMarkerEvidence> = {
     'Nhân',
     'Kiểu biểu hiện bất thường thường gồm quá biểu hiện nhân lan tỏa, mạnh hoặc kiểu mất hoàn toàn trong tế bào u với chứng nội còn dương. Kiểu hoang dại có cường độ và tỷ lệ không đồng nhất.',
     'Không gọi kiểu “null” nếu tế bào mô đệm, lympho bào hoặc biểu mô lành kèm theo cũng âm. p53 IHC là dấu thay thế kiểu đột biến trong các bối cảnh đã xác lập, không phải xét nghiệm giải trình tự TP53.',
-    'Tế bào B trung tâm mầm ở amidan và các tế bào biểu mô rải rác vùng đáy hốc ruột thừa phải có tín hiệu nhân yếu đến vừa, tạo chứng dương sinh lý cho assay.',
+    'Tế bào B trung tâm mầm ở amidan và các tế bào biểu mô rải rác vùng đáy hốc ruột thừa phải có tín hiệu nhân yếu đến vừa, tạo chứng dương sinh lý cho hệ thống xét nghiệm.',
     [
       'Đánh giá kiểu biểu hiện p53 trong carcinoma nội mạc tử cung và các u phụ khoa khi hệ thống phân loại yêu cầu.',
       'Phối hợp p16, marker dòng Müller và hình thái; dùng xét nghiệm phân tử khi kiểu nhuộm không rõ hoặc bất tương hợp.',

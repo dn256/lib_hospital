@@ -142,6 +142,13 @@ const reviewedProfileIdsByCatalogId: Record<string, string> = {
 
 const reviewedProfiles = new Map(IHC_MARKER_ATLAS.map(item => [item.id, item]))
 
+// Normal-tissue ALK expression is not a valid visual surrogate for ALK IHC in lung cancer.
+// Keep the assay-specific FDA/NordiQC links in the ALK profile and do not show a mismatched tissue image.
+const markerImagesFor = (entry: IhcMarkerCatalogEntry, profileId?: string) => {
+  if (entry.name === 'ALK (lung)') return undefined
+  return IHC_MARKER_IMAGES[profileId || ''] || IHC_MARKER_HPA_IMAGES[entry.name]
+}
+
 const localizationKeyFor = (value: string) => {
   const key = normalize(value)
   if (key.includes('nhan') && key.includes('bao tuong')) return 'nuclear-cytoplasmic'
@@ -162,22 +169,13 @@ const markerCatalogItems = IHC_MARKER_CATALOG.map((entry) => {
     foundation,
     panels: panelsForMarker(entry.name),
     localizationKey: profile?.localization || localizationKeyFor(foundation.localization),
-    images: IHC_MARKER_IMAGES[profileId || ''] || IHC_MARKER_HPA_IMAGES[entry.name],
+    images: markerImagesFor(entry, profileId),
   }
 })
 
-const referenceLibrary = [...new Map([
-  ...IHC_PANEL_REFERENCES,
-  ...IHC_MARKER_ATLAS.flatMap(item => item.sources),
-  ...markerCatalogItems
-    .filter(item => item.foundation.curated && !item.profile)
-    .map(item => ({
-      organization: 'NordiQC',
-      title: `${item.entry.name} · ${item.entry.latestAssessment.replace(/^Run\s*/i, 'Đợt ngoại kiểm ')}`,
-      url: item.entry.reportUrl,
-      year: item.entry.assessmentYear,
-    })),
-].map(source => [source.url, source])).values()]
+// The footer is a directory of source organizations. Marker-, clone- and assay-specific
+// documents remain attached to the relevant marker profile to keep this list readable.
+const referenceLibrary = [...IHC_PANEL_REFERENCES]
 
 const markerAtlasStats = computed(() => ({
   markers: IHC_MARKER_CATALOG.length,
@@ -250,9 +248,10 @@ const visibleAtlasMarkers = computed(() => filteredAtlasMarkers.value.slice(0, c
 const selectedMarkerCatalogEntry = computed(() => selectedMarker.value
   ? IHC_MARKER_CATALOG.find(entry => reviewedProfileIdsByCatalogId[entry.id] === selectedMarker.value?.id)
   : undefined)
-const selectedMarkerImages = computed(() => selectedMarker.value
-  ? IHC_MARKER_IMAGES[selectedMarker.value.id] || (selectedMarkerCatalogEntry.value ? IHC_MARKER_HPA_IMAGES[selectedMarkerCatalogEntry.value.name] : undefined)
+const selectedMarkerCatalogItem = computed(() => selectedMarkerCatalogEntry.value
+  ? markerCatalogItems.find(item => item.entry.id === selectedMarkerCatalogEntry.value?.id)
   : undefined)
+const selectedMarkerImages = computed(() => selectedMarkerCatalogItem.value?.images)
 const selectedMarkerPanels = computed(() => selectedMarkerCatalogEntry.value ? panelsForMarker(selectedMarkerCatalogEntry.value.name) : [])
 const selectedMarkerIndications = computed(() => {
   if (!selectedMarker.value) return []
@@ -261,7 +260,9 @@ const selectedMarkerIndications = computed(() => {
 })
 const selectedCatalogFoundation = computed(() => selectedCatalogEntry.value ? markerFoundation(selectedCatalogEntry.value) : undefined)
 const selectedCatalogPanels = computed(() => selectedCatalogEntry.value ? panelsForMarker(selectedCatalogEntry.value.name) : [])
-const selectedCatalogImages = computed(() => selectedCatalogEntry.value ? IHC_MARKER_HPA_IMAGES[selectedCatalogEntry.value.name] : undefined)
+const selectedCatalogImages = computed(() => selectedCatalogEntry.value
+  ? markerCatalogItems.find(item => item.entry.id === selectedCatalogEntry.value?.id)?.images
+  : undefined)
 
 const assessmentLabel = (value: string) => value.replace(/^Run\s*/i, 'Đợt ngoại kiểm ')
 
@@ -396,7 +397,7 @@ onMounted(() => load().catch(() => undefined))
     </nav>
 
     <v-alert type="warning" variant="tonal" density="compact" class="data-notice">
-      Công cụ hỗ trợ học tập, không phải quy tắc chẩn đoán. Luôn diễn giải HMMD cùng hình thái, chứng nội, clone kháng thể, quy trình labo và bối cảnh lâm sàng.
+      Công cụ hỗ trợ học tập, không phải quy tắc chẩn đoán. Luôn diễn giải HMMD cùng hình thái, chứng nội, clone kháng thể, quy trình phòng xét nghiệm và bối cảnh lâm sàng.
     </v-alert>
 
     <template v-if="activeMode === 'atlas'">
@@ -684,7 +685,7 @@ onMounted(() => load().catch(() => undefined))
           <div class="catalog-source-actions">
             <a :href="selectedCatalogEntry.sourceUrl" target="_blank" rel="noopener noreferrer"><v-icon size="18">mdi-microscope</v-icon>Trang đánh giá NordiQC</a>
             <a :href="selectedCatalogEntry.reportUrl" target="_blank" rel="noopener noreferrer"><v-icon size="18">mdi-file-pdf-box</v-icon>{{ assessmentLabel(selectedCatalogEntry.latestAssessment) }}</a>
-            <a v-if="selectedCatalogEntry.protocolUrl" :href="selectedCatalogEntry.protocolUrl" target="_blank" rel="noopener noreferrer"><v-icon size="18">mdi-flask-outline</v-icon>Protocol được khuyến nghị</a>
+            <a v-if="selectedCatalogEntry.protocolUrl" :href="selectedCatalogEntry.protocolUrl" target="_blank" rel="noopener noreferrer"><v-icon size="18">mdi-flask-outline</v-icon>Quy trình được khuyến nghị</a>
           </div>
           <p class="assessment-explainer"><b>{{ assessmentLabel(selectedCatalogEntry.latestAssessment) }}</b> là mã đợt đánh giá ngoại kiểm kỹ thuật của NordiQC, không phải số lượng marker, điểm số hay mức độ dương tính.</p>
         </v-card-text>
@@ -692,7 +693,7 @@ onMounted(() => load().catch(() => undefined))
     </v-dialog>
 
     <section class="global-references" aria-labelledby="hmmd-reference-title">
-      <div class="reference-intro"><p class="section-kicker">THƯ MỤC NGUỒN</p><h2 id="hmmd-reference-title">Nguồn tham khảo của Thư viện HMMD</h2><p>Mở trực tiếp cơ sở dữ liệu, hướng dẫn hoặc chương trình ngoại kiểm gốc. Nội dung chẩn đoán và ngưỡng đánh giá luôn ưu tiên tài liệu của cơ quan, clone và assay đang sử dụng.</p></div>
+      <div class="reference-intro"><p class="section-kicker">THƯ MỤC NGUỒN</p><h2 id="hmmd-reference-title">Nguồn nền tảng của PathologyLib</h2><p>Các tổ chức, hệ phân loại, hướng dẫn, chương trình ngoại kiểm và kho ảnh được dùng để xây dựng Atlas, Thư viện HMMD và công cụ tra cứu. Tài liệu riêng của từng dấu ấn, clone hoặc hệ thống xét nghiệm được đặt trong chính hồ sơ marker tương ứng.</p></div>
       <div class="reference-grid">
         <a v-for="source in referenceLibrary" :key="source.url" :href="source.url" target="_blank" rel="noopener noreferrer"><span><small>{{ source.organization }}</small><b>{{ source.title }}</b></span><v-icon size="18">mdi-open-in-new</v-icon></a>
       </div>
@@ -724,7 +725,7 @@ onMounted(() => load().catch(() => undefined))
 </template>
 
 <style scoped>
-.hmmd-page { min-height: 100vh; padding: 28px clamp(14px, 3vw, 42px) 56px; color: #102d3c; background: #eef4f5; }
+.hmmd-page { min-height: 100vh; padding: 28px clamp(14px, 3vw, 42px) 56px; color: #102d3c; background: transparent; }
 .hmmd-hero { display: flex; align-items: flex-end; justify-content: space-between; gap: 24px; padding: clamp(24px, 4vw, 48px); color: white; background: #173b4e; border-bottom: 4px solid #e0b62f; }
 .eyebrow,.section-kicker { margin: 0 0 8px; color: #2bbfb6; font: 800 .74rem var(--font-body); letter-spacing: .08em; }
 .hmmd-hero .eyebrow { color: #63d9d0; }
@@ -741,18 +742,18 @@ onMounted(() => load().catch(() => undefined))
 .mode-switcher b { font-size: .9rem; }
 .mode-switcher small { margin-top: 2px; color: #7a8e97; }
 .data-notice { margin: 16px 0; }
-.atlas-intro { display: flex; align-items: flex-end; justify-content: space-between; gap: 24px; padding: 22px 0 16px; }
+.atlas-intro { display: flex; align-items: flex-end; justify-content: space-between; gap: 24px; padding: 22px 18px 16px; background: rgba(238,244,245,.97); border-right: 1px solid rgba(255,255,255,.18); border-left: 1px solid rgba(255,255,255,.18); }
 .atlas-intro h2 { margin: 0; font: 700 1.65rem/1.2 var(--font-heading); letter-spacing: 0; }
 .atlas-intro>div>p:last-child { margin: 8px 0 0; color: #617680; }
 .source-status { display: flex; align-items: center; gap: 9px; padding: 10px 13px; color: #0b6e77; background: #e1f4f1; border-left: 3px solid #1fa99f; font-size: .82rem; font-weight: 700; text-decoration: none; }
 .source-status small { color: #607b83; font-weight: 500; }
 .marker-toolbar { display: grid; grid-template-columns: 1.6fr .85fr .85fr; gap: 12px; padding: 16px; background: white; border: 1px solid #cbd9de; }
-.catalog-status { display: flex; flex-wrap: wrap; gap: 7px; padding: 12px 0 2px; }
+.catalog-status { display: flex; flex-wrap: wrap; gap: 7px; padding: 12px 16px 4px; background: rgba(238,244,245,.97); border-right: 1px solid rgba(255,255,255,.18); border-left: 1px solid rgba(255,255,255,.18); }
 .catalog-status button { padding: 8px 11px; color: #4c6671; background: white; border: 1px solid #c9dadd; border-radius: 4px; font: 700 .78rem var(--font-body); cursor: pointer; }
 .catalog-status button.active { color: white; background: #126f7d; border-color: #126f7d; }
-.result-line { margin-top: 16px; color: #5b717c; }
+.result-line { margin-top: 16px; padding: 10px 14px; color: #5b717c; background: rgba(238,244,245,.97); border: 1px solid rgba(255,255,255,.18); }
 .result-line strong { color: #0e7180; }
-.atlas-result { display: flex; align-items: center; justify-content: space-between; gap: 18px; margin: 14px 0 10px; }
+.atlas-result { display: flex; align-items: center; justify-content: space-between; gap: 18px; margin: 0 0 12px; }
 .atlas-result small { max-width: 620px; text-align: right; }
 .marker-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
 .marker-card { min-width: 0; display: flex; flex-direction: column; overflow: hidden; background: white; border: 1px solid #c7d7dc; border-radius: 6px; cursor: pointer; transition: border-color .18s, transform .18s, box-shadow .18s; }
@@ -789,7 +790,7 @@ onMounted(() => load().catch(() => undefined))
 .stain-preview.nuclear-cytoplasmic .cell { background: #bd8047; }
 .stain-preview.nuclear-cytoplasmic .cell i { background: #884817; box-shadow: 0 0 0 2px #cf9554; }
 .stain-preview.membranous-cytoplasmic .cell { background: #c98a4c; border-color: #964e17; box-shadow: inset 0 0 0 1px #e3b274; }
-.empty-state { min-height: 280px; display: grid; place-content: center; justify-items: center; gap: 8px; color: #6b8089; text-align: center; }
+.empty-state { min-height: 280px; display: grid; place-content: center; justify-items: center; gap: 8px; color: #6b8089; background: rgba(238,244,245,.97); text-align: center; }
 .empty-state h3,.empty-state p { margin: 0; }
 .marker-count { color: #71858f; font-size: .72rem; font-weight: 700; }
 .search-panel { padding: 20px; background: white; border: 1px solid #cbd9de; }

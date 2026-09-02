@@ -9,6 +9,7 @@ const mobileMenuOpen = ref(false)
 const embedded = computed(() => route.query.embed === '1')
 const isWorkspace = computed(() => route.path === '/workspace')
 const isLibrary = computed(() => route.path === '/library')
+const showSharedBackground = computed(() => !embedded.value && !isLibrary.value && !isWorkspace.value)
 
 const navItems = [
   { title: 'Trang chủ', icon: 'mdi-home-outline', to: '/' },
@@ -36,6 +37,8 @@ const handleLogout = async () => {
 
 <template>
   <div class="library-shell" :class="{ embedded, 'workspace-shell': isWorkspace }">
+    <AnimatedBackground v-if="showSharedBackground" />
+    <div v-if="showSharedBackground" class="shell-background-overlay" />
     <header v-if="!embedded" class="library-header">
       <NuxtLink to="/" class="brand" aria-label="Về trang chủ PathologyLib">
         <span class="brand-mark"><v-icon size="23">mdi-microscope</v-icon></span>
@@ -150,8 +153,19 @@ const handleLogout = async () => {
 <style scoped>
 .library-shell {
   min-height: 100vh;
-  background: #f3f6f8;
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  background: linear-gradient(135deg, #0f172a 0%, #1e3a5f 50%, #1a365d 100%);
   color: #172338;
+}
+
+.shell-background-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  background: linear-gradient(115deg, rgba(8, 24, 42, .84), rgba(21, 52, 78, .68) 54%, rgba(10, 31, 49, .86));
 }
 
 .library-header {
@@ -287,6 +301,8 @@ const handleLogout = async () => {
 }
 
 .library-main {
+  position: relative;
+  z-index: 2;
   min-height: calc(100vh - 122px);
 }
 
@@ -296,6 +312,8 @@ const handleLogout = async () => {
 }
 
 .library-footer {
+  position: relative;
+  z-index: 2;
   min-height: 54px;
   padding: 15px 28px;
   display: flex;
