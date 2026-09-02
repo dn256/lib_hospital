@@ -10,7 +10,7 @@ const displayName = computed(() => profile.value?.display_name || user.value?.em
 
 const modules = [
   {
-    title: 'Thư viện ca',
+    title: 'Thư viện mô bệnh học',
     subtitle: 'Case library',
     description: 'Tra cứu ca mô bệnh học, chẩn đoán và nội dung báo cáo đã lưu.',
     icon: 'mdi-bookshelf',
@@ -28,7 +28,7 @@ const modules = [
     action: 'Mở Atlas',
   },
   {
-    title: 'Tra cứu HMMD',
+    title: 'Thư viện HMMD',
     subtitle: 'IHC search',
     description: 'Định hướng chẩn đoán từ panel dấu ấn dương tính và âm tính.',
     icon: 'mdi-test-tube',
@@ -133,7 +133,7 @@ const handleLogout = async () => {
             <v-btn to="/workspace" color="accent" variant="flat" append-icon="mdi-arrow-right">Mở bàn làm việc đôi</v-btn>
           </div>
           <div class="split-preview" aria-hidden="true">
-            <div><span><v-icon size="16">mdi-bookshelf</v-icon> Thư viện ca</span><i /><i /><i /></div>
+            <div><span><v-icon size="16">mdi-bookshelf</v-icon> Thư viện mô bệnh học</span><i /><i /><i /></div>
             <div><span><v-icon size="16">mdi-microscope</v-icon> Atlas GPB</span><b /><b /><b /></div>
           </div>
         </section>

@@ -1,6 +1,11 @@
 <script setup lang="ts">
 import { computed, onMounted, ref, watch } from 'vue'
-import { matchesPathologySearch, pathologySearchScore } from '~/utils/pathologySearch'
+import {
+  matchesPathologySearch,
+  pathologyAliasExpansions,
+  pathologyRelatedQueries,
+  pathologySearchScore,
+} from '~/utils/pathologySearch'
 
 definePageMeta({
   layout: 'library',
@@ -301,6 +306,7 @@ const translationCorrections: Record<string, string> = {
   'nipple adenoma': 'U tuyến núm vú',
   'adenocarcinoma of the lung': 'Ung thư biểu mô tuyến của phổi',
   'small cell lung carcinoma': 'Ung thư biểu mô tế bào nhỏ của phổi',
+  'non-invasive follicular thyroid neoplasm with papillary-like nuclear features': 'Tân sinh tuyến giáp dạng nang không xâm nhập với đặc điểm nhân dạng nhú (NIFTP)',
 }
 const translate = (value: string) => {
   if (!value) return ''
@@ -314,6 +320,7 @@ const translate = (value: string) => {
 
 const whoVolumes = computed<any[]>(() => whoCatalog.value?.volumes || [])
 const whoEntries = computed<any[]>(() => whoCatalog.value?.entries || [])
+const whoAliasExpansions = computed(() => pathologyAliasExpansions(whoQuery.value))
 const whoFiltered = computed(() => {
   const fieldsFor = (entry: any) => [
     entry.nameEn,
@@ -339,25 +346,42 @@ const volumeFor = (id: string) => whoVolumes.value.find((volume) => volume.id ==
 
 const webEntries = computed<any[]>(() => webPathologyCatalog.value?.entries || [])
 const webOrgans = computed<any[]>(() => webPathologyCatalog.value?.organs || [])
-const webFiltered = computed(() => {
-  const fieldsFor = (entry: any) => [
-      entry.titleEn,
-      translate(entry.titleEn),
-      ...(entry.trailEn || []),
-      ...(entry.trailEn || []).map(translate),
-      entry.organ,
-      translate(entry.organ),
-    ]
+const webAliasExpansions = computed(() => pathologyAliasExpansions(imageQuery.value))
+const webRelatedSearches = computed(() => pathologyRelatedQueries(imageQuery.value))
+const webFieldsFor = (entry: any) => [
+  entry.titleEn,
+  translate(entry.titleEn),
+  ...(entry.trailEn || []),
+  ...(entry.trailEn || []).map(translate),
+  entry.organ,
+  translate(entry.organ),
+]
+const webExactFiltered = computed(() => {
+  return webEntries.value
+    .filter((entry) => {
+      if (imageOrgan.value !== 'all' && entry.organ !== imageOrgan.value) return false
+      return matchesPathologySearch(webFieldsFor(entry), imageQuery.value)
+    })
+    .sort((a, b) => imageQuery.value
+      ? pathologySearchScore(webFieldsFor(b), imageQuery.value) - pathologySearchScore(webFieldsFor(a), imageQuery.value)
+      : 0)
+})
+const webRelatedFiltered = computed(() => {
+  if (!imageQuery.value || webExactFiltered.value.length || !webRelatedSearches.value.length) return []
+
+  const scoreFor = (entry: any) => Math.max(
+    ...webRelatedSearches.value.map((relatedQuery) => pathologySearchScore(webFieldsFor(entry), relatedQuery)),
+  )
 
   return webEntries.value
     .filter((entry) => {
       if (imageOrgan.value !== 'all' && entry.organ !== imageOrgan.value) return false
-      return matchesPathologySearch(fieldsFor(entry), imageQuery.value)
+      return webRelatedSearches.value.some((relatedQuery) => matchesPathologySearch(webFieldsFor(entry), relatedQuery))
     })
-    .sort((a, b) => imageQuery.value
-      ? pathologySearchScore(fieldsFor(b), imageQuery.value) - pathologySearchScore(fieldsFor(a), imageQuery.value)
-      : 0)
+    .sort((a, b) => scoreFor(b) - scoreFor(a))
 })
+const webUsingRelated = computed(() => Boolean(imageQuery.value && !webExactFiltered.value.length && webRelatedFiltered.value.length))
+const webFiltered = computed(() => webUsingRelated.value ? webRelatedFiltered.value : webExactFiltered.value)
 const visibleWebEntries = computed(() => webFiltered.value.slice(0, imageLimit.value))
 
 const openImageManager = (item: any) => {
@@ -656,6 +680,11 @@ onMounted(async () => {
           <v-text-field v-model="whoQuery" prepend-inner-icon="mdi-magnify" placeholder="Tìm tên đầy đủ hoặc từ viết tắt Việt/Anh…" hide-details clearable />
           <v-select v-model="whoVolume" :items="[{ id: 'all', nameVi: 'Tất cả quyển WHO' }, ...whoVolumes]" item-title="nameVi" item-value="id" hide-details />
         </div>
+        <div v-if="whoAliasExpansions.length" class="search-interpretation">
+          <v-icon size="18">mdi-check-decagram-outline</v-icon>
+          <span>Đã nhận diện <strong>{{ whoQuery.trim().toUpperCase() }}</strong>:</span>
+          <b>{{ whoAliasExpansions[0] }}</b>
+        </div>
         <div class="source-grid">
           <article v-for="entry in visibleWhoEntries" :key="`${entry.bookId}-${entry.chapterId}`" class="source-card">
             <div class="source-card-top"><span>{{ volumeFor(entry.volumeId)?.short }}</span><small>{{ entry.entryType }}</small></div>
@@ -664,23 +693,34 @@ onMounted(async () => {
             <a :href="entry.url" target="_blank" rel="noopener noreferrer">Mở đúng mục WHO <v-icon size="15">mdi-open-in-new</v-icon></a>
           </article>
         </div>
+        <div v-if="whoQuery && visibleWhoEntries.length === 0" class="empty-results"><v-icon size="38">mdi-book-search-outline</v-icon><strong>Không tìm thấy mục WHO khớp với từ khóa</strong><span>Kho không tự tạo chẩn đoán khi danh mục WHO chính thức không có mục tương ứng.</span></div>
         <div v-if="visibleWhoEntries.length < whoFiltered.length" class="load-more"><v-btn variant="outlined" color="primary" @click="whoLimit += 48">Hiển thị thêm</v-btn></div>
       </section>
 
       <section v-show="activeView === 'images'" class="content-view">
-        <header class="view-header"><div><p>KHO LIÊN KẾT ẢNH WEBPATHOLOGY</p><h2>Mở gallery đúng chủ đề trên nguồn gốc</h2><span>Atlas chỉ lập chỉ mục và dẫn nguồn; không sao chép ảnh có bản quyền.</span></div><div class="view-counter"><strong>{{ webFiltered.length.toLocaleString('vi-VN') }}</strong><span>gallery phù hợp</span></div></header>
+        <header class="view-header"><div><p>KHO LIÊN KẾT ẢNH WEBPATHOLOGY</p><h2>Mở gallery đúng chủ đề trên nguồn gốc</h2><span>Atlas chỉ lập chỉ mục và dẫn nguồn; không sao chép ảnh có bản quyền.</span></div><div class="view-counter"><strong>{{ webFiltered.length.toLocaleString('vi-VN') }}</strong><span>{{ webUsingRelated ? 'nguồn liên quan' : 'gallery phù hợp' }}</span></div></header>
         <div class="library-filter">
           <v-text-field v-model="imageQuery" prepend-inner-icon="mdi-magnify" placeholder="Tìm tên đầy đủ hoặc từ viết tắt Việt/Anh…" hide-details clearable />
           <v-select v-model="imageOrgan" :items="[{ id: 'all', name: 'Tất cả cơ quan' }, ...webOrgans.map((organ: any) => ({ id: organ.id || organ.organ || organ, name: translate(organ.nameEn || organ.name || organ.id || organ) }))]" item-title="name" item-value="id" hide-details />
         </div>
+        <div v-if="webAliasExpansions.length" class="search-interpretation">
+          <v-icon size="18">mdi-check-decagram-outline</v-icon>
+          <span>Đã nhận diện <strong>{{ imageQuery.trim().toUpperCase() }}</strong>:</span>
+          <b>{{ webAliasExpansions[0] }}</b>
+        </div>
+        <div v-if="webUsingRelated" class="source-notice">
+          <v-icon size="20">mdi-image-filter-center-focus-strong-outline</v-icon>
+          <div><strong>WebPathology chưa có gallery đúng tên “{{ imageQuery.trim() }}”.</strong><span>Đang hiển thị các gallery liên quan để đối chiếu hình thái; đây không phải ảnh đại diện trực tiếp cho chẩn đoán.</span></div>
+        </div>
         <div class="source-grid">
           <article v-for="entry in visibleWebEntries" :key="entry.url" class="source-card image-source-card">
-            <div class="source-card-top"><span>{{ translate(entry.organ) }}</span><small>WebPathology</small></div>
+            <div class="source-card-top"><span>{{ translate(entry.organ) }}</span><small>{{ webUsingRelated ? 'WebPathology · Liên quan' : 'WebPathology' }}</small></div>
             <h3>{{ translate(entry.titleEn) }}</h3><p class="source-english">{{ entry.titleEn }}</p>
             <p>{{ (entry.trailEn || []).map(translate).join(' › ') }}</p>
             <a :href="entry.url" target="_blank" rel="noopener noreferrer">Mở gallery nguồn <v-icon size="15">mdi-open-in-new</v-icon></a>
           </article>
         </div>
+        <div v-if="imageQuery && visibleWebEntries.length === 0" class="empty-results"><v-icon size="38">mdi-image-search-outline</v-icon><strong>Chưa có gallery khớp hoặc đủ gần trong WebPathology</strong><span>Atlas không gán ảnh của bệnh khác chỉ để lấp kết quả trống.</span></div>
         <div v-if="visibleWebEntries.length < webFiltered.length" class="load-more"><v-btn variant="outlined" color="primary" @click="imageLimit += 48">Hiển thị thêm</v-btn></div>
       </section>
     </template>
@@ -792,7 +832,7 @@ onMounted(async () => {
 .load-more { padding: 25px 0 5px; display: flex; justify-content: center; }.empty-results { min-height: 250px; display: grid; place-content: center; justify-items: center; gap: 8px; color: #69808c; text-align: center; }.empty-results strong { color: #385568; }.empty-results span { font-size: .8rem; }
 .content-view { max-width: 1580px; margin: 0 auto; padding: 27px clamp(18px,3vw,38px) 42px; }.view-header { min-height: 94px; display: flex; align-items: flex-start; justify-content: space-between; gap: 24px; }.view-header h2 { margin: 0; color: #17364a; font: 700 1.75rem var(--font-heading); letter-spacing: 0; }.view-header span { color: #6c818c; font-size: .8rem; }.view-counter { min-width: 130px; padding-left: 18px; display: flex; flex-direction: column; border-left: 2px solid #d4af37; }.view-counter strong { color: #17364a; font-size: 1.5rem; }.morphology-form, .library-filter { padding: 18px; display: grid; grid-template-columns: minmax(180px,.35fr) minmax(300px,1fr) auto; align-items: center; gap: 12px; background: #fff; border: 1px solid #d4e0e5; border-radius: 5px; }
 .clue-groups { margin-top: 16px; display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 12px; }.clue-groups section { padding: 15px; background: #fff; border: 1px solid #d7e2e6; border-radius: 5px; }.clue-groups h3 { margin: 0 0 10px; color: #56717f; font: 800 .68rem var(--font-body); text-transform: uppercase; }.clue-groups section > div { display: flex; flex-wrap: wrap; gap: 6px; }.morph-results-heading { margin: 24px 0 12px; display: flex; justify-content: space-between; border-bottom: 1px solid #d4e0e5; }.morph-results-heading h3 { margin: 0 0 9px; color: #17364a; font: 700 1rem var(--font-body); }.morph-results-heading span { color: #718691; font-size: .74rem; }
-.library-filter { grid-template-columns: minmax(300px,1fr) minmax(240px,.4fr); margin-bottom: 18px; }.source-grid { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 12px; }.source-card { min-width: 0; padding: 16px; background: #fff; border: 1px solid #d5e0e5; border-radius: 5px; box-shadow: 0 3px 10px rgba(20,53,71,.05); }.source-card-top { display: flex; justify-content: space-between; color: #16877e; font-size: .65rem; font-weight: 900; text-transform: uppercase; }.source-card-top small { color: #6d818b; }.source-card h3 { margin: 10px 0 0; color: #15374a; font: 700 .98rem/1.4 var(--font-body); letter-spacing: 0; }.source-card p { min-height: 36px; margin: 8px 0; color: #627985; font-size: .73rem; line-height: 1.45; }.source-card .source-english { min-height: 0; color: #315b6e; font-weight: 600; }.source-card a { min-height: 34px; margin-top: 10px; display: inline-flex; align-items: center; gap: 6px; color: #176c70; font-size: .74rem; font-weight: 800; }
+.library-filter { grid-template-columns: minmax(300px,1fr) minmax(240px,.4fr); margin-bottom: 12px; }.search-interpretation, .source-notice { margin-bottom: 14px; padding: 10px 12px; display: flex; align-items: center; gap: 8px; color: #244e61; background: #eaf7f5; border: 1px solid #b9ddd8; border-radius: 5px; font-size: .76rem; line-height: 1.45; }.search-interpretation b { overflow: hidden; color: #166c68; text-overflow: ellipsis; white-space: nowrap; }.source-notice { align-items: flex-start; color: #684f18; background: #fff9e8; border-color: #ead593; }.source-notice > div { display: flex; flex-direction: column; gap: 2px; }.source-notice span { color: #796b49; }.source-grid { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 12px; }.source-card { min-width: 0; padding: 16px; background: #fff; border: 1px solid #d5e0e5; border-radius: 5px; box-shadow: 0 3px 10px rgba(20,53,71,.05); }.source-card-top { display: flex; justify-content: space-between; color: #16877e; font-size: .65rem; font-weight: 900; text-transform: uppercase; }.source-card-top small { color: #6d818b; }.source-card h3 { margin: 10px 0 0; color: #15374a; font: 700 .98rem/1.4 var(--font-body); letter-spacing: 0; }.source-card p { min-height: 36px; margin: 8px 0; color: #627985; font-size: .73rem; line-height: 1.45; }.source-card .source-english { min-height: 0; color: #315b6e; font-weight: 600; }.source-card a { min-height: 34px; margin-top: 10px; display: inline-flex; align-items: center; gap: 6px; color: #176c70; font-size: .74rem; font-weight: 800; }
 .editor-dialog :deep(.v-card-title) { color: #fff; background: #173b4e; font: 700 1.1rem var(--font-body); }.editor-dialog :deep(.v-card-text) { padding-top: 22px; }.field-divider { margin: 4px 0 18px; display: flex; align-items: center; gap: 10px; color: #7b8c95; font-size: .7rem; }.field-divider::before, .field-divider::after { content:''; flex:1; height:1px; background:#d9e2e6; }.dialog-note { padding: 10px 12px; color: #6c7f89; background: #eef3f5; border-left: 3px solid #d4af37; font-size: .72rem; line-height: 1.5; }.custom-form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 4px 14px; }.span-two { grid-column: 1/-1; }
 @keyframes livePulse { 0%, 100% { box-shadow: 0 0 0 5px rgba(85,216,208,.1); } 50% { box-shadow: 0 0 0 9px rgba(85,216,208,0); } }
 @keyframes galleryReveal { from { opacity: 0; transform: translateY(20px) rotateX(4deg); } to { opacity: 1; transform: translateY(0) rotateX(0); } }

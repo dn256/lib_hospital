@@ -55,7 +55,7 @@ export default defineNuxtConfig({
 
   app: {
     head: {
-      title: 'Thư viện Mô bệnh học',
+      title: 'Thư viện mô bệnh học',
       meta: [
         { name: 'description', content: 'Thư viện tra cứu mô tả vi thể các bệnh lý - Pathology Library' },
         { name: 'viewport', content: 'width=device-width, initial-scale=1' },
