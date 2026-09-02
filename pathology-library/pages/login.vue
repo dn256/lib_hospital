@@ -118,7 +118,7 @@ onMounted(() => {
         <div class="scene-heading">
           <span class="scene-kicker">DIGITAL PATHOLOGY WORKSPACE</span>
           <h1>Quan sát. Đối chiếu.<br>Đi đến chẩn đoán.</h1>
-          <p>Thư viện ca, Atlas vi thể, HMMD và phân loại WHO trong một hệ thống học tập.</p>
+          <p>Thư viện mô bệnh học, Atlas vi thể, Thư viện HMMD và phân loại WHO trong một hệ thống học tập.</p>
         </div>
 
         <div class="visual-stage" aria-hidden="true">
@@ -284,7 +284,7 @@ onMounted(() => {
 
     <footer class="login-footer">
       <span>PathologyLib · GPB System</span>
-      <span>Thư viện ca · Atlas · HMMD · WHO</span>
+      <span>Thư viện mô bệnh học · Atlas · Thư viện HMMD · WHO</span>
     </footer>
   </div>
 </template>

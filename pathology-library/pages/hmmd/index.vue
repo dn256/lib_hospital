@@ -147,7 +147,7 @@ onMounted(() => load().catch(() => undefined))
     <section class="hmmd-hero">
       <div>
         <p class="eyebrow">KHO TRA CỨU NỘI BỘ · CÓ XÁC THỰC</p>
-        <h1>Tra cứu Hóa mô miễn dịch</h1>
+        <h1>Thư viện Hóa mô miễn dịch (HMMD)</h1>
         <p>Tìm theo cơ quan, chẩn đoán, kết luận hoặc tổ hợp dấu ấn dương tính/âm tính trong cùng tài khoản PathologyLib.</p>
       </div>
       <div class="hero-stats" aria-label="Thống kê HMMD">

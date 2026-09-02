@@ -34,7 +34,12 @@ const PATHOLOGY_ALIASES: Record<string, string[]> = {
   mia: ['minimally invasive adenocarcinoma', 'ung thu bieu mo tuyen xam nhap toi thieu'],
   mpnst: ['malignant peripheral nerve sheath tumour', 'malignant peripheral nerve sheath tumor', 'u ac tinh bao than kinh ngoai bien'],
   mtc: ['medullary thyroid carcinoma', 'ung thu bieu mo tuy tuyen giap'],
-  niftp: ['noninvasive follicular thyroid neoplasm with papillary like nuclear features', 'u tan sinh dang nang khong xam nhap co dac diem nhan giong ung thu bieu mo the nhu'],
+  niftp: [
+    'non-invasive follicular thyroid neoplasm with papillary-like nuclear features',
+    'noninvasive follicular thyroid neoplasm with papillary like nuclear features',
+    'tan sinh tuyen giap dang nang khong xam nhap voi dac diem nhan dang nhu',
+    'u tan sinh dang nang khong xam nhap co dac diem nhan giong ung thu bieu mo the nhu',
+  ],
   nsclc: ['non small cell lung carcinoma', 'non small cell carcinoma', 'ung thu bieu mo phoi khong te bao nho'],
   panin: ['pancreatic intraepithelial neoplasia', 'tan san noi bieu mo tuy'],
   pdac: ['pancreatic ductal adenocarcinoma', 'ung thu bieu mo tuyen ong tuy'],
@@ -48,6 +53,17 @@ const PATHOLOGY_ALIASES: Record<string, string[]> = {
   vain: ['vaginal intraepithelial neoplasia', 'tan san noi bieu mo am dao'],
   vin: ['vulvar intraepithelial neoplasia', 'tan san noi bieu mo am ho'],
   wdlps: ['well differentiated liposarcoma', 'atypical lipomatous tumour', 'sarcoma mo mo biet hoa ro'],
+}
+
+const PATHOLOGY_RELATED_QUERIES: Record<string, string[]> = {
+  adh: ['breast ductal hyperplasia'],
+  hcc: ['liver tumors and tumor like lesions'],
+  idc: ['invasive breast carcinoma', 'infiltrating ductal carcinoma'],
+  niftp: ['thyroid follicular', 'thyroid papillary carcinoma'],
+  nsclc: ['epithelial lung tumors'],
+  ptc: ['thyroid papillary carcinoma'],
+  sclc: ['pulmonary neuroendocrine tumors'],
+  udh: ['breast ductal hyperplasia'],
 }
 
 export const normalizePathologySearch = (value: unknown) => String(value || '')
@@ -70,6 +86,8 @@ const wordsFor = (value: unknown) => normalizePathologySearch(value)
   .split(/[^a-z0-9]+/)
   .filter(Boolean)
 
+const compactFor = (value: unknown) => normalizePathologySearch(value).replace(/[^a-z0-9]+/g, '')
+
 const acronymFor = (value: unknown) => wordsFor(value)
   .filter((word) => !ACRONYM_STOP_WORDS.has(word))
   .map((word) => word.charAt(0))
@@ -87,13 +105,33 @@ const createSearchContext = (fields: SearchField) => {
   const normalizedFields = fieldList.map(normalizePathologySearch).filter(Boolean)
   const combined = normalizedFields.join(' ')
   const words = combined.split(/[^a-z0-9+/-]+/).filter(Boolean)
-  return { normalizedFields, combined, words, acronyms: acronymCandidates(fieldList) }
+  return {
+    normalizedFields,
+    combined,
+    compactFields: fieldList.map(compactFor).filter(Boolean),
+    compactCombined: compactFor(combined),
+    words,
+    wordSet: new Set(words.flatMap((word) => word.split(/[^a-z0-9]+/).filter(Boolean))),
+    acronyms: acronymCandidates(fieldList),
+  }
+}
+
+const phraseMatchesContext = (phrase: string, context: ReturnType<typeof createSearchContext>) => {
+  const normalizedPhrase = normalizePathologySearch(phrase)
+  if (!normalizedPhrase) return false
+  if (context.combined.includes(normalizedPhrase)) return true
+
+  const compactPhrase = compactFor(phrase)
+  if (compactPhrase.length >= 5 && context.compactCombined.includes(compactPhrase)) return true
+
+  const phraseWords = wordsFor(phrase)
+  return phraseWords.length > 1 && phraseWords.every((word) => context.wordSet.has(word))
 }
 
 const tokenMatches = (token: string, context: ReturnType<typeof createSearchContext>) => {
   const aliases = PATHOLOGY_ALIASES[token]
   if (aliases) {
-    return aliases.some((alias) => context.combined.includes(normalizePathologySearch(alias)))
+    return aliases.some((alias) => phraseMatchesContext(alias, context))
   }
 
   if (token.length >= 2 && context.acronyms.has(token)) return true
@@ -105,7 +143,9 @@ export const matchesPathologySearch = (fields: SearchField, query: unknown) => {
   if (!normalizedQuery) return true
 
   const context = createSearchContext(fields)
-  if (context.combined.includes(normalizedQuery)) return true
+  // Short abbreviations must resolve as complete concepts. A raw substring
+  // would make PTC match unrelated tokens such as PTCH1.
+  if (normalizedQuery.length >= 5 && context.combined.includes(normalizedQuery)) return true
 
   return normalizedQuery.split(/\s+/).filter(Boolean).every((token) => tokenMatches(token, context))
 }
@@ -120,11 +160,21 @@ export const pathologySearchScore = (fields: SearchField, query: unknown) => {
   let score = context.combined.includes(normalizedQuery) ? 120 : 0
   for (const token of normalizedQuery.split(/\s+/).filter(Boolean)) {
     const aliases = PATHOLOGY_ALIASES[token]
-    if (aliases?.some((alias) => context.normalizedFields.some((field) => field === normalizePathologySearch(alias)))) score += 100
-    else if (aliases?.some((alias) => context.combined.includes(normalizePathologySearch(alias)))) score += 70
+    if (aliases?.some((alias) => context.compactFields.some((field) => field === compactFor(alias)))) score += 100
+    else if (aliases?.some((alias) => phraseMatchesContext(alias, context))) score += 70
     else if (context.acronyms.has(token)) score += 60
     else if (context.words.includes(token)) score += 40
     else score += 20
   }
   return score
+}
+
+export const pathologyAliasExpansions = (query: unknown) => {
+  const tokens = normalizePathologySearch(query).split(/\s+/).filter(Boolean)
+  return [...new Set(tokens.flatMap((token) => PATHOLOGY_ALIASES[token] || []))]
+}
+
+export const pathologyRelatedQueries = (query: unknown) => {
+  const tokens = normalizePathologySearch(query).split(/\s+/).filter(Boolean)
+  return [...new Set(tokens.flatMap((token) => PATHOLOGY_RELATED_QUERIES[token] || []))]
 }

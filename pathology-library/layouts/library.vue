@@ -12,9 +12,9 @@ const isLibrary = computed(() => route.path === '/library')
 
 const navItems = [
   { title: 'Trang chủ', icon: 'mdi-home-outline', to: '/' },
-  { title: 'Thư viện ca', icon: 'mdi-bookshelf', to: '/library' },
+  { title: 'Thư viện mô bệnh học', icon: 'mdi-bookshelf', to: '/library' },
   { title: 'Atlas GPB', icon: 'mdi-microscope', to: '/atlas' },
-  { title: 'Tra cứu HMMD', icon: 'mdi-test-tube', to: '/hmmd' },
+  { title: 'Thư viện HMMD', icon: 'mdi-test-tube', to: '/hmmd' },
   { title: 'Danh mục WHO', icon: 'mdi-book-open-page-variant', to: '/atlas?view=who' },
   { title: 'Kho ảnh', icon: 'mdi-image-multiple', to: '/atlas?view=images' },
   { title: 'Đa nhiệm', icon: 'mdi-view-split-vertical', to: '/workspace' },
