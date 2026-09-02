@@ -8,7 +8,9 @@
     "generate": "nuxt generate",
     "preview": "nuxt preview",
     "postinstall": "nuxt prepare",
-    "atlas:refresh": "node scripts/export-integrated-atlas-data.mjs"
+    "atlas:refresh": "node scripts/export-integrated-atlas-data.mjs",
+    "hmmd:sync:nordiqc": "node scripts/sync-nordiqc-markers.mjs",
+    "hmmd:sync:hpa-images": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/sync-hpa-marker-images.ps1"
   },
   "dependencies": {
     "@mdi/font": "^7.4.47",
