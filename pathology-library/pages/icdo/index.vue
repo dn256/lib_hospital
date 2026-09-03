@@ -145,13 +145,17 @@ const featuredMorphology = computed(() => {
     .filter(Boolean) as MorphologyEntry[]
 })
 
-const morphologyResults = computed(() => {
+const matchingMorphologyResults = computed(() => {
   if (!catalog.value) return []
   const query = deferredMorphologyQuery.value.trim()
   if (!query) {
-    return featuredMorphology.value
+    const filteredEntries = morphologyIndex.value
+      .map(item => item.entry)
       .filter(entry => behaviourFilter.value === 'all' || entry.behaviour === behaviourFilter.value)
-      .slice(0, morphologyLimit.value)
+    const featuredEntries = featuredMorphology.value
+      .filter(entry => behaviourFilter.value === 'all' || entry.behaviour === behaviourFilter.value)
+    const featuredCodes = new Set(featuredEntries.map(entry => entry.code))
+    return [...featuredEntries, ...filteredEntries.filter(entry => !featuredCodes.has(entry.code))]
   }
   return morphologyIndex.value
     .filter(({ entry }) => behaviourFilter.value === 'all' || entry.behaviour === behaviourFilter.value)
@@ -162,8 +166,9 @@ const morphologyResults = computed(() => {
     .filter(item => item.score >= 0)
     .sort((a, b) => b.score - a.score)
     .map(item => item.entry)
-    .slice(0, morphologyLimit.value)
 })
+const morphologyResults = computed(() => matchingMorphologyResults.value.slice(0, morphologyLimit.value))
+const morphologyResultCount = computed(() => matchingMorphologyResults.value.length)
 
 const allTopographyIndex = computed(() => {
   return includeOptionalTopography.value
@@ -267,6 +272,10 @@ watch(topographyQuery, (value) => {
   topographyTimer = window.setTimeout(() => {
     deferredTopographyQuery.value = value
   }, 160)
+})
+
+watch(behaviourFilter, () => {
+  morphologyLimit.value = 36
 })
 
 onUnmounted(() => {
@@ -389,7 +398,7 @@ onMounted(async () => {
           <div class="morphology-panel">
             <div class="panel-heading">
               <div><p>CHẨN ĐOÁN / MORPHOLOGY</p><h2>Tra mã hình thái</h2></div>
-              <span>{{ morphologyResults.length }} kết quả đang hiển thị</span>
+              <span>Đang hiển thị {{ morphologyResults.length.toLocaleString('vi-VN') }} / {{ morphologyResultCount.toLocaleString('vi-VN') }} kết quả</span>
             </div>
             <div class="search-row">
               <label class="search-box">
@@ -424,7 +433,10 @@ onMounted(async () => {
                 </div>
               </article>
             </div>
-            <div v-else class="empty-results"><v-icon size="32">mdi-database-search-outline</v-icon><strong>Chưa tìm thấy mã phù hợp</strong><span>Thử tên tiếng Việt, tên tiếng Anh, mã ICD-O-4 hoặc một từ viết tắt chuyên ngành.</span></div>
+            <button v-if="morphologyResults.length < morphologyResultCount" class="load-more" @click="morphologyLimit += 36">
+              Hiện thêm mã hình thái (còn {{ (morphologyResultCount - morphologyResults.length).toLocaleString('vi-VN') }})
+            </button>
+            <div v-if="!morphologyResults.length" class="empty-results"><v-icon size="32">mdi-database-search-outline</v-icon><strong>Chưa tìm thấy mã phù hợp</strong><span>Thử tên tiếng Việt, tên tiếng Anh, mã ICD-O-4 hoặc một từ viết tắt chuyên ngành.</span></div>
           </div>
 
           <aside class="topography-panel">
