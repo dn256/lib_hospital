@@ -118,7 +118,7 @@ onMounted(() => {
         <div class="scene-heading">
           <span class="scene-kicker">DIGITAL PATHOLOGY WORKSPACE</span>
           <h1>Quan sát. Đối chiếu.<br>Đi đến chẩn đoán.</h1>
-          <p>Thư viện mô bệnh học, Atlas vi thể, Thư viện HMMD và phân loại WHO trong một hệ thống học tập.</p>
+          <p>Thư viện mô bệnh học, Atlas vi thể, Thư viện HMMD, tra cứu ICD-O-4 và phân loại WHO trong một hệ thống học tập.</p>
         </div>
 
         <div class="visual-stage" aria-hidden="true">

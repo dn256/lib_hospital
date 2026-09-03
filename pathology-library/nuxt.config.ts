@@ -29,6 +29,7 @@ export default defineNuxtConfig({
     '/workspace': { ssr: false },
     '/atlas': { ssr: false },
     '/hmmd': { ssr: false },
+    '/icdo': { ssr: false },
     '/cases/**': { ssr: false },
     '/admin/**': { ssr: false },
   },

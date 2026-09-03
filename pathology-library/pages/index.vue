@@ -37,6 +37,15 @@ const modules = [
     action: 'Tra cứu dấu ấn',
   },
   {
+    title: 'Tra cứu ICD-O',
+    subtitle: 'ICD-O-4 lookup',
+    description: 'Tra mã vị trí, hình thái và hành vi bằng tiếng Việt, English hoặc từ viết tắt.',
+    icon: 'mdi-code-tags',
+    to: '/icdo',
+    color: '#70c7a8',
+    action: 'Tra cứu ICD-O-4',
+  },
+  {
     title: 'Danh mục WHO',
     subtitle: 'WHO Classification',
     description: 'Mở mục lục phân loại WHO và liên kết đúng tới nội dung nguồn.',
@@ -103,7 +112,7 @@ const handleLogout = async () => {
         <section class="module-section" aria-labelledby="module-heading">
           <div class="section-heading">
             <div><p>CÁC MÔ-ĐUN</p><h2 id="module-heading">Không gian làm việc</h2></div>
-            <span>5 công cụ đã kết nối</span>
+            <span>{{ modules.length }} công cụ đã kết nối</span>
           </div>
 
           <div class="module-grid">
@@ -159,7 +168,7 @@ const handleLogout = async () => {
 .hub-intro h1 { margin: 0; font: 700 2.55rem/1.12 var(--font-heading); }.hub-intro > div > p:last-child { max-width: 720px; margin: 12px 0 0; color: #b9cad4; font-size: .9rem; }
 .split-quick-link { min-height: 70px; padding: 13px 16px; display: grid; grid-template-columns: 32px minmax(0,1fr) 20px; align-items: center; gap: 10px; color: #fff; background: rgba(61,199,194,.1); border: 1px solid rgba(83,224,216,.38); border-radius: 8px; transition: background-color .2s ease, transform .2s ease, border-color .2s ease; }.split-quick-link:hover { color: #fff; background: rgba(61,199,194,.18); border-color: #65e4dd; transform: translateY(-2px); }.split-quick-link > span { display: flex; flex-direction: column; }.split-quick-link strong { font-size: .82rem; }.split-quick-link small { margin-top: 4px; color: #9fc6c6; font-size: .68rem; }
 .module-section { margin-top: 44px; }.section-heading { margin-bottom: 15px; display: flex; align-items: end; justify-content: space-between; gap: 20px; }.section-heading h2 { margin: 0; font: 700 1.55rem var(--font-heading); }.section-heading > span { color: #8fa8b6; font-size: .72rem; }
-.module-grid { display: grid; grid-template-columns: repeat(6,minmax(0,1fr)); gap: 14px; }.module-card { --span: 2; grid-column: span var(--span); min-height: 220px; padding: 20px; display: flex; flex-direction: column; color: #fff; background: rgba(16,47,67,.78); border: 1px solid rgba(255,255,255,.13); border-radius: 8px; box-shadow: 0 18px 40px rgba(3,15,26,.2); backdrop-filter: blur(12px); animation: cardIn .5s ease both; animation-delay: calc(var(--module-index) * 60ms); transition: background-color .22s ease, border-color .22s ease, transform .22s ease, box-shadow .22s ease; }.module-card:nth-child(1), .module-card:nth-child(2) { --span: 3; }.module-card:hover { color: #fff; background: rgba(21,61,81,.94); border-color: color-mix(in srgb, var(--module-color) 70%, white); transform: translateY(-5px); box-shadow: 0 24px 54px rgba(2,14,24,.34); }
+.module-grid { display: grid; grid-template-columns: repeat(6,minmax(0,1fr)); gap: 14px; }.module-card { --span: 3; grid-column: span var(--span); min-height: 220px; padding: 20px; display: flex; flex-direction: column; color: #fff; background: rgba(16,47,67,.78); border: 1px solid rgba(255,255,255,.13); border-radius: 8px; box-shadow: 0 18px 40px rgba(3,15,26,.2); backdrop-filter: blur(12px); animation: cardIn .5s ease both; animation-delay: calc(var(--module-index) * 60ms); transition: background-color .22s ease, border-color .22s ease, transform .22s ease, box-shadow .22s ease; }.module-card:hover { color: #fff; background: rgba(21,61,81,.94); border-color: color-mix(in srgb, var(--module-color) 70%, white); transform: translateY(-5px); box-shadow: 0 24px 54px rgba(2,14,24,.34); }
 .module-icon { width: 48px; height: 48px; display: grid; place-items: center; color: #10283b; background: var(--module-color); border-radius: 7px; }.module-copy { min-width: 0; margin-top: 18px; display: flex; flex-direction: column; }.module-copy small { color: var(--module-color); font-size: .63rem; font-weight: 900; text-transform: uppercase; }.module-copy strong { margin-top: 4px; font: 700 1.22rem var(--font-heading); }.module-copy > span { margin-top: 8px; color: #aebfca; font-size: .75rem; line-height: 1.55; }.module-action { margin-top: auto; padding-top: 15px; display: flex; align-items: center; justify-content: space-between; color: #e7eff3; border-top: 1px solid rgba(255,255,255,.1); font-size: .72rem; font-weight: 800; }.module-action :deep(.v-icon) { transition: transform .2s ease; }.module-card:hover .module-action :deep(.v-icon) { transform: translateX(4px); }
 .multitask-panel { min-height: 260px; margin-top: 18px; padding: 28px; display: grid; grid-template-columns: minmax(300px,.8fr) minmax(420px,1.2fr); align-items: center; gap: 40px; background: rgba(9,31,48,.78); border: 1px solid rgba(255,255,255,.13); border-radius: 8px; backdrop-filter: blur(14px); }.multitask-copy h2 { max-width: 600px; margin: 0; font: 700 1.65rem/1.25 var(--font-heading); }.multitask-copy > span { display: block; margin: 10px 0 18px; color: #aabdc8; font-size: .76rem; }.multitask-copy :deep(.v-btn) { text-transform: none; font-weight: 800; }
 .split-preview { height: 205px; display: grid; grid-template-columns: 1fr 1fr; gap: 9px; padding: 9px; background: #091b2a; border: 1px solid rgba(255,255,255,.14); border-radius: 7px; box-shadow: 0 20px 36px rgba(2,14,24,.32); }.split-preview > div { padding: 12px; display: flex; flex-direction: column; gap: 9px; overflow: hidden; background: #f2f6f7; border-radius: 5px; }.split-preview span { display: flex; align-items: center; gap: 6px; color: #17384b; font-size: .68rem; font-weight: 900; }.split-preview i { height: 35px; display: block; background: linear-gradient(90deg,#dce7ea 35%,#eef3f5 35%); border-radius: 3px; }.split-preview b { height: 46px; display: block; background: linear-gradient(90deg,#d97aa0,#e9b0c7 44%,#dce7ea 44%); border-radius: 3px; opacity: .82; }

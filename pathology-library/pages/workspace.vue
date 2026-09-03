@@ -7,6 +7,7 @@ const moduleOptions = [
   { value: 'library', title: 'Thư viện mô bệnh học', icon: 'mdi-bookshelf', path: '/library' },
   { value: 'atlas', title: 'Atlas GPB', icon: 'mdi-microscope', path: '/atlas' },
   { value: 'hmmd', title: 'Thư viện HMMD', icon: 'mdi-test-tube', path: '/hmmd' },
+  { value: 'icdo', title: 'Tra cứu ICD-O', icon: 'mdi-code-tags', path: '/icdo' },
   { value: 'who', title: 'Danh mục WHO', icon: 'mdi-book-open-page-variant', path: '/atlas?view=who' },
   { value: 'images', title: 'Kho ảnh', icon: 'mdi-image-multiple-outline', path: '/atlas?view=images' },
 ]

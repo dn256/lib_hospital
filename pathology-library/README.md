@@ -1,5 +1,16 @@
 # PathologyLib + Atlas GPB
 
+## Tra cứu ICD-O-4
+
+Mô-đun `/icdo` lập chỉ mục bảng cuối cùng ICD-O-4 của IARC/WHO, cho phép tra cứu riêng hai trục vị trí và hình thái bằng tiếng Việt, tiếng Anh, mã hoặc từ viết tắt.
+
+Làm mới dữ liệu từ ba bảng Excel chính thức:
+
+```powershell
+python scripts/import-icdo4.py --catalog ICD-O-4.xlsx --morphology-annexes Morphology_annexes.xlsx --topography-annexes Topography_annexes.xlsx --output public/icdo-data/icdo4-catalog.json
+npm run verify:icdo
+```
+
 Ung dung Nuxt 3 tich hop thu vien mo benh hoc, Atlas GPB song ngu va cong cu tra cuu HMMD trong cung mot giao dien va cung tai khoan Supabase.
 
 ## Chuc nang chinh

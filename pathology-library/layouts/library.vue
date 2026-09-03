@@ -16,6 +16,7 @@ const navItems = [
   { title: 'Thư viện mô bệnh học', icon: 'mdi-bookshelf', to: '/library' },
   { title: 'Atlas GPB', icon: 'mdi-microscope', to: '/atlas' },
   { title: 'Thư viện HMMD', icon: 'mdi-test-tube', to: '/hmmd' },
+  { title: 'Tra cứu ICD-O', icon: 'mdi-code-tags', to: '/icdo' },
   { title: 'Danh mục WHO', icon: 'mdi-book-open-page-variant', to: '/atlas?view=who' },
   { title: 'Kho ảnh', icon: 'mdi-image-multiple', to: '/atlas?view=images' },
   { title: 'Đa nhiệm', icon: 'mdi-view-split-vertical', to: '/workspace' },
@@ -144,7 +145,7 @@ const handleLogout = async () => {
     </main>
 
     <footer v-if="!embedded && !isWorkspace" class="library-footer">
-      <span>PathologyLib · Atlas GPB</span>
+      <span>PathologyLib · Không gian học tập GPB</span>
       <span>Chỉ dùng cho học tập, không thay thế chẩn đoán chuyên khoa.</span>
     </footer>
   </div>

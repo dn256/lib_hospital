@@ -122,10 +122,13 @@ const phraseMatchesContext = (phrase: string, context: ReturnType<typeof createS
   if (context.combined.includes(normalizedPhrase)) return true
 
   const compactPhrase = compactFor(phrase)
-  if (compactPhrase.length >= 5 && context.compactCombined.includes(compactPhrase)) return true
+  if (compactPhrase.length >= 5 && context.compactFields.some((field) => field.includes(compactPhrase))) return true
 
   const phraseWords = wordsFor(phrase)
-  return phraseWords.length > 1 && phraseWords.every((word) => context.wordSet.has(word))
+  return phraseWords.length > 1 && context.normalizedFields.some((field) => {
+    const fieldWords = new Set(field.split(/[^a-z0-9+/-]+/).filter(Boolean))
+    return phraseWords.every((word) => fieldWords.has(word))
+  })
 }
 
 const tokenMatches = (token: string, context: ReturnType<typeof createSearchContext>) => {
