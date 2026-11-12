@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, watch, onMounted, computed, nextTick } from "vue";
+import { ref, watch, onMounted, onUnmounted, computed, nextTick } from "vue";
 import { useCases } from "~/composables/useCases";
 import { useCatalogs } from "~/composables/useCatalogs";
 import { useVietnameseFilter } from "~/composables/useVietnameseFilter";
@@ -22,98 +22,81 @@ const selectedTag = ref<number | null>(null);
 const rows = ref<any[]>([]);
 const loading = ref(false);
 const showResults = ref(false);
+const searchError = ref(false);
+const catalogError = ref(false);
+let searchRequest = 0;
 
-// Stats
 const stats = ref({
-  totalCases: 500,
-  totalOrgans: 20,
-  totalDiagnoses: 100,
+  totalCases: null as number | null,
+  totalOrgans: null as number | null,
+  totalDiagnoses: null as number | null,
 });
-
-// UI State
 const mounted = ref(false);
 const activeCategory = ref<number | null>(null);
+let debounceTimer: ReturnType<typeof setTimeout> | undefined;
 
 onMounted(async () => {
   mounted.value = true;
-  await loadAll();
-
-  let casesCount = 500;
-  try {
-    const res = await count({ status: ["published"] });
-    if (res !== null) casesCount = res;
-  } catch (e) {
-    console.error(e);
-  }
-
-  stats.value = {
-    totalCases: casesCount,
-    totalOrgans: organs.value?.length || 20,
-    totalDiagnoses: diagnoses.value?.length || 100,
-  };
+  await Promise.all([
+    loadAll().then(() => {
+      stats.value.totalOrgans = organs.value.length;
+      stats.value.totalDiagnoses = diagnoses.value.length;
+    }).catch(() => { catalogError.value = true; }),
+    count({ status: ["published"] }).then(result => {
+      stats.value.totalCases = result;
+    }).catch(() => { catalogError.value = true; }),
+  ]);
 });
 
-let debounceTimer: any = null;
+onUnmounted(() => {
+  clearTimeout(debounceTimer);
+  searchRequest++;
+});
 
 const performSearch = async () => {
-  if (
-    !keyword.value &&
-    !selectedOrgan.value &&
-    !selectedDiagnosis.value &&
-    !selectedTag.value
-  ) {
+  clearTimeout(debounceTimer);
+  const request = ++searchRequest;
+  searchError.value = false;
+  if (!keyword.value.trim() && !selectedOrgan.value && !selectedDiagnosis.value && !selectedTag.value) {
     rows.value = [];
     showResults.value = false;
+    loading.value = false;
     return;
   }
 
   loading.value = true;
   showResults.value = true;
-
   try {
-    rows.value =
-      (await search({
-        keyword: keyword.value,
-        organIds: selectedOrgan.value ? [selectedOrgan.value] : undefined,
-        diagnosisIds: selectedDiagnosis.value
-          ? [selectedDiagnosis.value]
-          : undefined,
-        tagIds: selectedTag.value ? [selectedTag.value] : undefined,
-        status: ["published"],
-        limit: 50,
-        offset: 0,
-      })) || [];
+    const results = await search({
+      keyword: keyword.value.trim(),
+      organIds: selectedOrgan.value ? [selectedOrgan.value] : undefined,
+      diagnosisIds: selectedDiagnosis.value ? [selectedDiagnosis.value] : undefined,
+      tagIds: selectedTag.value ? [selectedTag.value] : undefined,
+      status: ["published"],
+      limit: 50,
+      offset: 0,
+    }) || [];
+    if (request !== searchRequest) return;
 
-    // Fetch missing catalogs to avoid miss data
-    if (rows.value.length > 0) {
-      const missingOrganIds = [
-        ...new Set(rows.value.map((r: any) => r.organ_id).filter(Boolean)),
-      ].filter((id) => !organs.value.some((o: any) => o.id === id));
+    const missingOrganIds = [...new Set<number>(results.map((row: any) => row.organ_id).filter(Boolean))]
+      .filter(id => !organs.value.some(organ => organ.id === id));
+    const missingDiagnosisIds = [...new Set<number>(results.map((row: any) => row.diagnosis_id).filter(Boolean))]
+      .filter(id => !diagnoses.value.some(diagnosis => diagnosis.id === id));
 
-      if (missingOrganIds.length > 0) {
-        const { data } = await supabase
-          .from("organs")
-          .select("id, name")
-          .in("id", missingOrganIds as number[]);
-        if (data) organs.value.push(...data);
-      }
-
-      const missingDiagIds = [
-        ...new Set(rows.value.map((r: any) => r.diagnosis_id).filter(Boolean)),
-      ].filter((id) => !diagnoses.value.some((d: any) => d.id === id));
-
-      if (missingDiagIds.length > 0) {
-        const { data } = await supabase
-          .from("diagnoses")
-          .select("id, name")
-          .in("id", missingDiagIds as number[]);
-        if (data) diagnoses.value.push(...data);
-      }
-    }
-  } catch (e) {
-    console.error(e);
+    const [organResult, diagnosisResult] = await Promise.all([
+      missingOrganIds.length ? supabase.from("organs").select("id, name").in("id", missingOrganIds) : null,
+      missingDiagnosisIds.length ? supabase.from("diagnoses").select("id, name").in("id", missingDiagnosisIds) : null,
+    ]);
+    if (request !== searchRequest) return;
+    if (organResult?.data) organs.value.push(...organResult.data.filter((item: any) => !organs.value.some(existing => existing.id === item.id)));
+    if (diagnosisResult?.data) diagnoses.value.push(...diagnosisResult.data.filter((item: any) => !diagnoses.value.some(existing => existing.id === item.id)));
+    rows.value = results;
+  } catch {
+    if (request !== searchRequest) return;
+    rows.value = [];
+    searchError.value = true;
   } finally {
-    loading.value = false;
+    if (request === searchRequest) loading.value = false;
   }
 };
 
@@ -133,6 +116,12 @@ const handleQuickSearch = async () => {
 
 watch([keyword, selectedOrgan, selectedDiagnosis, selectedTag], () => {
   clearTimeout(debounceTimer);
+  searchRequest++;
+  if (!keyword.value.trim() && !selectedOrgan.value && !selectedDiagnosis.value && !selectedTag.value) {
+    void performSearch();
+    return;
+  }
+  loading.value = true;
   debounceTimer = setTimeout(() => {
     performSearch();
   }, 400);
@@ -182,19 +171,27 @@ const getDiagnosisName = (rowOrId: any) => {
 const previewDialog = ref(false);
 const previewCase = ref<any>(null);
 const copiedField = ref("");
+const previewNoteError = ref(false);
+let previewRequest = 0;
 
 const openPreview = async (row: any) => {
-  previewCase.value = row;
+  const request = ++previewRequest;
+  previewCase.value = { ...row };
   previewDialog.value = true;
+  previewNoteError.value = false;
   copiedField.value = "";
 
-  const { data, error } = await supabase
-    .from("case_versions")
-    .select("note")
-    .eq("id", row.version_id)
-    .single();
-  if (error) throw error;
-  previewCase.value.note = data.note;
+  try {
+    const { data, error } = await supabase
+      .from("case_versions")
+      .select("note")
+      .eq("id", row.version_id)
+      .single();
+    if (error) throw error;
+    if (request === previewRequest) previewCase.value.note = data.note;
+  } catch {
+    if (request === previewRequest) previewNoteError.value = true;
+  }
 };
 
 const copyText = async (text: string, field: string) => {
@@ -327,9 +324,8 @@ const trustIndicators = [
               </h1>
 
               <p class="hero-description animate-slide-up delay-1">
-                Khám phá hơn <strong>500+</strong> mẫu bệnh phẩm vi thể được
-                phân loại theo hệ thống cơ quan. Công cụ tra cứu chuyên nghiệp
-                dành cho bác sĩ, sinh viên Y khoa và nhà nghiên cứu.
+                Tra cứu ca mô bệnh học đã công bố theo cơ quan, chẩn đoán
+                hoặc mô tả vi thể.
               </p>
 
               <!-- Quick Search -->
@@ -390,17 +386,17 @@ const trustIndicators = [
               <!-- Stats Row -->
               <div class="stats-row animate-slide-up delay-3">
                 <div class="stat-box">
-                  <div class="stat-value">{{ stats.totalCases }}+</div>
+                  <div class="stat-value">{{ stats.totalCases ?? "—" }}</div>
                   <div class="stat-label">Mẫu bệnh phẩm</div>
                 </div>
                 <div class="stat-divider"></div>
                 <div class="stat-box">
-                  <div class="stat-value">{{ stats.totalOrgans }}+</div>
+                  <div class="stat-value">{{ stats.totalOrgans ?? "—" }}</div>
                   <div class="stat-label">Hệ cơ quan</div>
                 </div>
                 <div class="stat-divider"></div>
                 <div class="stat-box">
-                  <div class="stat-value">{{ stats.totalDiagnoses }}+</div>
+                  <div class="stat-value">{{ stats.totalDiagnoses ?? "—" }}</div>
                   <div class="stat-label">Chẩn đoán</div>
                 </div>
               </div>
@@ -578,13 +574,19 @@ const trustIndicators = [
                   size="small"
                   class="ml-2"
                 >
-                  {{ rows.length }} kết quả
+                  {{ loading ? "Đang tìm…" : searchError ? "Lỗi tải" : `${rows.length} kết quả` }}
                 </v-chip>
               </div>
             </v-card-text>
           </v-card>
         </v-container>
       </section>
+
+      <v-container v-if="catalogError">
+        <v-alert type="warning" variant="tonal" density="compact">
+          Một phần danh mục hoặc thống kê chưa tải được. Bạn vẫn có thể thử tìm theo từ khóa.
+        </v-alert>
+      </v-container>
 
       <!-- Results Section -->
       <section v-if="showResults" id="results" class="results-section">
@@ -593,7 +595,13 @@ const trustIndicators = [
             <h2 class="section-title">Kết quả tìm kiếm</h2>
           </div>
 
-          <v-row v-if="!loading && rows.length > 0">
+          <v-alert v-if="!loading && searchError" type="error" variant="tonal" role="alert">
+            Không thể tải kết quả tìm kiếm.
+            <v-btn variant="text" @click="performSearch">Thử lại</v-btn>
+          </v-alert>
+          <v-progress-linear v-if="loading" indeterminate aria-label="Đang tìm ca bệnh" />
+
+          <v-row v-if="!loading && !searchError && rows.length > 0">
             <v-col
               v-for="(row, i) in rows"
               :key="row.version_id || row.id"
@@ -637,7 +645,7 @@ const trustIndicators = [
           </v-row>
 
           <div
-            v-if="!loading && rows.length === 0"
+            v-if="!loading && !searchError && rows.length === 0"
             class="empty-state text-center py-12"
           >
             <v-icon size="80" color="grey-lighten-2" class="mb-4"
@@ -764,7 +772,7 @@ const trustIndicators = [
                 </v-btn>
               </div>
               <div class="preview-content preview-description">
-                {{ previewCase.note || "Không có ghi chú" }}
+                {{ previewNoteError ? "Không thể tải ghi chú." : previewCase.note || "Không có ghi chú" }}
               </div>
             </div>
           </v-card-text>

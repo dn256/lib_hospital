@@ -132,6 +132,7 @@ const phraseMatchesContext = (phrase: string, context: ReturnType<typeof createS
 }
 
 const tokenMatches = (token: string, context: ReturnType<typeof createSearchContext>) => {
+  if (context.wordSet.has(token)) return true
   const aliases = PATHOLOGY_ALIASES[token]
   if (aliases) {
     return aliases.some((alias) => phraseMatchesContext(alias, context))
@@ -158,7 +159,8 @@ export const pathologySearchScore = (fields: SearchField, query: unknown) => {
   if (!normalizedQuery) return 0
 
   const context = createSearchContext(fields)
-  if (!normalizedQuery.split(/\s+/).every((token) => tokenMatches(token, context))) return -1
+  const phraseMatch = normalizedQuery.length >= 5 && context.combined.includes(normalizedQuery)
+  if (!phraseMatch && !normalizedQuery.split(/\s+/).every((token) => tokenMatches(token, context))) return -1
 
   let score = context.combined.includes(normalizedQuery) ? 120 : 0
   for (const token of normalizedQuery.split(/\s+/).filter(Boolean)) {

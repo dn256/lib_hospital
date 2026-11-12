@@ -63,11 +63,15 @@ const imageLimit = ref(48)
 const imageDialogOpen = ref(false)
 const imageTarget = ref<any | null>(null)
 const imageFile = ref<File | null>(null)
+const imagePublicConfirmed = ref(false)
+const imageSaveError = ref('')
 const imageSaving = ref(false)
 const imageForm = ref({ imageUrl: '', sourceUrl: '', sourceLabel: '', isShared: false })
 
 const customDialogOpen = ref(false)
 const customImageFile = ref<File | null>(null)
+const customImagePublicConfirmed = ref(false)
+const customSaveError = ref('')
 const customSaving = ref(false)
 const customForm = ref({
   chapter: 'thyroid',
@@ -388,6 +392,8 @@ const openImageManager = (item: any) => {
   const override = imageOverrides.value[item.id]
   imageTarget.value = item
   imageFile.value = null
+  imagePublicConfirmed.value = false
+  imageSaveError.value = ''
   imageForm.value = {
     imageUrl: override?.image_url || item.imageUrl || '',
     sourceUrl: override?.source_url || item.sourceUrl || '',
@@ -399,12 +405,16 @@ const openImageManager = (item: any) => {
 
 const saveManagedImage = async () => {
   if (!imageTarget.value) return
+  imageSaveError.value = ''
   imageSaving.value = true
   try {
     let imageUrl = imageForm.value.imageUrl.trim()
-    if (imageFile.value) imageUrl = await uploadImage(imageTarget.value.id, imageFile.value)
-    if (!/^https?:\/\//i.test(imageUrl)) throw new Error('Ảnh cần có URL hợp lệ hoặc tệp tải lên.')
     if (!/^https?:\/\//i.test(imageForm.value.sourceUrl.trim())) throw new Error('Cần nhập URL trang nguồn của ảnh.')
+    if (imageFile.value) {
+      if (!imagePublicConfirmed.value) throw new Error('Cần xác nhận ảnh đã khử định danh và được phép công khai.')
+      imageUrl = await uploadImage(imageTarget.value.id, imageFile.value)
+    }
+    if (!/^https?:\/\//i.test(imageUrl)) throw new Error('Ảnh cần có URL hợp lệ hoặc tệp tải lên.')
     await saveImageOverride({
       case_id: imageTarget.value.id,
       image_url: imageUrl,
@@ -416,7 +426,7 @@ const saveManagedImage = async () => {
     imageDialogOpen.value = false
     notify(backendAvailable.value ? 'Đã lưu ảnh vào Atlas.' : 'Đã lưu ảnh tạm trên thiết bị này.', backendAvailable.value ? 'success' : 'warning')
   } catch (saveError: any) {
-    notify(saveError?.message || 'Không thể lưu ảnh.', 'error')
+    imageSaveError.value = saveError?.message || 'Không thể lưu ảnh.'
   } finally {
     imageSaving.value = false
   }
@@ -429,12 +439,14 @@ const restoreImage = async () => {
     imageDialogOpen.value = false
     notify('Đã khôi phục ảnh gốc của hồ sơ.')
   } catch (restoreError: any) {
-    notify(restoreError?.message || 'Không thể khôi phục ảnh.', 'error')
+    imageSaveError.value = restoreError?.message || 'Không thể khôi phục ảnh.'
   }
 }
 
 const resetCustomForm = () => {
   customImageFile.value = null
+  customImagePublicConfirmed.value = false
+  customSaveError.value = ''
   customForm.value = {
     chapter: selectedOrgan.value !== 'all' ? selectedOrgan.value : 'thyroid',
     diagnosisVi: '', diagnosisEn: '', imageUrl: '', sourceUrl: '', sourceLabel: '',
@@ -449,15 +461,21 @@ const openCustomCaseDialog = () => {
 }
 
 const saveNewCustomCase = async () => {
+  customSaveError.value = ''
   if (!customForm.value.diagnosisVi.trim()) {
-    notify('Cần nhập tên chẩn đoán tiếng Việt.', 'error')
+    customSaveError.value = 'Cần nhập tên chẩn đoán tiếng Việt.'
     return
   }
   customSaving.value = true
   try {
     let imageUrl = customForm.value.imageUrl.trim()
-    if (customImageFile.value) imageUrl = await uploadImage(`custom-${Date.now()}`, customImageFile.value)
-    if (imageUrl && !customForm.value.sourceUrl.trim()) throw new Error('Ảnh phải có URL trang nguồn để đối chiếu.')
+    if ((imageUrl || customImageFile.value) && !/^https?:\/\//i.test(customForm.value.sourceUrl.trim())) {
+      throw new Error('Ảnh phải có URL trang nguồn hợp lệ để đối chiếu.')
+    }
+    if (customImageFile.value) {
+      if (!customImagePublicConfirmed.value) throw new Error('Cần xác nhận ảnh đã khử định danh và được phép công khai.')
+      imageUrl = await uploadImage(`custom-${Date.now()}`, customImageFile.value)
+    }
     await saveCustomCase({
       chapter: customForm.value.chapter,
       diagnosis_vi: customForm.value.diagnosisVi.trim(),
@@ -480,7 +498,7 @@ const saveNewCustomCase = async () => {
     customDialogOpen.value = false
     notify(backendAvailable.value ? 'Đã thêm hồ sơ vào Atlas.' : 'Đã lưu hồ sơ tạm trên thiết bị này.', backendAvailable.value ? 'success' : 'warning')
   } catch (saveError: any) {
-    notify(saveError?.message || 'Không thể thêm hồ sơ.', 'error')
+    customSaveError.value = saveError?.message || 'Không thể thêm hồ sơ.'
   } finally {
     customSaving.value = false
   }
@@ -502,10 +520,21 @@ watch(() => route.query.view, (value) => {
   activeView.value = next
 }, { immediate: true })
 
-watch(activeView, async (value) => {
-  if (route.query.view === value || (value === 'atlas' && !route.query.view)) return
-  await router.replace({ query: value === 'atlas' ? {} : { ...route.query, view: value } })
-})
+const changeView = async (value: string) => {
+  const { view: _view, q: _query, volume: _volume, entry: _entry, ...query } = route.query
+  await router.replace({ query: value === 'atlas' ? query : { ...query, view: value } })
+}
+
+watch(() => [route.query.q, route.query.volume], ([term, volume]) => {
+  whoQuery.value = typeof term === 'string' ? term : ''
+  whoVolume.value = typeof volume === 'string' ? volume : 'all'
+}, { immediate: true })
+
+watch(() => [route.query.entry, loaded.value] as const, ([entry, ready]) => {
+  if (typeof entry !== 'string' || !ready) return
+  const item = allCases.value.find(item => item.id === entry)
+  if (item) openCase(item)
+}, { immediate: true })
 
 watch([query, selectedOrgan, selectedPattern], () => { caseLimit.value = 36 })
 watch([whoQuery, whoVolume], () => { whoLimit.value = 48 })
@@ -523,7 +552,7 @@ onMounted(async () => {
 <template>
   <div class="atlas-page" :class="{ embedded }">
     <section class="atlas-hero">
-      <AnimatedBackground contained />
+      <AnimatedBackground v-if="!embedded" contained />
       <div class="hero-content">
         <div class="hero-kicker">
           <span class="live-dot" />
@@ -533,12 +562,12 @@ onMounted(async () => {
         <p class="hero-copy">Quan sát vi thể, định hướng hình thái và mở đúng nguồn WHO trong cùng một không gian PathologyLib.</p>
 
         <div class="hero-actions">
-          <button type="button" class="hero-primary" @click="activeView = 'atlas'">
+          <button type="button" class="hero-primary" @click="changeView('atlas')">
             <v-icon size="19">mdi-microscope</v-icon>
             Khám phá Atlas
             <v-icon size="18">mdi-arrow-right</v-icon>
           </button>
-          <button type="button" class="hero-secondary" @click="activeView = 'morphology'">
+          <button type="button" class="hero-secondary" @click="changeView('morphology')">
             <v-icon size="18">mdi-shape-outline</v-icon>
             Tìm theo hình thái
           </button>
@@ -579,7 +608,7 @@ onMounted(async () => {
       </div>
     </section>
 
-    <v-tabs v-model="activeView" class="workspace-tabs" color="primary" show-arrows>
+    <v-tabs :model-value="activeView" class="workspace-tabs" @update:model-value="changeView" color="primary" show-arrows>
       <v-tab value="atlas"><v-icon start>mdi-view-grid-outline</v-icon>Atlas ca</v-tab>
       <v-tab value="morphology"><v-icon start>mdi-shape-outline</v-icon>Tìm theo hình thái</v-tab>
       <v-tab value="who"><v-icon start>mdi-book-open-page-variant</v-icon>Danh mục WHO</v-tab>
@@ -680,6 +709,10 @@ onMounted(async () => {
           <v-text-field v-model="whoQuery" prepend-inner-icon="mdi-magnify" placeholder="Tìm tên đầy đủ hoặc từ viết tắt Việt/Anh…" hide-details clearable />
           <v-select v-model="whoVolume" :items="[{ id: 'all', nameVi: 'Tất cả quyển WHO' }, ...whoVolumes]" item-title="nameVi" item-value="id" hide-details />
         </div>
+        <p v-if="whoVolume === 'all' || whoVolume === 'book-72'" class="who-source-note">
+          IARC đã xuất bản sách U hệ tiêu hóa ấn bản 6. Các mục GI6 dưới đây dùng chỉ mục thu thập từ bản trực tuyến beta.
+          <a href="https://publications.iarc.who.int/662" target="_blank" rel="noopener noreferrer">Xem ấn bản đã xuất bản</a>
+        </p>
         <div v-if="whoAliasExpansions.length" class="search-interpretation">
           <v-icon size="18">mdi-check-decagram-outline</v-icon>
           <span>Đã nhận diện <strong>{{ whoQuery.trim().toUpperCase() }}</strong>:</span>
@@ -687,7 +720,10 @@ onMounted(async () => {
         </div>
         <div class="source-grid">
           <article v-for="entry in visibleWhoEntries" :key="`${entry.bookId}-${entry.chapterId}`" class="source-card">
-            <div class="source-card-top"><span>{{ volumeFor(entry.volumeId)?.short }}</span><small>{{ entry.entryType }}</small></div>
+            <div class="source-card-top">
+              <span>{{ volumeFor(entry.volumeId)?.nameVi }}</span>
+              <small v-if="volumeFor(entry.volumeId)?.revision === 'Beta'">Chỉ mục bản beta</small>
+            </div>
             <h3>{{ translate(entry.nameEn) }}</h3><p class="source-english">{{ entry.nameEn }}</p>
             <p>{{ translate(entry.sectionEn) }}</p>
             <a :href="entry.url" target="_blank" rel="noopener noreferrer">Mở đúng mục WHO <v-icon size="15">mdi-open-in-new</v-icon></a>
@@ -743,12 +779,15 @@ onMounted(async () => {
       <v-card class="editor-dialog">
         <v-card-title>Quản lý ảnh · {{ imageTarget?.diagnosis }}</v-card-title>
         <v-card-text>
-          <v-file-input v-model="imageFile" label="Tải ảnh lên Supabase Storage" accept="image/jpeg,image/png,image/webp,image/gif" prepend-icon="mdi-camera" show-size clearable />
+          <v-file-input v-model="imageFile" label="Tải tệp ảnh lên kho công khai" accept="image/jpeg,image/png,image/webp,image/gif" prepend-icon="mdi-camera" show-size clearable @update:model-value="imagePublicConfirmed = false" />
+          <v-alert v-if="imageFile" type="warning" variant="tonal" density="compact">Ai có liên kết đều có thể mở tệp ảnh, kể cả khi hồ sơ Atlas đặt riêng tư.</v-alert>
+          <v-checkbox v-if="imageFile" v-model="imagePublicConfirmed" label="Ảnh đã khử định danh và được phép công khai" hide-details />
           <div class="field-divider"><span>hoặc dùng URL ảnh</span></div>
           <v-text-field v-model="imageForm.imageUrl" label="URL ảnh" placeholder="https://…" />
           <v-text-field v-model="imageForm.sourceUrl" label="URL trang nguồn *" placeholder="Trang mô tả ảnh hoặc tệp gốc" />
           <v-text-field v-model="imageForm.sourceLabel" label="Tên nguồn" placeholder="Wikimedia Commons, nguồn nội bộ…" />
           <v-checkbox v-if="isEditor" v-model="imageForm.isShared" label="Chia sẻ ảnh này cho mọi người dùng Atlas" hide-details />
+          <v-alert v-if="imageSaveError" type="error" variant="tonal" role="alert">{{ imageSaveError }}</v-alert>
           <p class="dialog-note">Không tải ảnh có thông tin định danh người bệnh. Chỉ dùng ảnh bạn có quyền sử dụng và luôn lưu trang nguồn.</p>
         </v-card-text>
         <v-card-actions><v-btn variant="text" color="error" @click="restoreImage">Khôi phục ảnh gốc</v-btn><v-spacer /><v-btn variant="text" @click="imageDialogOpen=false">Hủy</v-btn><v-btn color="primary" :loading="imageSaving" @click="saveManagedImage">Lưu ảnh</v-btn></v-card-actions>
@@ -771,7 +810,11 @@ onMounted(async () => {
             <v-textarea v-model="customForm.pitfallVi" label="Bẫy chẩn đoán tiếng Việt" rows="2" />
             <v-textarea v-model="customForm.pitfallEn" label="Diagnostic pitfall in English" rows="2" />
             <v-text-field v-model="customForm.markers" label="HMMD / marker" placeholder="TTF-1, Napsin A, p40…" class="span-two" />
-            <v-file-input v-model="customImageFile" label="Tải ảnh lên" accept="image/jpeg,image/png,image/webp,image/gif" show-size />
+            <v-file-input v-model="customImageFile" label="Tải tệp ảnh lên kho công khai" accept="image/jpeg,image/png,image/webp,image/gif" show-size @update:model-value="customImagePublicConfirmed = false" />
+            <div v-if="customImageFile" class="span-two">
+              <v-alert type="warning" variant="tonal" density="compact">Ai có liên kết đều có thể mở tệp ảnh, kể cả khi hồ sơ Atlas đặt riêng tư.</v-alert>
+              <v-checkbox v-model="customImagePublicConfirmed" label="Ảnh đã khử định danh và được phép công khai" hide-details />
+            </div>
             <v-text-field v-model="customForm.imageUrl" label="Hoặc URL ảnh" />
             <v-text-field v-model="customForm.sourceUrl" label="URL trang nguồn của ảnh" />
             <v-text-field v-model="customForm.sourceLabel" label="Tên nguồn ảnh" />
@@ -779,6 +822,7 @@ onMounted(async () => {
             <v-text-field v-model="customForm.pathologyOutlinesUrl" label="URL đúng chủ đề PathologyOutlines" />
             <v-checkbox v-if="isEditor" v-model="customForm.isShared" label="Chia sẻ hồ sơ cho mọi người dùng" class="span-two" />
           </div>
+          <v-alert v-if="customSaveError" type="error" variant="tonal" role="alert">{{ customSaveError }}</v-alert>
           <p class="dialog-note">Hồ sơ tự thêm cần được người có chuyên môn kiểm tra trước khi chia sẻ. Không dùng chức năng này làm báo cáo chẩn đoán chính thức.</p>
         </v-card-text>
         <v-card-actions><v-spacer /><v-btn variant="text" @click="customDialogOpen=false">Hủy</v-btn><v-btn color="primary" :loading="customSaving" @click="saveNewCustomCase">Lưu hồ sơ</v-btn></v-card-actions>
@@ -790,6 +834,8 @@ onMounted(async () => {
 </template>
 
 <style scoped>
+.who-source-note { margin: 10px 0; color: #294b60; font-size: .85rem; }
+.who-source-note a { text-decoration: underline; }
 .atlas-page { min-height: 100%; padding-bottom: 34px; overflow: hidden; background: transparent; }
 .atlas-hero { position: relative; min-height: 390px; padding: 42px max(28px, calc((100vw - 1680px) / 2)); display: grid; grid-template-columns: minmax(0, .92fr) minmax(470px, .78fr); align-items: center; gap: clamp(34px, 5vw, 82px); overflow: hidden; color: #fff; background: #102f43; }
 .atlas-hero::before { content: ''; position: absolute; inset: 0; pointer-events: none; background-image: linear-gradient(rgba(108, 217, 210, .055) 1px, transparent 1px), linear-gradient(90deg, rgba(108, 217, 210, .055) 1px, transparent 1px); background-size: 42px 42px; mask-image: linear-gradient(90deg, #000, transparent 78%); }

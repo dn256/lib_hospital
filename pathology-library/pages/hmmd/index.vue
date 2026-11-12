@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onMounted, ref, watch } from 'vue'
+import { computed, ref, watch } from 'vue'
 import {
   IHC_LOCALIZATION_OPTIONS,
   IHC_MARKER_ATLAS,
@@ -365,9 +365,23 @@ const openCase = (item: any) => {
   caseDialogOpen.value = true
 }
 
+const route = useRoute()
+watch(() => route.query.marker, marker => {
+  if (typeof marker !== 'string') return
+  const entry = IHC_MARKER_CATALOG.find(item => item.id === marker)
+  if (!entry) return
+  activeMode.value = 'atlas'
+  markerQuery.value = entry.name
+  const item = markerCatalogItems.find(candidate => candidate.entry.id === marker)
+  if (item) openCatalogItem(item)
+}, { immediate: true })
+
 watch([query, organ, positiveMarkers, negativeMarkers], () => { limit.value = 36 })
 watch([markerQuery, markerOrgan, localizationFilter, catalogStatus], () => { catalogLimit.value = 40 })
-onMounted(() => load().catch(() => undefined))
+const loadCases = () => load().catch(() => undefined)
+watch(activeMode, mode => {
+  if (mode === 'cases') void loadCases()
+})
 </script>
 
 <template>
@@ -512,7 +526,7 @@ onMounted(() => load().catch(() => undefined))
       </section>
 
       <div v-if="loading" class="state-box"><v-progress-circular indeterminate color="primary" /><span>Đang tải kho HMMD đã bảo vệ...</span></div>
-      <v-alert v-else-if="error" type="error" variant="tonal">{{ error }}</v-alert>
+      <v-alert v-else-if="error" type="error" variant="tonal">{{ error }} <v-btn variant="text" @click="loadCases">Thử lại</v-btn></v-alert>
       <section v-else class="case-grid">
         <article v-for="item in visibleCases" :key="item.id" class="hmmd-card" @click="openCase(item)">
           <header><span>{{ organLabels[item.organ] || item.organ }}</span><small>{{ item.caseCode }}</small></header>

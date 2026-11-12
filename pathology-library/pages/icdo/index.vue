@@ -69,8 +69,8 @@ const selectedMorphology = ref<MorphologyEntry | null>(null)
 const selectedTopography = ref<TopographyEntry | null>(null)
 const morphologyInputRef = ref<HTMLInputElement | null>(null)
 const copied = ref(false)
-let morphologyTimer: ReturnType<typeof window.setTimeout> | undefined
-let topographyTimer: ReturnType<typeof window.setTimeout> | undefined
+let morphologyTimer: number | undefined
+let topographyTimer: number | undefined
 
 const translationFor = (value: string) => translateIcdoTerm(value)
 const translatedText = (value: string) => translationFor(value).text
@@ -287,6 +287,24 @@ onUnmounted(() => {
   if (morphologyTimer) window.clearTimeout(morphologyTimer)
   if (topographyTimer) window.clearTimeout(topographyTimer)
 })
+
+const route = useRoute()
+watch(() => [catalog.value, route.query.code, route.query.kind] as const, ([data, code, kind]) => {
+  if (!data || typeof code !== 'string') return
+  if (kind === 'topography' || kind === 'optional') {
+    const entries = kind === 'optional' ? data.optionalTopography : data.topography
+    const entry = entries.find(item => item.code === code)
+    if (!entry) return
+    includeOptionalTopography.value = kind === 'optional'
+    selectedTopography.value = entry
+    topographyQuery.value = code
+    return
+  }
+  const entry = data.morphology.find(item => item.code === code)
+  if (!entry) return
+  selectedMorphology.value = entry
+  morphologyQuery.value = code
+}, { immediate: true })
 
 onMounted(async () => {
   try {

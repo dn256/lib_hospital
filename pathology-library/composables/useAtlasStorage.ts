@@ -1,4 +1,4 @@
-import { ref } from 'vue'
+import { ref, watch } from 'vue'
 
 export interface AtlasImageOverride {
   id?: string
@@ -42,22 +42,33 @@ export const useAtlasStorage = () => {
   const imageOverrides = useState<Record<string, AtlasImageOverride>>('atlas-image-overrides', () => ({}))
   const customCases = useState<AtlasCustomCaseRow[]>('atlas-custom-cases', () => [])
   const loading = ref(false)
+  const owner = useState<string | null>('atlas-storage-owner', () => null)
+  watch(() => user.value?.id, id => {
+    const nextOwner = id || null
+    if (owner.value === nextOwner) return
+    owner.value = nextOwner
+    imageOverrides.value = {}
+    customCases.value = []
+    backendAvailable.value = true
+  }, { immediate: true, flush: 'sync' })
 
   const readLocal = <T>(key: string, fallback: T): T => {
     if (!import.meta.client) return fallback
     try {
-      return JSON.parse(localStorage.getItem(key) || '') as T
+      return (JSON.parse(localStorage.getItem(key) || 'null') as T | null) ?? fallback
     } catch {
       return fallback
     }
   }
 
-  const writeLocal = (key: string, value: unknown) => {
-    if (import.meta.client) localStorage.setItem(key, JSON.stringify(value))
+  const localKey = (key: string, userId: string) => `${key}:${userId}`
+  const writeLocal = (key: string, userId: string, value: unknown) => {
+    if (import.meta.client) localStorage.setItem(localKey(key, userId), JSON.stringify(value))
   }
 
   const load = async () => {
-    if (!user.value) return
+    const userId = user.value?.id
+    if (!userId) return
     loading.value = true
     try {
       const [overrideResult, caseResult] = await Promise.all([
@@ -69,16 +80,30 @@ export const useAtlasStorage = () => {
         throw overrideResult.error || caseResult.error
       }
 
-      imageOverrides.value = Object.fromEntries(
-        (overrideResult.data || []).map((item: AtlasImageOverride) => [item.case_id, item]),
-      )
+      if (user.value?.id !== userId) return
+      const overrides = new Map<string, AtlasImageOverride>()
+      for (const item of (overrideResult.data || []) as AtlasImageOverride[]) {
+        const current = overrides.get(item.case_id)
+        if (!current || (item.user_id === userId && current.user_id !== userId)) {
+          overrides.set(item.case_id, item)
+        }
+      }
+      imageOverrides.value = Object.fromEntries(overrides)
       customCases.value = (caseResult.data || []) as AtlasCustomCaseRow[]
       backendAvailable.value = true
-    } catch (error) {
-      console.warn('Atlas Supabase tables are unavailable; using local storage.', error)
+    } catch {
+      if (user.value?.id !== userId) return
       backendAvailable.value = false
-      imageOverrides.value = readLocal<Record<string, AtlasImageOverride>>(LOCAL_OVERRIDES_KEY, {})
-      customCases.value = readLocal<AtlasCustomCaseRow[]>(LOCAL_CASES_KEY, [])
+      const storedOverrides = readLocal<Record<string, AtlasImageOverride>>(
+        localKey(LOCAL_OVERRIDES_KEY, userId),
+        readLocal(LOCAL_OVERRIDES_KEY, {}),
+      )
+      const storedCases = readLocal<AtlasCustomCaseRow[]>(
+        localKey(LOCAL_CASES_KEY, userId),
+        readLocal(LOCAL_CASES_KEY, []),
+      )
+      imageOverrides.value = Object.fromEntries(Object.entries(storedOverrides).filter(([, row]) => row?.user_id === userId))
+      customCases.value = storedCases.filter(row => row?.user_id === userId)
     } finally {
       loading.value = false
     }
@@ -86,12 +111,12 @@ export const useAtlasStorage = () => {
 
   const uploadImage = async (caseId: string, file: File) => {
     if (!user.value) throw new Error('Bạn cần đăng nhập để tải ảnh.')
-    if (!file.type.startsWith('image/')) throw new Error('Tệp đã chọn không phải hình ảnh.')
+    const extension = ({ 'image/jpeg': 'jpg', 'image/png': 'png', 'image/webp': 'webp', 'image/gif': 'gif' } as Record<string, string>)[file.type]
+    if (!extension) throw new Error('Chỉ hỗ trợ ảnh JPEG, PNG, WebP và GIF.')
     if (file.size > 8 * 1024 * 1024) throw new Error('Ảnh phải nhỏ hơn 8 MB.')
     if (!backendAvailable.value) throw new Error('Supabase Storage chưa sẵn sàng. Hãy dùng URL ảnh tạm thời.')
 
-    const safeName = file.name.toLowerCase().replace(/[^a-z0-9.]+/g, '-').replace(/^-|-$/g, '')
-    const objectPath = `${user.value.id}/${caseId}/${crypto.randomUUID()}-${safeName || 'atlas-image'}`
+    const objectPath = `${user.value.id}/${caseId}/${crypto.randomUUID()}.${extension}`
     const { error } = await supabase.storage.from('atlas-images').upload(objectPath, file, {
       cacheControl: '3600',
       upsert: false,
@@ -118,7 +143,7 @@ export const useAtlasStorage = () => {
     }
 
     imageOverrides.value = { ...imageOverrides.value, [row.case_id]: row }
-    writeLocal(LOCAL_OVERRIDES_KEY, imageOverrides.value)
+    writeLocal(LOCAL_OVERRIDES_KEY, row.user_id, imageOverrides.value)
     return row
   }
 
@@ -136,7 +161,7 @@ export const useAtlasStorage = () => {
     const next = { ...imageOverrides.value }
     delete next[caseId]
     imageOverrides.value = next
-    writeLocal(LOCAL_OVERRIDES_KEY, next)
+    if (!backendAvailable.value) writeLocal(LOCAL_OVERRIDES_KEY, user.value.id, next)
   }
 
   const saveCustomCase = async (input: Omit<AtlasCustomCaseRow, 'user_id'>) => {
@@ -156,7 +181,7 @@ export const useAtlasStorage = () => {
 
     const saved = { ...row, id: row.id || `local-${crypto.randomUUID()}` }
     customCases.value = [saved, ...customCases.value.filter((item) => item.id !== saved.id)]
-    writeLocal(LOCAL_CASES_KEY, customCases.value)
+    writeLocal(LOCAL_CASES_KEY, row.user_id, customCases.value)
     return saved
   }
 
@@ -167,7 +192,9 @@ export const useAtlasStorage = () => {
       if (error) throw error
     }
     customCases.value = customCases.value.filter((item) => item.id !== id)
-    writeLocal(LOCAL_CASES_KEY, customCases.value)
+    if (!backendAvailable.value || id.startsWith('local-')) {
+      writeLocal(LOCAL_CASES_KEY, user.value.id, customCases.value.filter(item => item.id?.startsWith('local-')))
+    }
   }
 
   return {
