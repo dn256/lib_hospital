@@ -26,6 +26,7 @@ export default defineNuxtConfig({
     '/': { ssr: false },
     '/login': { ssr: false },
     '/library': { ssr: false },
+    '/search': { ssr: false },
     '/workspace': { ssr: false },
     '/atlas': { ssr: false },
     '/hmmd': { ssr: false },

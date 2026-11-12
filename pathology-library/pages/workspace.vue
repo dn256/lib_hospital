@@ -1,93 +1,187 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed, onMounted, ref, watch } from 'vue'
+import { libraryModule, libraryModules, type LibraryModuleId } from '~/utils/libraryModules'
 
 definePageMeta({ layout: 'library', middleware: 'auth' })
 
-const moduleOptions = [
-  { value: 'library', title: 'Thư viện mô bệnh học', icon: 'mdi-bookshelf', path: '/library' },
-  { value: 'atlas', title: 'Atlas GPB', icon: 'mdi-microscope', path: '/atlas' },
-  { value: 'hmmd', title: 'Thư viện HMMD', icon: 'mdi-test-tube', path: '/hmmd' },
-  { value: 'icdo', title: 'Tra cứu ICD-O', icon: 'mdi-code-tags', path: '/icdo' },
-  { value: 'who', title: 'Danh mục WHO', icon: 'mdi-book-open-page-variant', path: '/atlas?view=who' },
-  { value: 'images', title: 'Kho ảnh', icon: 'mdi-image-multiple-outline', path: '/atlas?view=images' },
-]
+type PaneId = 'a' | 'b'
+type Focus = 'both' | 'left' | 'right'
+const paneIds = ['a', 'b'] as const
+const moduleIds = new Set<string>(libraryModules.map(item => item.id))
+const prefsKey = 'pathologylib-workspace-layout'
+const selected = ref<Record<PaneId, LibraryModuleId>>({ a: 'library', b: 'atlas' })
+const mountedModules = ref<Record<PaneId, LibraryModuleId[]>>({ a: ['library'], b: ['atlas'] })
+const frameVersions = ref<Record<PaneId, Partial<Record<LibraryModuleId, number>>>>({ a: {}, b: {} })
+const swapped = ref(false)
+const focus = ref<Focus>('both')
+const ratio = ref(50)
+const panes = ref<HTMLElement | null>(null)
+const dragging = ref(false)
 
-const leftModule = ref('library')
-const rightModule = ref('atlas')
-const focusMode = ref<'both' | 'left' | 'right'>('both')
-const leftVersion = ref(0)
-const rightVersion = ref(0)
-
-const moduleFor = (value: string) => moduleOptions.find((item) => item.value === value) || moduleOptions[0]
-const embeddedUrl = (value: string, version: number) => {
-  const item = moduleFor(value)
-  const separator = item.path.includes('?') ? '&' : '?'
-  return `${item.path}${separator}embed=1&pane=${version}`
+const { label } = useLibraryLanguage()
+const moduleOptions = computed(() => libraryModules.map(item => ({ value: item.id, title: label(item.vi, item.en) })))
+const frameTitle = (id: LibraryModuleId) => {
+  const item = libraryModule(id)
+  return label(item.vi, item.en)
 }
-const leftUrl = computed(() => embeddedUrl(leftModule.value, leftVersion.value))
-const rightUrl = computed(() => embeddedUrl(rightModule.value, rightVersion.value))
-const fullUrl = (value: string) => moduleFor(value).path
+const sideFor = (pane: PaneId) => (pane === 'a') !== swapped.value ? 'left' : 'right'
+const sideLabel = (pane: PaneId, vi: string, en: string) => sideFor(pane) === 'left'
+  ? label(`${vi} trái`, `Left ${en}`)
+  : label(`${vi} phải`, `Right ${en}`)
+const frameUrl = (id: LibraryModuleId) => {
+  const { path } = libraryModule(id)
+  return `${path}${path.includes('?') ? '&' : '?'}embed=1`
+}
+const setModule = (pane: PaneId, value: LibraryModuleId) => {
+  if (!moduleIds.has(value)) return
+  selected.value[pane] = value
+  if (!mountedModules.value[pane].includes(value)) mountedModules.value[pane].push(value)
+}
 
-const swapPanes = () => {
-  const current = leftModule.value
-  leftModule.value = rightModule.value
-  rightModule.value = current
-  focusMode.value = 'both'
+onMounted(() => {
+  try {
+    const saved = JSON.parse(sessionStorage.getItem(prefsKey) || 'null')
+    if (!saved) return
+    for (const pane of paneIds) {
+      if (moduleIds.has(saved.selected?.[pane])) selected.value[pane] = saved.selected[pane]
+      mountedModules.value[pane] = [selected.value[pane]]
+    }
+    if (typeof saved.swapped === 'boolean') swapped.value = saved.swapped
+    if (['both', 'left', 'right'].includes(saved.focus)) focus.value = saved.focus
+    if (typeof saved.ratio === 'number' && saved.ratio >= 30 && saved.ratio <= 70) ratio.value = saved.ratio
+  } catch {
+    // The workspace also works when browser storage is unavailable.
+  }
+})
+
+watch(() => [selected.value.a, selected.value.b, swapped.value, focus.value, ratio.value], () => {
+  try {
+    sessionStorage.setItem(prefsKey, JSON.stringify({ selected: selected.value, swapped: swapped.value, focus: focus.value, ratio: ratio.value }))
+  } catch {
+    // Only display preferences are stored.
+  }
+})
+
+const reloadPane = (pane: PaneId) => {
+  const id = selected.value[pane]
+  frameVersions.value[pane][id] = (frameVersions.value[pane][id] || 0) + 1
+}
+
+const gridStyle = computed(() => ({
+  '--left-size': `minmax(0, ${ratio.value}fr)`,
+  '--right-size': `minmax(0, ${100 - ratio.value}fr)`,
+}))
+const setRatio = (value: number) => { ratio.value = Math.max(30, Math.min(70, Math.round(value))) }
+const moveDivider = (event: PointerEvent) => {
+  if (!dragging.value || !panes.value) return
+  const bounds = panes.value.getBoundingClientRect()
+  if (bounds.width > 0) setRatio(100 * (event.clientX - bounds.left) / bounds.width)
+}
+const startResize = (event: PointerEvent) => {
+  if (event.button !== 0) return
+  event.preventDefault()
+  const handle = event.currentTarget as HTMLElement
+  handle.focus()
+  handle.setPointerCapture(event.pointerId)
+  dragging.value = true
+}
+const resizeWithKeys = (event: KeyboardEvent) => {
+  const next = { ArrowLeft: ratio.value - 5, ArrowRight: ratio.value + 5, Home: 30, End: 70 }[event.key]
+  if (next === undefined) return
+  event.preventDefault()
+  setRatio(next)
 }
 </script>
 
 <template>
   <div class="workspace-page">
     <header class="workspace-toolbar">
-      <div class="workspace-title">
-        <p>CHẾ ĐỘ ĐA NHIỆM</p>
-        <h1>Bàn làm việc đôi</h1>
-        <span>Mở hai công cụ và đối chiếu trên cùng một màn hình.</span>
-      </div>
+      <h1>{{ label('Bàn làm việc đôi', 'Dual workspace') }}</h1>
       <div class="view-actions">
-        <v-btn-toggle v-model="focusMode" mandatory density="compact" color="primary" variant="outlined">
-          <v-btn value="left" icon="mdi-dock-left" title="Chỉ hiện vùng trái" />
-          <v-btn value="both" icon="mdi-view-split-vertical" title="Hiện hai vùng" />
-          <v-btn value="right" icon="mdi-dock-right" title="Chỉ hiện vùng phải" />
+        <v-btn-toggle v-model="focus" mandatory density="compact" color="primary" variant="outlined" :aria-label="label('Vùng làm việc đang hiển thị', 'Visible workspace panes')">
+          <v-btn value="left" icon="mdi-dock-left" :title="label('Chỉ hiện vùng trái', 'Show left pane only')" :aria-label="label('Chỉ hiện vùng trái', 'Show left pane only')" />
+          <v-btn value="both" icon="mdi-view-split-vertical" :title="label('Hiện hai vùng', 'Show both panes')" :aria-label="label('Hiện hai vùng', 'Show both panes')" />
+          <v-btn value="right" icon="mdi-dock-right" :title="label('Chỉ hiện vùng phải', 'Show right pane only')" :aria-label="label('Chỉ hiện vùng phải', 'Show right pane only')" />
         </v-btn-toggle>
-        <v-btn icon="mdi-swap-horizontal" variant="outlined" size="small" title="Đổi vị trí hai vùng" @click="swapPanes" />
+        <v-btn icon="mdi-swap-horizontal" variant="outlined" size="small" :title="label('Đổi vị trí hai vùng', 'Swap panes')" :aria-label="label('Đổi vị trí hai vùng', 'Swap panes')" @click="swapped = !swapped; focus = 'both'" />
       </div>
     </header>
 
-    <main class="pane-grid" :class="`focus-${focusMode}`">
-      <section v-show="focusMode !== 'right'" class="workspace-pane left-pane">
+    <div ref="panes" class="pane-grid" :class="[`focus-${focus}`, { dragging }]" :style="gridStyle">
+      <section
+        v-for="pane in paneIds"
+        v-show="focus === 'both' || focus === sideFor(pane)"
+        :key="pane"
+        class="workspace-pane"
+        :class="`pane-${sideFor(pane)}`"
+        :aria-label="sideLabel(pane, 'Vùng', 'pane')"
+      >
         <div class="pane-toolbar">
-          <v-select v-model="leftModule" :items="moduleOptions" item-title="title" item-value="value" density="compact" hide-details variant="outlined">
-            <template #prepend-inner><v-icon size="18">{{ moduleFor(leftModule).icon }}</v-icon></template>
+          <v-select
+            :model-value="selected[pane]"
+            :items="moduleOptions"
+            :aria-label="sideLabel(pane, 'Mô-đun vùng', 'pane module')"
+            density="compact"
+            hide-details
+            variant="outlined"
+            @update:model-value="setModule(pane, $event)"
+          >
+            <template #prepend-inner><v-icon size="18">{{ libraryModule(selected[pane]).icon }}</v-icon></template>
           </v-select>
-          <v-btn :to="fullUrl(leftModule)" icon="mdi-open-in-new" variant="text" size="small" title="Mở toàn màn hình" />
-          <v-btn icon="mdi-refresh" variant="text" size="small" title="Tải lại vùng trái" @click="leftVersion++" />
+          <v-btn :href="libraryModule(selected[pane]).path" target="_blank" rel="noopener" icon="mdi-open-in-new" variant="text" size="small" :title="label('Mở trong tab mới', 'Open in new tab')" :aria-label="label('Mở trong tab mới', 'Open in new tab')" />
+          <v-btn icon="mdi-refresh" variant="text" size="small" :title="sideLabel(pane, 'Tải lại vùng', 'pane refresh')" :aria-label="sideLabel(pane, 'Tải lại vùng', 'pane refresh')" @click="reloadPane(pane)" />
         </div>
-        <iframe :key="leftUrl" :src="leftUrl" :title="moduleFor(leftModule).title" />
+        <iframe
+          v-for="id in mountedModules[pane]"
+          v-show="id === selected[pane]"
+          :key="`${id}-${frameVersions[pane][id] || 0}`"
+          :src="frameUrl(id)"
+          :title="frameTitle(id)"
+          loading="lazy"
+        />
       </section>
-
-      <section v-show="focusMode !== 'left'" class="workspace-pane right-pane">
-        <div class="pane-toolbar">
-          <v-select v-model="rightModule" :items="moduleOptions" item-title="title" item-value="value" density="compact" hide-details variant="outlined">
-            <template #prepend-inner><v-icon size="18">{{ moduleFor(rightModule).icon }}</v-icon></template>
-          </v-select>
-          <v-btn :to="fullUrl(rightModule)" icon="mdi-open-in-new" variant="text" size="small" title="Mở toàn màn hình" />
-          <v-btn icon="mdi-refresh" variant="text" size="small" title="Tải lại vùng phải" @click="rightVersion++" />
-        </div>
-        <iframe :key="rightUrl" :src="rightUrl" :title="moduleFor(rightModule).title" />
-      </section>
-    </main>
+      <div
+        v-if="focus === 'both'"
+        class="pane-divider"
+        role="separator"
+        tabindex="0"
+        :aria-label="label('Thay đổi chiều rộng hai vùng', 'Resize panes')"
+        aria-orientation="vertical"
+        aria-valuemin="30"
+        aria-valuemax="70"
+        :aria-valuenow="ratio"
+        @pointerdown="startResize"
+        @pointermove="moveDivider"
+        @lostpointercapture="dragging = false"
+        @keydown="resizeWithKeys"
+      />
+    </div>
   </div>
 </template>
 
 <style scoped>
-.workspace-page { min-height: calc(100vh - 68px); display: flex; flex-direction: column; background: #e9eff2; }
-.workspace-toolbar { min-height: 88px; padding: 14px 22px; display: flex; align-items: center; justify-content: space-between; gap: 24px; background: #fff; border-bottom: 1px solid #d2dde2; }.workspace-title p { margin: 0; color: #16877e; font-size: .64rem; font-weight: 900; }.workspace-title h1 { margin: 2px 0 0; color: #15384b; font: 700 1.45rem var(--font-heading); }.workspace-title span { color: #718691; font-size: .7rem; }.view-actions { display: flex; align-items: center; gap: 8px; }
-.pane-grid { flex: 1; min-height: 0; padding: 10px; display: grid; grid-template-columns: minmax(0,1fr) minmax(0,1fr); gap: 10px; }.pane-grid.focus-left, .pane-grid.focus-right { grid-template-columns: minmax(0,1fr); }
-.workspace-page,
-.pane-grid,
-.workspace-pane { min-width: 0; }
-.workspace-pane { min-height: 650px; overflow: hidden; background: #fff; border: 1px solid #cbd8de; border-radius: 8px; box-shadow: 0 10px 24px rgba(18,50,67,.09); }.pane-toolbar { min-height: 51px; padding: 6px 8px 6px 12px; display: grid; grid-template-columns: minmax(180px,280px) 36px 36px; align-items: center; gap: 4px; background: #f8fafb; border-bottom: 1px solid #d8e2e6; }.pane-toolbar :deep(.v-field) { background: #fff; }.workspace-pane iframe { width: 100%; height: calc(100vh - 218px); min-height: 590px; display: block; border: 0; background: #fff; }
-@media (max-width: 900px) { .pane-grid { grid-template-columns: 1fr; }.workspace-pane iframe { height: 720px; }.workspace-toolbar { align-items: flex-start; flex-direction: column; }.view-actions { width: 100%; justify-content: space-between; } }
-@media (max-width: 640px) { .workspace-page { min-height: calc(100vh - 62px); }.workspace-toolbar { padding: 12px 14px; }.workspace-title span { display: none; }.pane-grid { padding: 7px; gap: 7px; }.workspace-pane { min-height: 570px; }.workspace-pane iframe { height: 620px; min-height: 540px; }.pane-toolbar { grid-template-columns: minmax(150px,1fr) 34px 34px; } }
+.workspace-page { min-height: calc(100dvh - 68px); display: flex; flex-direction: column; background: #e9eff2; }
+.workspace-toolbar { padding: 12px 22px; display: flex; align-items: center; justify-content: space-between; gap: 12px; background: #fff; border-bottom: 1px solid #d2dde2; }
+.workspace-toolbar h1 { margin: 0; color: #15384b; font: 700 1.55rem var(--font-heading); }
+.view-actions { display: flex; align-items: center; gap: 8px; }
+.pane-grid { flex: 1; padding: 10px; display: grid; grid-template-columns: var(--left-size) 14px var(--right-size); grid-template-areas: "left divider right"; }
+.pane-grid.focus-left { grid-template-columns: minmax(0,1fr); grid-template-areas: "left"; }
+.pane-grid.focus-right { grid-template-columns: minmax(0,1fr); grid-template-areas: "right"; }
+.pane-left { grid-area: left; }
+.pane-right { grid-area: right; }
+.workspace-pane { min-width: 0; overflow: hidden; background: #fff; border: 1px solid #cbd8de; border-radius: 8px; box-shadow: 0 10px 24px rgba(18,50,67,.09); }
+.pane-toolbar { min-height: 51px; padding: 6px 8px; display: grid; grid-template-columns: minmax(0,1fr) 36px 36px; align-items: center; gap: 4px; background: #f8fafb; border-bottom: 1px solid #d8e2e6; }
+.workspace-pane iframe { width: 100%; height: max(440px, calc(100dvh - 200px)); display: block; border: 0; background: #fff; }
+.pane-divider { grid-area: divider; cursor: col-resize; display: grid; place-items: center; touch-action: none; }
+.pane-divider::before { content: ''; width: 4px; height: 52px; border-radius: 4px; background: #7d9ca9; }
+.pane-divider:hover::before, .pane-divider:focus-visible::before, .dragging .pane-divider::before { background: #136959; }
+.dragging iframe { pointer-events: none; }
+@media (max-width: 900px) {
+  .pane-grid.focus-both { grid-template-columns: minmax(0,1fr); grid-template-areas: "left" "right"; gap: 8px; }
+  .pane-divider { display: none; }
+}
+@media (max-width: 540px) {
+  .workspace-toolbar { align-items: flex-start; flex-direction: column; padding: 10px 14px; }
+  .pane-grid { padding: 7px; }
+}
 </style>

@@ -6,6 +6,8 @@ const DATA_SCRIPTS = [
   '/atlas-data/webpathology-catalog.js',
 ]
 
+let pendingLoad: Promise<void> | undefined
+
 export const useIntegratedAtlasData = () => {
   const loaded = useState('integrated-atlas-loaded', () => false)
   const loading = useState('integrated-atlas-loading', () => false)
@@ -33,12 +35,14 @@ export const useIntegratedAtlasData = () => {
       script.dataset.loaded = 'true'
       resolve()
     }, { once: true })
-    script.addEventListener('error', () => reject(new Error(`Không tải được ${src}`)), { once: true })
+    script.addEventListener('error', () => {
+      script.remove()
+      reject(new Error(`Không tải được ${src}`))
+    }, { once: true })
     document.head.appendChild(script)
   })
 
-  const load = async () => {
-    if (!import.meta.client || loaded.value || loading.value) return
+  const loadData = async () => {
     loading.value = true
     error.value = null
     try {
@@ -57,6 +61,12 @@ export const useIntegratedAtlasData = () => {
     } finally {
       loading.value = false
     }
+  }
+
+  const load = async () => {
+    if (!import.meta.client || loaded.value) return
+    pendingLoad ??= loadData().finally(() => { pendingLoad = undefined })
+    return pendingLoad
   }
 
   return {
