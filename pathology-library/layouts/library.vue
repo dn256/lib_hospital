@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue'
-import { libraryModules } from '~/utils/libraryModules'
 
 const route = useRoute()
 const router = useRouter()
@@ -10,14 +9,15 @@ const mobileMenuOpen = ref(false)
 const embedded = computed(() => route.query.embed === '1')
 const isWorkspace = computed(() => route.path === '/workspace')
 const isLibrary = computed(() => route.path === '/library')
-const showSharedBackground = computed(() => !embedded.value && route.path === '/')
+const showSharedBackground = computed(() => !embedded.value && !isLibrary.value && !isWorkspace.value)
+
 const { locale, english, label } = useLibraryLanguage()
 const languageKey = 'pathologylib-language'
 onMounted(() => {
   try {
     if (localStorage.getItem(languageKey) === 'en') locale.value = 'en'
   } catch {
-    // Language selection remains available for the current page.
+    // The current session can still switch languages.
   }
 })
 const changeLanguage = () => {
@@ -25,29 +25,20 @@ const changeLanguage = () => {
   try {
     localStorage.setItem(languageKey, locale.value)
   } catch {
-    // Browser storage may be disabled.
+    // Keep the current selection in memory if storage is unavailable.
   }
 }
 
-const navItems = computed(() => [
-  { title: label('Tra cứu', 'Search'), icon: 'mdi-magnify', to: '/search' },
-  ...libraryModules.slice(0, 4).map(module => ({
-    title: label(module.vi, module.en),
-    icon: module.icon,
-    to: module.path,
-  })),
-  { title: label('Đa nhiệm', 'Workspace'), icon: 'mdi-view-split-vertical', to: '/workspace' },
-])
-const references = computed(() => libraryModules.slice(4).map(module => ({
-  title: label(module.vi, module.en),
-  icon: module.icon,
-  to: module.path,
-})))
-const mobileItems = computed(() => [
-  { title: label('Trang chủ', 'Home'), icon: 'mdi-home-outline', to: '/' },
-  ...navItems.value,
-  ...references.value,
-])
+const navItems = [
+  { title: 'Trang chủ', icon: 'mdi-home-outline', to: '/' },
+  { title: 'Thư viện mô bệnh học', icon: 'mdi-bookshelf', to: '/library' },
+  { title: 'Atlas GPB', icon: 'mdi-microscope', to: '/atlas' },
+  { title: 'Thư viện HMMD', icon: 'mdi-test-tube', to: '/hmmd' },
+  { title: 'Tra cứu ICD-O', icon: 'mdi-code-tags', to: '/icdo' },
+  { title: 'Danh mục WHO', icon: 'mdi-book-open-page-variant', to: '/atlas?view=who' },
+  { title: 'Kho ảnh', icon: 'mdi-image-multiple', to: '/atlas?view=images' },
+  { title: 'Đa nhiệm', icon: 'mdi-view-split-vertical', to: '/workspace' },
+]
 
 const displayName = computed(() => profile.value?.display_name || user.value?.email?.split('@')[0] || 'Người học')
 const isActive = (to: string) => {
@@ -72,7 +63,7 @@ const handleLogout = async () => {
         <span class="brand-mark"><v-icon size="23">mdi-microscope</v-icon></span>
         <span class="brand-copy">
           <strong>PathologyLib</strong>
-          <small>{{ label('Thư viện mô bệnh học', 'Pathology Library') }}</small>
+          <small>Thư viện mô bệnh học</small>
         </span>
       </NuxtLink>
 
@@ -88,19 +79,18 @@ const handleLogout = async () => {
           <v-icon size="17">{{ item.icon }}</v-icon>
           <span>{{ item.title }}</span>
         </NuxtLink>
-        <v-menu>
-          <template #activator="{ props }">
-            <button v-bind="props" class="header-link reference-button" :class="{ active: references.some(item => isActive(item.to)) }">
-              {{ label('Tài liệu', 'References') }} <v-icon size="15">mdi-chevron-down</v-icon>
-            </button>
-          </template>
-          <v-list density="compact">
-            <v-list-item v-for="item in references" :key="item.to" :to="item.to" :title="item.title" :prepend-icon="item.icon" />
-          </v-list>
-        </v-menu>
       </nav>
 
       <div class="header-actions">
+        <v-btn
+          to="/search"
+          icon="mdi-magnify"
+          variant="text"
+          color="white"
+          size="small"
+          :aria-label="label('Tra cứu liên thông', 'Search across libraries')"
+          :title="label('Tra cứu liên thông', 'Search across libraries')"
+        />
         <v-btn
           v-if="canCreateCase && isLibrary"
           to="/cases/new"
@@ -123,9 +113,6 @@ const handleLogout = async () => {
           size="small"
           title="Quản trị thư viện"
         />
-        <v-btn variant="text" size="small" class="language-button" :aria-label="english ? 'Chuyển sang tiếng Việt' : 'Switch to English'" @click="changeLanguage">
-          {{ english ? 'VI' : 'EN' }}
-        </v-btn>
         <v-menu>
           <template #activator="{ props }">
             <v-btn v-bind="props" variant="text" class="account-button">
@@ -144,7 +131,12 @@ const handleLogout = async () => {
               title="Tạo ca bệnh mới"
             />
             <v-list-item v-if="canAccessAdmin" to="/admin" prepend-icon="mdi-shield-crown" title="Quản trị" />
-            <v-list-item prepend-icon="mdi-logout" :title="label('Đăng xuất', 'Sign out')" @click="handleLogout" />
+            <v-list-item
+              prepend-icon="mdi-translate"
+              :title="english ? 'Chuyển sang tiếng Việt' : 'Switch to English'"
+              @click="changeLanguage"
+            />
+            <v-list-item prepend-icon="mdi-logout" title="Đăng xuất" @click="handleLogout" />
           </v-list>
         </v-menu>
         <v-btn
@@ -153,14 +145,14 @@ const handleLogout = async () => {
           variant="text"
           color="white"
           size="small"
-          :title="label('Mở điều hướng', 'Open navigation')"
-          :aria-label="label('Mở điều hướng', 'Open navigation')"
+          title="Mở điều hướng"
+          aria-label="Mở điều hướng"
           :aria-expanded="mobileMenuOpen"
           @click="mobileMenuOpen = !mobileMenuOpen"
         />
       </div>
 
-      <nav v-if="mobileMenuOpen" @keydown.esc="mobileMenuOpen = false" class="mobile-nav" aria-label="Điều hướng di động">
+      <nav v-if="mobileMenuOpen" class="mobile-nav" aria-label="Điều hướng di động" @keydown.esc="mobileMenuOpen = false">
         <NuxtLink
           v-if="canCreateCase && isLibrary"
           to="/cases/new"
@@ -171,7 +163,7 @@ const handleLogout = async () => {
           Tạo ca bệnh mới
         </NuxtLink>
         <NuxtLink
-          v-for="item in mobileItems"
+          v-for="item in navItems"
           :key="item.to"
           :to="item.to"
           class="mobile-link"
@@ -189,8 +181,8 @@ const handleLogout = async () => {
     </main>
 
     <footer v-if="!embedded && !isWorkspace" class="library-footer">
-      <span>PathologyLib · {{ label('Không gian học tập GPB', 'Pathology learning workspace') }}</span>
-      <span>{{ label('Chỉ dùng cho học tập, không thay thế chẩn đoán chuyên khoa.', 'For learning. Clinical diagnosis requires specialist review.') }}</span>
+      <span>PathologyLib · Không gian học tập GPB</span>
+      <span>Chỉ dùng cho học tập, không thay thế chẩn đoán chuyên khoa.</span>
     </footer>
   </div>
 </template>
@@ -218,11 +210,11 @@ const handleLogout = async () => {
   top: 0;
   z-index: 100;
   min-height: 68px;
-  padding: 0 18px;
+  padding: 0 28px;
   display: grid;
-  grid-template-columns: auto 1fr auto;
+  grid-template-columns: minmax(210px, 1fr) auto minmax(210px, 1fr);
   align-items: center;
-  gap: 14px;
+  gap: 24px;
   background: #102f43;
   border-bottom: 3px solid #c9a227;
   box-shadow: 0 5px 18px rgba(17, 38, 54, 0.16);
@@ -271,21 +263,19 @@ const handleLogout = async () => {
 .desktop-nav {
   display: flex;
   align-items: stretch;
-  justify-content: center;
   height: 68px;
 }
 
 .header-link {
   position: relative;
-  min-width: 0;
-  padding: 0 8px;
-  white-space: nowrap;
+  min-width: 112px;
+  padding: 0 15px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 7px;
   color: #c6d4dc;
-  font-size: 0.78rem;
+  font-size: 0.86rem;
   font-weight: 600;
 }
 
@@ -325,8 +315,6 @@ const handleLogout = async () => {
   text-transform: none;
 }
 
-.reference-button { border: 0; background: none; }
-.language-button { color: #fff; min-width: 34px; }
 .account-button {
   color: #fff;
   text-transform: none;
@@ -371,7 +359,7 @@ const handleLogout = async () => {
   font-size: 0.78rem;
 }
 
-@media (max-width: 1150px) {
+@media (max-width: 1320px) {
   .library-header {
     grid-template-columns: auto 1fr auto;
   }
@@ -422,8 +410,6 @@ const handleLogout = async () => {
   .mobile-link:hover {
     background: #eef4f6;
   }
-
-  .mobile-link[aria-current='page'] { background: #e2f0ee; }
 
   .mobile-create-link {
     color: #102f43;

@@ -96,7 +96,11 @@ const resizeWithKeys = (event: KeyboardEvent) => {
 <template>
   <div class="workspace-page">
     <header class="workspace-toolbar">
-      <h1>{{ label('Bàn làm việc đôi', 'Dual workspace') }}</h1>
+      <div class="workspace-title">
+        <p>{{ label('CHẾ ĐỘ ĐA NHIỆM', 'MULTITASKING') }}</p>
+        <h1>{{ label('Bàn làm việc đôi', 'Dual workspace') }}</h1>
+        <span>{{ label('Mở hai công cụ và đối chiếu trên cùng một màn hình.', 'Compare two tools side by side.') }}</span>
+      </div>
       <div class="view-actions">
         <v-btn-toggle v-model="focus" mandatory density="compact" color="primary" variant="outlined" :aria-label="label('Vùng làm việc đang hiển thị', 'Visible workspace panes')">
           <v-btn value="left" icon="mdi-dock-left" :title="label('Chỉ hiện vùng trái', 'Show left pane only')" :aria-label="label('Chỉ hiện vùng trái', 'Show left pane only')" />
@@ -161,8 +165,10 @@ const resizeWithKeys = (event: KeyboardEvent) => {
 
 <style scoped>
 .workspace-page { min-height: calc(100dvh - 68px); display: flex; flex-direction: column; background: #e9eff2; }
-.workspace-toolbar { padding: 12px 22px; display: flex; align-items: center; justify-content: space-between; gap: 12px; background: #fff; border-bottom: 1px solid #d2dde2; }
-.workspace-toolbar h1 { margin: 0; color: #15384b; font: 700 1.55rem var(--font-heading); }
+.workspace-toolbar { min-height: 88px; padding: 14px 22px; display: flex; align-items: center; justify-content: space-between; gap: 24px; background: #fff; border-bottom: 1px solid #d2dde2; }
+.workspace-title p { margin: 0; color: #16877e; font-size: .64rem; font-weight: 900; }
+.workspace-title h1 { margin: 2px 0 0; color: #15384b; font: 700 1.45rem var(--font-heading); }
+.workspace-title span { color: #718691; font-size: .7rem; }
 .view-actions { display: flex; align-items: center; gap: 8px; }
 .pane-grid { flex: 1; padding: 10px; display: grid; grid-template-columns: var(--left-size) 14px var(--right-size); grid-template-areas: "left divider right"; }
 .pane-grid.focus-left { grid-template-columns: minmax(0,1fr); grid-template-areas: "left"; }
@@ -170,8 +176,9 @@ const resizeWithKeys = (event: KeyboardEvent) => {
 .pane-left { grid-area: left; }
 .pane-right { grid-area: right; }
 .workspace-pane { min-width: 0; overflow: hidden; background: #fff; border: 1px solid #cbd8de; border-radius: 8px; box-shadow: 0 10px 24px rgba(18,50,67,.09); }
-.pane-toolbar { min-height: 51px; padding: 6px 8px; display: grid; grid-template-columns: minmax(0,1fr) 36px 36px; align-items: center; gap: 4px; background: #f8fafb; border-bottom: 1px solid #d8e2e6; }
-.workspace-pane iframe { width: 100%; height: max(440px, calc(100dvh - 200px)); display: block; border: 0; background: #fff; }
+.pane-toolbar { min-height: 51px; padding: 6px 8px; display: grid; grid-template-columns: minmax(0,280px) 36px 36px; align-items: center; gap: 4px; background: #f8fafb; border-bottom: 1px solid #d8e2e6; }
+.pane-toolbar :deep(.v-field) { background: #fff; }
+.workspace-pane iframe { width: 100%; height: max(440px, calc(100dvh - 218px)); display: block; border: 0; background: #fff; }
 .pane-divider { grid-area: divider; cursor: col-resize; display: grid; place-items: center; touch-action: none; }
 .pane-divider::before { content: ''; width: 4px; height: 52px; border-radius: 4px; background: #7d9ca9; }
 .pane-divider:hover::before, .pane-divider:focus-visible::before, .dragging .pane-divider::before { background: #136959; }
@@ -180,8 +187,10 @@ const resizeWithKeys = (event: KeyboardEvent) => {
   .pane-grid.focus-both { grid-template-columns: minmax(0,1fr); grid-template-areas: "left" "right"; gap: 8px; }
   .pane-divider { display: none; }
 }
-@media (max-width: 540px) {
-  .workspace-toolbar { align-items: flex-start; flex-direction: column; padding: 10px 14px; }
+@media (max-width: 640px) {
+  .workspace-page { min-height: calc(100dvh - 62px); }
+  .workspace-toolbar { align-items: flex-start; flex-direction: column; gap: 12px; padding: 12px 14px; }
+  .workspace-title span { display: none; }
   .pane-grid { padding: 7px; }
 }
 </style>
